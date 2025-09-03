@@ -1,0 +1,60 @@
+#pragma once
+
+#include <d3d12.h>
+
+#include "Engine/ComPtr.h"
+
+class CommandQueue {
+public:
+    CommandQueue();
+    ~CommandQueue();
+
+    /////////////////////////////////////////////////////////////////////////
+    /// @brief コマンドキューとフェンスとイベントを生成して初期化
+    /// @param pDevice デバイス
+    /// @param type コマンドリストのタイプ
+    /// @return 成功した場合はtrue、失敗した場合はfalse
+    /////////////////////////////////////////////////////////////////////////
+    bool Init(ID3D12Device* dev, D3D12_COMMAND_LIST_TYPE type);
+
+    ///////////////////////////////////////////////////////////////
+    /// @brief シグナルを送信し，フェンスの値を発行する
+    /// @return フェンス値
+    ///////////////////////////////////////////////////////////////
+    UINT64 Signal();
+
+    ////////////////////////////////////////////////////////////////
+    /// @brief フェンスが指定した値になるまで待機
+    /// @param timeout タイムアウト時間
+    ////////////////////////////////////////////////////////////////
+    void Wait(UINT64 fenceValue, UINT timeout);
+
+    ////////////////////////////////////////////////////////////////
+    /// @brief コマンドリストを実行する
+    /// @param lists コマンドリストの配列
+    /// @param count コマンドリストの数
+    ////////////////////////////////////////////////////////////////
+    void Execute(ID3D12CommandList* const* lists, UINT count);
+
+    ////////////////////////////////////////////////////////////////
+    /// @brief 現時点のコマンドをすべて実行させる
+    ////////////////////////////////////////////////////////////////
+    void Flush();
+
+    ID3D12CommandQueue* GetD3DQueue() const;
+
+    ////////////////////////////////////////////////////////////////
+    /// @brief 終了処理
+    ////////////////////////////////////////////////////////////////
+    void Term();
+
+private:
+    engine::ComPtr<ID3D12CommandQueue> m_pQueue;
+    engine::ComPtr<ID3D12Fence> m_pFence;
+
+    UINT64 m_nextFence = 1;
+    HANDLE m_fenceEvent = nullptr;
+
+    CommandQueue(const CommandQueue&) = delete;
+    CommandQueue& operator=(const CommandQueue&) = delete;
+};
