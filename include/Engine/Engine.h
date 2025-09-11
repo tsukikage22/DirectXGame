@@ -54,6 +54,7 @@ protected:
         m_pCmdAllocator[FrameCount];                       // コマンドアロケータ
     engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList;  // コマンドリスト
     engine::ComPtr<ID3D12RootSignature> m_pRootSignature;  // ルートシグネチャ
+    engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
 
     uint32_t m_FrameIndex;  // 現在のフレーム番号
 

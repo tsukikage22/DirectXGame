@@ -161,5 +161,6 @@ bool RootSignatureBuilder::Build(
 void RootSignatureBuilder::Reset() {
     m_params.clear();
     m_samplers.clear();
+    m_tableData.clear();
     m_flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
 }

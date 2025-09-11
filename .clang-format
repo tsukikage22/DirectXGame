@@ -6,3 +6,4 @@ AlignAfterOpenBracket: DontAlign
 AccessModifierOffset: -4
 ConstructorInitializerIndentWidth: 4
 Cpp11BracedListStyle: false
+AlignConsecutiveAssignments: Consecutive

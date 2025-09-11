@@ -246,17 +246,21 @@ void Engine::InitApp() {
         range.push_back(RootSignatureBuilder::CreateRange(
             D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0));
 
-        builder.AddCBV(0, D3D12_SHADER_VISIBILITY_VERTEX);
-        builder.AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL);
-        builder.AddStaticSampler(0);
         bool result =
-            builder.Build(m_pDevice.Get(), m_pRootSignature.GetAddressOf());
+            builder.AddCBV(0, D3D12_SHADER_VISIBILITY_VERTEX)
+                .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL)
+                .AddStaticSampler(0)
+                .Build(m_pDevice.Get(), m_pRootSignature.GetAddressOf());
+
         if (result) {
             return;
         }
     }
 
     // パイプラインステートの生成
+    {
+        // シェーダの読み込み
+    }
 
     // テクスチャの生成
 }
