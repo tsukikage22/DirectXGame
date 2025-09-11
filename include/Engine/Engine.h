@@ -19,6 +19,7 @@
 #include "Engine/DepthStencil.h"
 #include "Engine/DescriptorPool.h"
 #include "Engine/IndexBuffer.h"
+#include "Engine/RootSignatureBuilder.h"
 #include "Engine/VertexBuffer.h"
 
 ///////////////////////////////////////////
@@ -52,6 +53,7 @@ protected:
     engine::ComPtr<ID3D12CommandAllocator>
         m_pCmdAllocator[FrameCount];                       // コマンドアロケータ
     engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList;  // コマンドリスト
+    engine::ComPtr<ID3D12RootSignature> m_pRootSignature;  // ルートシグネチャ
 
     uint32_t m_FrameIndex;  // 現在のフレーム番号
 
@@ -70,9 +72,8 @@ private:
     /////////////////////////////////////////////////////////////////////////
     // private methods
     /////////////////////////////////////////////////////////////////////////
-    bool InitEngine();
-    void TermEngine();
     bool InitD3D();
     void TermD3D();
-    void OnInit();
+    void InitApp();
+    void TermApp();
 };

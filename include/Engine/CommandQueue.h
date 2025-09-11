@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <d3d12.h>
 
@@ -6,8 +6,8 @@
 
 class CommandQueue {
 public:
-    CommandQueue();
-    ~CommandQueue();
+    CommandQueue() = default;
+    ~CommandQueue() = default;
 
     /////////////////////////////////////////////////////////////////////////
     /// @brief コマンドキューとフェンスとイベントを生成して初期化
