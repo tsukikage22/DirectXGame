@@ -15,7 +15,9 @@ void AssetPath::InitSearchPaths() {
     AddSearchPath(path.parent_path());
 
     // 実行ファイルの親ディレクトリの"Assets"フォルダを検索パスに追加
-    AddSearchPath(path.parent_path() / "Assets");
+    AddSearchPath(path.parent_path() / "assets");
+
+    AddSearchPath(path.parent_path().parent_path() / "assets");
 }
 
 // 検索パスを追加

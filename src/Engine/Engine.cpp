@@ -259,7 +259,42 @@ void Engine::InitApp() {
 
     // パイプラインステートの生成
     {
+        // シェーダの検索と読み込み
+        std::filesystem::path vsPath;
+        std::filesystem::path psPath;
+        AssetPath assetPath;
+
+        // シェーダのパスを取得
+        if (!assetPath.GetAssetPath(L"BasicVS.cso", vsPath) ||
+            !assetPath.GetAssetPath(L"BasicPS.cso", psPath)) {
+            return;
+        }
+
         // シェーダの読み込み
+        engine::ComPtr<ID3DBlob> vsBlob;
+        engine::ComPtr<ID3DBlob> psBlob;
+        auto hr = D3DReadFileToBlob(vsPath.c_str(), vsBlob.GetAddressOf());
+        if (FAILED(hr)) {
+            return;
+        }
+        hr = D3DReadFileToBlob(psPath.c_str(), psBlob.GetAddressOf());
+        if (FAILED(hr)) {
+            return;
+        }
+
+        // グラフィックスパイプラインステートの設定
+        GraphicsPipelineBuilder pipelineBuilder;
+        pipelineBuilder.SetDefault()
+            .SetRootSignature(m_pRootSignature.Get())
+            .SetVertexShader(vsBlob.Get())
+            .SetPixelShader(psBlob.Get())
+            .SetInputLayout(StandardVertex::GetInputLayout())
+            .SetRTVFormat(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
+            .SetDSVFormat(DXGI_FORMAT_D32_FLOAT);
+
+        if (!pipelineBuilder.Build(m_pDevice.Get(), m_pPSO.GetAddressOf())) {
+            return;
+        }
     }
 
     // テクスチャの生成

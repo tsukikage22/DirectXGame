@@ -13,14 +13,17 @@
 #include <d3dcompiler.h>
 #include <dxgi1_4.h>
 
+#include "Engine/AssetPath.h"
 #include "Engine/ColorTarget.h"
 #include "Engine/ComPtr.h"
 #include "Engine/CommandQueue.h"
 #include "Engine/DepthStencil.h"
 #include "Engine/DescriptorPool.h"
+#include "Engine/GraphicsPipelineBuilder.h"
 #include "Engine/IndexBuffer.h"
 #include "Engine/RootSignatureBuilder.h"
 #include "Engine/VertexBuffer.h"
+#include "Engine/VertexTypes.h"
 
 ///////////////////////////////////////////
 // Linker
