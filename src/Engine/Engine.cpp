@@ -12,6 +12,8 @@
 // Engine class
 ////////////////////////////////////////////
 
+// D3D12を動かすための初期化
+// デバイス，コマンドキュー，スワップチェインの生成
 bool Engine::InitD3D() {
 #if defined(_DEBUG)
     // デバッグレイヤーを有効化
@@ -49,21 +51,21 @@ bool Engine::InitD3D() {
         }
 
         // スワップチェインの設定
-        DXGI_SWAP_CHAIN_DESC desc = {};
-        desc.BufferDesc.Width = m_Width;
-        desc.BufferDesc.Height = m_Height;
-        desc.BufferDesc.RefreshRate.Numerator = 60;
+        DXGI_SWAP_CHAIN_DESC desc               = {};
+        desc.BufferDesc.Width                   = m_Width;
+        desc.BufferDesc.Height                  = m_Height;
+        desc.BufferDesc.RefreshRate.Numerator   = 60;
         desc.BufferDesc.RefreshRate.Denominator = 1;
         desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-        desc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-        desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        desc.SampleDesc.Count = 1;
-        desc.SampleDesc.Quality = 0;
-        desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        desc.BufferCount = FrameCount;
-        desc.OutputWindow = m_hWnd;
-        desc.Windowed = TRUE;
-        desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
+        desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.SampleDesc.Count            = 1;
+        desc.SampleDesc.Quality          = 0;
+        desc.BufferUsage                 = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        desc.BufferCount                 = FrameCount;
+        desc.OutputWindow                = m_hWnd;
+        desc.Windowed                    = TRUE;
+        desc.SwapEffect                  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
         // スワップチェインの生成
@@ -159,17 +161,17 @@ bool Engine::InitD3D() {
     {
         m_Viewport.TopLeftX = 0.0f;
         m_Viewport.TopLeftY = 0.0f;
-        m_Viewport.Width = static_cast<float>(m_Width);
-        m_Viewport.Height = static_cast<float>(m_Height);
+        m_Viewport.Width    = static_cast<float>(m_Width);
+        m_Viewport.Height   = static_cast<float>(m_Height);
         m_Viewport.MinDepth = 0.0f;
         m_Viewport.MaxDepth = 1.0f;
     }
 
     // シザー矩形の設定
     {
-        m_ScissorRect.left = 0;
-        m_ScissorRect.top = 0;
-        m_ScissorRect.right = m_Width;
+        m_ScissorRect.left   = 0;
+        m_ScissorRect.top    = 0;
+        m_ScissorRect.right  = m_Width;
         m_ScissorRect.bottom = m_Height;
     }
 
@@ -212,7 +214,9 @@ void Engine::TermD3D() {
     m_pDevice.Reset();
 }
 
-void Engine::OnInit() {
+// アプリケーション固有の初期化
+// パイプライン，メッシュロード，バッファ生成など
+void Engine::InitApp() {
     // メッシュのロード
 
     // 頂点バッファの生成
@@ -235,8 +239,67 @@ void Engine::OnInit() {
     }
 
     // ルートシグニチャの生成
+    {
+        RootSignatureBuilder builder;
+        std::vector<D3D12_DESCRIPTOR_RANGE1> range;
+
+        range.push_back(RootSignatureBuilder::CreateRange(
+            D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0));
+
+        bool result =
+            builder.AddCBV(0, D3D12_SHADER_VISIBILITY_VERTEX)
+                .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL)
+                .AddStaticSampler(0)
+                .Build(m_pDevice.Get());
+
+        if (!result) {
+            return;
+        }
+
+        m_pRootSignature = builder.Get();
+    }
 
     // パイプラインステートの生成
+    {
+        // シェーダの検索と読み込み
+        std::filesystem::path vsPath;
+        std::filesystem::path psPath;
+        AssetPath assetPath;
+
+        // シェーダのパスを取得
+        if (!assetPath.GetAssetPath(L"BasicVS.cso", vsPath) ||
+            !assetPath.GetAssetPath(L"BasicPS.cso", psPath)) {
+            return;
+        }
+
+        // シェーダの読み込み
+        engine::ComPtr<ID3DBlob> vsBlob;
+        engine::ComPtr<ID3DBlob> psBlob;
+        auto hr = D3DReadFileToBlob(vsPath.c_str(), vsBlob.GetAddressOf());
+        if (FAILED(hr)) {
+            return;
+        }
+        hr = D3DReadFileToBlob(psPath.c_str(), psBlob.GetAddressOf());
+        if (FAILED(hr)) {
+            return;
+        }
+
+        // グラフィックスパイプラインステートの設定
+        GraphicsPipelineBuilder pipelineBuilder;
+        pipelineBuilder.SetDefault()
+            .SetRootSignature(m_pRootSignature.Get())
+            .SetVertexShader(vsBlob.Get())
+            .SetPixelShader(psBlob.Get())
+            .SetInputLayout(StandardVertex::GetInputLayout())
+            .SetRTVFormat(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
+            .SetDSVFormat(DXGI_FORMAT_D32_FLOAT);
+
+        if (!pipelineBuilder.Build(m_pDevice.Get())) {
+            return;
+        }
+
+        m_pPSO = pipelineBuilder.Get();
+    }
 
     // テクスチャの生成
 }
