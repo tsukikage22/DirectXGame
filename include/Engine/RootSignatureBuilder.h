@@ -100,15 +100,19 @@ public:
         return *this;
     }
 
-    bool Build(ID3D12Device* pDevice, ID3D12RootSignature** ppRootSignature);
+    bool Build(ID3D12Device* pDevice);
 
     void Reset();
+
+    ID3D12RootSignature* Get() const;
 
 private:
     /// @brief ディスクリプタテーブル用のrangeデータ
     struct DescriptorTableData {
         std::vector<D3D12_DESCRIPTOR_RANGE1> ranges;
     };
+
+    engine::ComPtr<ID3D12RootSignature> m_pRootSignature;
 
     std::vector<D3D12_ROOT_PARAMETER1> m_params;
     std::vector<D3D12_STATIC_SAMPLER_DESC> m_samplers;

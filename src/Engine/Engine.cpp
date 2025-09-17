@@ -250,11 +250,13 @@ void Engine::InitApp() {
             builder.AddCBV(0, D3D12_SHADER_VISIBILITY_VERTEX)
                 .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL)
                 .AddStaticSampler(0)
-                .Build(m_pDevice.Get(), m_pRootSignature.GetAddressOf());
+                .Build(m_pDevice.Get());
 
-        if (result) {
+        if (!result) {
             return;
         }
+
+        m_pRootSignature = builder.Get();
     }
 
     // パイプラインステートの生成
@@ -292,9 +294,11 @@ void Engine::InitApp() {
             .SetRTVFormat(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
             .SetDSVFormat(DXGI_FORMAT_D32_FLOAT);
 
-        if (!pipelineBuilder.Build(m_pDevice.Get(), m_pPSO.GetAddressOf())) {
+        if (!pipelineBuilder.Build(m_pDevice.Get())) {
             return;
         }
+
+        m_pPSO = pipelineBuilder.Get();
     }
 
     // テクスチャの生成

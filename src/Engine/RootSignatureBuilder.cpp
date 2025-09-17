@@ -126,8 +126,7 @@ RootSignatureBuilder& RootSignatureBuilder::AddStaticSampler(
     return *this;
 }
 
-bool RootSignatureBuilder::Build(
-    ID3D12Device* pDevice, ID3D12RootSignature** ppRootSignature) {
+bool RootSignatureBuilder::Build(ID3D12Device* pDevice) {
     // ディスクリプタの作成
     D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc = {};
     desc.Version                             = D3D_ROOT_SIGNATURE_VERSION_1_1;
@@ -149,7 +148,7 @@ bool RootSignatureBuilder::Build(
 
     // ルートシグニチャの生成
     hr = pDevice->CreateRootSignature(0, pBlob->GetBufferPointer(),
-        pBlob->GetBufferSize(), IID_PPV_ARGS(ppRootSignature));
+        pBlob->GetBufferSize(), IID_PPV_ARGS(m_pRootSignature.GetAddressOf()));
     if (FAILED(hr)) {
         return false;
     }
@@ -163,4 +162,9 @@ void RootSignatureBuilder::Reset() {
     m_samplers.clear();
     m_tableData.clear();
     m_flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
+}
+
+// 取得
+ID3D12RootSignature* RootSignatureBuilder::Get() const {
+    return m_pRootSignature.Get();
 }

@@ -43,7 +43,7 @@ public:
     GraphicsPipelineBuilder& SetRTVFormat(DXGI_FORMAT format);
     GraphicsPipelineBuilder& SetDSVFormat(DXGI_FORMAT format);
 
-    bool Build(ID3D12Device* pDevice, ID3D12PipelineState** ppPipelineState);
+    bool Build(ID3D12Device* pDevice);
 
     /// @brief パイプラインステートの取得
     /// @return パイプラインステート
@@ -54,4 +54,10 @@ private:
 
     std::vector<D3D12_INPUT_ELEMENT_DESC> m_InputElements;
     D3D12_GRAPHICS_PIPELINE_STATE_DESC m_PSOdesc = {};
+
+    // コピー・ムーブ禁止
+    GraphicsPipelineBuilder(const GraphicsPipelineBuilder&)            = delete;
+    GraphicsPipelineBuilder& operator=(const GraphicsPipelineBuilder&) = delete;
+    GraphicsPipelineBuilder(GraphicsPipelineBuilder&&)                 = delete;
+    GraphicsPipelineBuilder& operator=(GraphicsPipelineBuilder&&)      = delete;
 };

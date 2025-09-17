@@ -29,6 +29,13 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDefault() {
     RTVdesc.LogicOp                        = D3D12_LOGIC_OP_NOOP;
     RTVdesc.RenderTargetWriteMask          = D3D12_COLOR_WRITE_ENABLE_ALL;
 
+    // 深度ステンシルステートの設定
+    D3D12_DEPTH_STENCIL_DESC DSdesc = {};
+    DSdesc.DepthEnable              = TRUE;
+    DSdesc.DepthWriteMask           = D3D12_DEPTH_WRITE_MASK_ALL;
+    DSdesc.DepthFunc                = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+    DSdesc.StencilEnable            = FALSE;
+
     D3D12_BLEND_DESC BSdesc       = {};
     BSdesc.AlphaToCoverageEnable  = FALSE;
     BSdesc.IndependentBlendEnable = FALSE;
@@ -99,8 +106,7 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDSVFormat(
 }
 
 // パイプラインステートの生成
-bool GraphicsPipelineBuilder::Build(
-    ID3D12Device* pDevice, ID3D12PipelineState** ppPipelineState) {
+bool GraphicsPipelineBuilder::Build(ID3D12Device* pDevice) {
     // 頂点シェーダーとピクセルシェーダーが設定されているか
     if (m_PSOdesc.VS.pShaderBytecode == nullptr ||
         m_PSOdesc.PS.pShaderBytecode == nullptr) {
@@ -124,10 +130,10 @@ bool GraphicsPipelineBuilder::Build(
         return false;
     }
 
-    if (ppPipelineState) {
-        *ppPipelineState = m_pPipelineState.Get();
-        (*ppPipelineState)->AddRef();
-    }
-
     return true;
+}
+
+// パイプラインステートの取得
+ID3D12PipelineState* GraphicsPipelineBuilder::Get() const {
+    return m_pPipelineState.Get();
 }
