@@ -1,6 +1,6 @@
-#include "Texture.h"
+﻿#include "Engine/Texture.h"
 
-#include "DDSTextureLoader.h"
+#include "directxtk12/DDSTextureLoader.h"
 
 // コンストラクタ
 Texture::Texture() : m_pTex(nullptr), m_pPool(nullptr), m_index(0) {}

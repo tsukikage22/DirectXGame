@@ -1,16 +1,16 @@
-/////////////////////////////////////////////
+﻿/////////////////////////////////////////////
 /// @file DescriptorPool.h
 /// @brief ディスクリプタプール
 /////////////////////////////////////////////
 #pragma once
 
+#include <directxtk12/DescriptorHeap.h>
 #include <d3d12.h>
 
 #include <cassert>
 #include <mutex>
 #include <vector>
 
-#include "DescriptorHeap.h"
 #include "Engine/ComPtr.h"
 
 class DescriptorPool {
@@ -64,6 +64,6 @@ private:
     std::vector<uint32_t> m_free;  // 空きスロット
     mutable std::mutex m_mutex;
 
-    DescriptorPool(const DescriptorPool &) = delete;
+    DescriptorPool(const DescriptorPool &)            = delete;
     DescriptorPool &operator=(const DescriptorPool &) = delete;
 };

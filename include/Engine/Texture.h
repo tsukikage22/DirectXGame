@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 
-#include <ResourceUploadBatch.h>
+#include <directxtk12/ResourceUploadBatch.h>
 
-#include "DescriptorPool.h"
+#include "Engine/DescriptorPool.h"
 #include "Engine/ComPtr.h"
 
 class Texture {
