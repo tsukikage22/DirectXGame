@@ -302,6 +302,8 @@ void Engine::InitApp() {
     }
 
     // テクスチャの生成
+
+    // ビューポートとシザー矩形
 }
 
 void Engine::BeginFrame() {}
