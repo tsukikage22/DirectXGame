@@ -20,7 +20,8 @@ bool MaterialGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
     }
 
     // 定数バッファの作成
-    if (!m_constantBuffer.Init(pDevice, pPoolCBV, sizeof(MaterialConstants))) {
+    if (!m_constantBuffer.Init(
+            pDevice, pPoolCBV, sizeof(shader::MaterialConstants))) {
         return false;
     }
 
@@ -30,13 +31,7 @@ bool MaterialGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
     m_constants.roughness = materialAsset.roughness;
 
     // 定数バッファの更新
-    m_constantBuffer.Update(&m_constants, sizeof(MaterialConstants));
-
-    /*
-    // テクスチャの読み込み
-    m_pTexturePool = pTexturePool;
-    m_pTexturePool->CreateFromImages(imageAssets, resourceUploadBatch);
-    */
+    m_constantBuffer.Update(&m_constants, sizeof(shader::MaterialConstants));
 
     // テクスチャインデックスを設定
     if (materialAsset.baseColorTexture.IsValid()) {
