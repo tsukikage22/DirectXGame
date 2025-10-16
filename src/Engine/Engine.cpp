@@ -259,7 +259,7 @@ void Engine::InitApp() {
         m_Materials.resize(model.materials.size());
         for (size_t i = 0; i < model.materials.size(); i++) {
             if (!m_Materials[i].Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV,
-                    &m_TexturePool, batch, model.materials[i])) {
+                    &m_TexturePool, model.materials[i])) {
                 return;
             }
         }

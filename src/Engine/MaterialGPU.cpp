@@ -11,9 +11,7 @@ MaterialGPU::~MaterialGPU() { Term(); }
 
 // 初期化処理，MaterialAssetからGPUリソースを作成
 bool MaterialGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
-    TexturePool* pTexturePool,
-    DirectX::ResourceUploadBatch& resourceUploadBatch,
-    const MaterialAsset& materialAsset) {
+    TexturePool* pTexturePool, const MaterialAsset& materialAsset) {
     // 引数チェック
     if (pDevice == nullptr || pPoolCBV == nullptr || pTexturePool == nullptr) {
         return false;

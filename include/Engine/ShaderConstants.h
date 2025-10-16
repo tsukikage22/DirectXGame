@@ -12,8 +12,8 @@ namespace shader {
 
 /// @brief シーン全体に関わる定数（フレーム毎更新）
 struct SceneConstants {
-    DirectX::XMFLOAT4 view;            // ビュー行列
-    DirectX::XMFLOAT4 projection;      // 射影行列
+    DirectX::XMFLOAT4X4 view;          // ビュー行列
+    DirectX::XMFLOAT4X4 projection;    // 射影行列
     DirectX::XMFLOAT3 cameraPosition;  // カメラ位置
     float time;                        // ゲーム時間
 };
