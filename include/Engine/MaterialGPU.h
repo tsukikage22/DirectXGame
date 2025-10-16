@@ -8,6 +8,7 @@
 #include "Engine/ConstantBuffer.h"
 #include "Engine/DescriptorPool.h"
 #include "Engine/ModelAsset.h"
+#include "Engine/ShaderConstants.h"
 #include "Engine/TexturePool.h"
 
 class MaterialGPU {
@@ -45,15 +46,8 @@ public:
     TextureGPU* GetTexture(TextureUsage usage) const;
 
 private:
-    /// @brief シェーダーに渡すマテリアル定数
-    struct MaterialConstants {
-        DirectX::XMFLOAT4 baseColor;
-        float metallic;
-        float roughness;
-    };
-
-    ConstantBuffer m_constantBuffer;  // マテリアル定数
-    MaterialConstants m_constants;    // 定数バッファ用データ
+    ConstantBuffer m_constantBuffer;        // マテリアル定数
+    shader::MaterialConstants m_constants;  // 定数バッファ用データ
 
     // テクスチャ
     TexturePool* m_pTexturePool;  // テクスチャプール

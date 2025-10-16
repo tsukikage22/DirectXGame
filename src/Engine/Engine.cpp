@@ -269,10 +269,6 @@ void Engine::InitApp() {
         future.wait();
     }
 
-    // 定数バッファの生成
-    {
-    }
-
     // ルートシグニチャの生成
     {
         RootSignatureBuilder builder;
@@ -336,9 +332,30 @@ void Engine::InitApp() {
         m_pPSO = pipelineBuilder.Get();
     }
 
-    // テクスチャの生成
-
     // ビューポートとシザー矩形
+}
+
+void Engine::TermApp() {
+    // メッシュの解放
+    for (auto& mesh : m_Meshes) {
+        mesh.Term();
+    }
+    m_Meshes.clear();
+
+    // マテリアルの解放
+    for (auto& material : m_Materials) {
+        material.Term();
+    }
+    m_Materials.clear();
+
+    // テクスチャプールの解放
+    m_TexturePool.Term();
+
+    // パイプラインステートの解放
+    m_pPSO.Reset();
+
+    // ルートシグネチャの解放
+    m_pRootSignature.Reset();
 }
 
 void Engine::BeginFrame() {}
