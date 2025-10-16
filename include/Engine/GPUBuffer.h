@@ -11,6 +11,13 @@ public:
     GPUBuffer() : m_Size(0) {}
     ~GPUBuffer() { Term(); }
 
+    /// @brief VBやIBなどの静的バッファを生成する
+    /// @param pDevice
+    /// @param pCmdList
+    /// @param size
+    /// @param pInitData
+    /// @param finalState
+    /// @return
     bool CreateStatic(ID3D12Device* pDevice,
         ID3D12GraphicsCommandList* pCmdList, size_t size, const void* pInitData,
         D3D12_RESOURCE_STATES finalState);

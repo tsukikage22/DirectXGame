@@ -361,3 +361,12 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+.clang-format
+.vscode/
+*.code-workspace
+AGENTS.md
+.github/
+
+#Ignore vscode AI rules
+.github\instructions\codacy.instructions.md

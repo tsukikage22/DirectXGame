@@ -17,6 +17,12 @@ public:
 
     void Term();
 
+    void Update(const void* pData, size_t size);
+
+    D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const {
+        return m_pPool->GetGPUHandle(m_index);
+    }
+
 private:
     engine::ComPtr<ID3D12Resource> m_pCB;    // 定数バッファ
     DescriptorPool* m_pPool;                 // ディスクリプタプール
@@ -24,6 +30,6 @@ private:
     D3D12_GPU_VIRTUAL_ADDRESS m_GPUAddress;  // GPU仮想アドレス
     uint32_t m_index;  // ディスクリプタプールのインデックス
 
-    ConstantBuffer(const ConstantBuffer&) = delete;
+    ConstantBuffer(const ConstantBuffer&)            = delete;
     ConstantBuffer& operator=(const ConstantBuffer&) = delete;
 };

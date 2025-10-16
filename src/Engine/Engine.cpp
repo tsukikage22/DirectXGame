@@ -218,20 +218,55 @@ void Engine::TermD3D() {
 // パイプライン，メッシュロード，バッファ生成など
 void Engine::InitApp() {
     // メッシュのロード
-
-    // 頂点バッファの生成
     {
-    }
-
-    // インデックスバッファの生成
-    {
-        size_t size;
-        DXGI_FORMAT format;
-
-        IndexBuffer indexBuffer(size, format);
-        if (!indexBuffer.CreateIB(m_pDevice.Get(), m_pCmdList.Get(), nullptr)) {
+        // ファイルの検索
+        std::filesystem::path path;
+        if (!AssetPath().GetAssetPath(L"box.fbx", path)) {
             return;
         }
+
+        // GLBの読み込み
+        ModelAsset model;
+        if (!GLBImporter::LoadFromFile(path, model)) {
+            return;
+        }
+
+        // TexturePoolの初期化
+        if (!m_TexturePool.Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV)) {
+            return;
+        }
+
+        // ResourceUploadBatchの生成
+        DirectX::ResourceUploadBatch batch(m_pDevice.Get());
+        batch.Begin();
+
+        // デフォルトテクスチャの生成
+        m_TexturePool.CreateDefaultTexture(batch);
+
+        // 全テクスチャの一括生成
+        m_TexturePool.CreateFromImages(model.images, batch);
+
+        // メッシュをGPUに転送
+        m_Meshes.resize(model.meshes.size());
+        for (size_t i = 0; i < model.meshes.size(); i++) {
+            if (!m_Meshes[i].Init(
+                    m_pDevice.Get(), m_pCmdList.Get(), model.meshes[i])) {
+                return;
+            }
+        }
+
+        // マテリアルをGPUに転送
+        m_Materials.resize(model.materials.size());
+        for (size_t i = 0; i < model.materials.size(); i++) {
+            if (!m_Materials[i].Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV,
+                    &m_TexturePool, batch, model.materials[i])) {
+                return;
+            }
+        }
+
+        // 転送完了を待機
+        auto future = batch.End(m_CommandQueue.GetD3DQueue());
+        future.wait();
     }
 
     // 定数バッファの生成
@@ -302,6 +337,8 @@ void Engine::InitApp() {
     }
 
     // テクスチャの生成
+
+    // ビューポートとシザー矩形
 }
 
 void Engine::BeginFrame() {}

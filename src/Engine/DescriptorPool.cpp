@@ -44,7 +44,7 @@ bool DescriptorPool::Create(ID3D12Device* pDevice,
 uint32_t DescriptorPool::Allocate() {
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    if (m_free.empty()) throw std::runtime_error("Descriptor exausted");
+    if (m_free.empty()) throw std::runtime_error("Descriptor fully allocated");
     uint32_t index = m_free.back();
     m_free.pop_back();
     return index;

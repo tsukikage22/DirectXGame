@@ -28,24 +28,24 @@ bool ConstantBuffer::Init(
 
     // 定数バッファの生成
     D3D12_HEAP_PROPERTIES prop = {};
-    prop.Type = D3D12_HEAP_TYPE_UPLOAD;
-    prop.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-    prop.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-    prop.VisibleNodeMask = 1;
-    prop.CreationNodeMask = 1;
+    prop.Type                  = D3D12_HEAP_TYPE_UPLOAD;
+    prop.CPUPageProperty       = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    prop.MemoryPoolPreference  = D3D12_MEMORY_POOL_UNKNOWN;
+    prop.VisibleNodeMask       = 1;
+    prop.CreationNodeMask      = 1;
 
     D3D12_RESOURCE_DESC desc = {};
-    desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-    desc.Alignment = 0;
-    desc.Width = sizeAligned;
-    desc.Height = 1;
-    desc.DepthOrArraySize = 1;
-    desc.MipLevels = 1;
-    desc.Format = DXGI_FORMAT_UNKNOWN;
-    desc.SampleDesc.Count = 1;
-    desc.SampleDesc.Quality = 0;
-    desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-    desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+    desc.Dimension           = D3D12_RESOURCE_DIMENSION_BUFFER;
+    desc.Alignment           = 0;
+    desc.Width               = sizeAligned;
+    desc.Height              = 1;
+    desc.DepthOrArraySize    = 1;
+    desc.MipLevels           = 1;
+    desc.Format              = DXGI_FORMAT_UNKNOWN;
+    desc.SampleDesc.Count    = 1;
+    desc.SampleDesc.Quality  = 0;
+    desc.Layout              = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    desc.Flags               = D3D12_RESOURCE_FLAG_NONE;
 
     // リソースの生成
     auto hr = pDevice->CreateCommittedResource(&prop, D3D12_HEAP_FLAG_NONE,
@@ -67,7 +67,7 @@ bool ConstantBuffer::Init(
     m_GPUAddress = m_pCB->GetGPUVirtualAddress();
 
     D3D12_CONSTANT_BUFFER_VIEW_DESC CBVdesc = {};
-    CBVdesc.BufferLocation = m_GPUAddress;
+    CBVdesc.BufferLocation                  = m_GPUAddress;
     CBVdesc.SizeInBytes = static_cast<UINT>(m_pCB->GetDesc().Width);
 
     pDevice->CreateConstantBufferView(&CBVdesc, pPool->GetCPUHandle(m_index));
@@ -91,4 +91,11 @@ void ConstantBuffer::Term() {
     }
 
     m_pMappedData = nullptr;
+}
+
+// 定数バッファの更新
+void ConstantBuffer::Update(const void* pData, size_t size) {
+    if (m_pMappedData != nullptr && pData != nullptr && size > 0) {
+        memcpy(m_pMappedData, pData, size);
+    }
 }
