@@ -19,11 +19,13 @@ public:
     FBXImporter()  = delete;
     ~FBXImporter() = delete;
 
-    bool LoadFromFile(
-        const std::filesystem::path& path, std::vector<MeshAsset>& outMeshes);
+    static bool LoadFromFile(const std::filesystem::path& path,
+        std::vector<MeshAsset>& outMeshes,
+        std::vector<MaterialAsset>& outMaterials);
 
 private:
-    static Assimp::Importer m_importer;
+    static bool ParseMesh(const aiMesh* mesh, MeshAsset& outMesh);
 
-    bool ParseMesh(const aiMesh* mesh, MeshAsset& outMesh);
+    static bool ParseMaterial(
+        const aiMaterial* material, MaterialAsset& outMaterial);
 };

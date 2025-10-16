@@ -19,9 +19,13 @@
 #include "Engine/CommandQueue.h"
 #include "Engine/DepthStencil.h"
 #include "Engine/DescriptorPool.h"
+#include "Engine/GLBImporter.h"
 #include "Engine/GraphicsPipelineBuilder.h"
 #include "Engine/IndexBuffer.h"
+#include "Engine/MaterialGPU.h"
+#include "Engine/MeshGPU.h"
 #include "Engine/RootSignatureBuilder.h"
+#include "Engine/TexturePool.h"
 #include "Engine/VertexBuffer.h"
 #include "Engine/VertexTypes.h"
 
@@ -32,6 +36,10 @@
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "dxguid.lib")
+#pragma comment(lib, "DirectXTK12.lib")
+#pragma comment(lib, "DirectXTex.lib")
+
+enum RootParam { CBV_Material = 0, SRV_Texture = 1 };
 
 ////////////////////////////////////////////
 // Engine class
@@ -48,6 +56,7 @@ public:
     void Shutdown();
     void BeginFrame();
     void EndFrame();
+    void Render();
 
 protected:
     engine::ComPtr<ID3D12Device> m_pDevice;           // デバイス
@@ -71,6 +80,9 @@ protected:
     CommandQueue m_CommandQueue;            // コマンドキュー
     D3D12_VIEWPORT m_Viewport;              // ビューポート
     D3D12_RECT m_ScissorRect;               // シザー矩形
+    std::vector<MeshGPU> m_Meshes;          // メッシュデータ
+    std::vector<MaterialGPU> m_Materials;   // マテリアルデータ
+    TexturePool m_TexturePool;              // テクスチャプール
 
 private:
     /////////////////////////////////////////////////////////////////////////

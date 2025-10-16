@@ -1,7 +1,8 @@
 #include "Engine/FBXImporter.h"
 
-bool FBXImporter::LoadFromFile(
-    const std::filesystem::path& path, std::vector<MeshAsset>& outMeshes) {
+bool FBXImporter::LoadFromFile(const std::filesystem::path& path,
+    std::vector<MeshAsset>& outMeshes,
+    std::vector<MaterialAsset>& outMaterials) {
     // ファイルパスの確認
     if (!std::filesystem::exists(path)) {
         return false;
@@ -9,6 +10,7 @@ bool FBXImporter::LoadFromFile(
 
     // 初期化
     outMeshes.clear();
+    outMaterials.clear();
 
     static Assimp::Importer importer;
     unsigned int flags = 0;
@@ -26,7 +28,7 @@ bool FBXImporter::LoadFromFile(
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
         !scene->mRootNode) {
         printf(importer.GetErrorString());
-        return nullptr;
+        return false;
     }
 
     // メッシュデータの読み込み
@@ -41,6 +43,20 @@ bool FBXImporter::LoadFromFile(
             continue;
         }
         outMeshes.push_back(meshAsset);
+    }
+
+    // マテリアルデータの読み込み
+    outMaterials.reserve(scene->mNumMaterials);  // マテリアル数分のメモリ確保
+
+    for (int i = 0; i < outMaterials.size(); i++) {
+        const aiMaterial* material = scene->mMaterials[i];
+        MaterialAsset materialAsset;
+
+        // マテリアルデータの読み込み
+        if (ParseMaterial(material, materialAsset)) {
+            continue;
+        }
+        outMaterials.push_back(materialAsset);
     }
 
     return true;
@@ -95,6 +111,74 @@ bool FBXImporter::ParseMesh(const aiMesh* srcMesh, MeshAsset& outMesh) {
 
     // マテリアルIDの設定
     outMesh.materialID = srcMesh->mMaterialIndex;
+
+    return true;
+}
+
+bool FBXImporter::ParseMaterial(
+    const aiMaterial* material, MaterialAsset& outMaterial) {
+    // 引数チェック
+    if (!material) {
+        return false;
+    }
+
+    // マテリアル名
+    aiString name;
+    if (material->Get(AI_MATKEY_NAME, name) == AI_SUCCESS) {
+        outMaterial.name =
+            std::wstring(name.C_Str(), name.C_Str() + strlen(name.C_Str()));
+    }
+
+    // baseColor
+    aiColor4D baseColor;
+    if (material->Get(AI_MATKEY_COLOR_DIFFUSE, baseColor) == AI_SUCCESS) {
+        outMaterial.baseColor = DirectX::XMFLOAT4(
+            baseColor.r, baseColor.g, baseColor.b, baseColor.a);
+    } else {
+        outMaterial.baseColor = DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 0.5f);
+    }
+
+    // metallic
+    float metallic = 0.0f;
+    if (material->Get(AI_MATKEY_METALLIC_FACTOR, metallic) == AI_SUCCESS) {
+        outMaterial.metallic = metallic;
+    }
+
+    // roughness
+    float roughness = 1.0f;
+    if (material->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness) == AI_SUCCESS) {
+        outMaterial.roughness = roughness;
+    }
+
+    // ベースカラーのテクスチャパス
+    aiString baseColorPath;
+    if (material->GetTexture(aiTextureType_BASE_COLOR, 0, &baseColorPath) ==
+        AI_SUCCESS) {
+        outMaterial.baseColorPath = std::wstring(baseColorPath.C_Str(),
+            baseColorPath.C_Str() + strlen(baseColorPath.C_Str()));
+    }
+
+    // 法線マップのテクスチャパス
+    aiString normalPath;
+    if (material->GetTexture(aiTextureType_NORMALS, 0, &normalPath) ==
+        AI_SUCCESS) {
+        outMaterial.normalPath = std::wstring(normalPath.C_Str(),
+            normalPath.C_Str() + strlen(normalPath.C_Str()));
+    }
+
+    aiString metallicPath;
+    if (material->GetTexture(aiTextureType_METALNESS, 0, &metallicPath) ==
+        AI_SUCCESS) {
+        outMaterial.metallicPath = std::wstring(metallicPath.C_Str(),
+            metallicPath.C_Str() + strlen(metallicPath.C_Str()));
+    }
+
+    aiString roughnessPath;
+    if (material->GetTexture(
+            aiTextureType_DIFFUSE_ROUGHNESS, 0, &roughnessPath) == AI_SUCCESS) {
+        outMaterial.roughnessPath = std::wstring(roughnessPath.C_Str(),
+            roughnessPath.C_Str() + strlen(roughnessPath.C_Str()));
+    }
 
     return true;
 }

@@ -6,33 +6,49 @@
 
 class IndexBuffer {
 public:
-    IndexBuffer(size_t size, DXGI_FORMAT format)
-        : m_View(), m_Size(size), m_format(format) {}
+    IndexBuffer() : m_View() {}
 
-    bool CreateIB(ID3D12Device* pDevice, ID3D12GraphicsCommandList* pCmdList,
-        const void* pInitData) {
-        return m_Buffer.CreateStatic(pDevice, pCmdList, m_Size, pInitData,
-            D3D12_RESOURCE_STATE_INDEX_BUFFER);
+    ~IndexBuffer() { Term(); }
+
+    // インデックスバッファの初期化
+    bool Init(ID3D12Device* pDevice, ID3D12GraphicsCommandList* pCmdList,
+        size_t size, DXGI_FORMAT format, const void* pInitData = nullptr) {
+        // 引数チェック
+        if (pDevice == nullptr || pCmdList == nullptr || size == 0 ||
+            (format != DXGI_FORMAT_R16_UINT &&
+                format != DXGI_FORMAT_R32_UINT)) {
+            return false;
+        }
+
+        // バッファリソースの生成
+        if (!m_Buffer.CreateStatic(pDevice, pCmdList, size, pInitData,
+                D3D12_RESOURCE_STATE_INDEX_BUFFER)) {
+            return false;
+        }
+
+        // ビューの設定
+        m_View.BufferLocation = m_Buffer.GetGPUVirtualAddress();
+        m_View.SizeInBytes    = static_cast<UINT>(size);
+        m_View.Format         = format;
+
+        return true;
+    }
+
+    bool Term() {
+        m_Buffer.Term();
+        return true;
     }
 
     void DiscardUpload() { m_Buffer.DiscardUpload(); }
 
-    D3D12_INDEX_BUFFER_VIEW View() const {
-        // ビューの設定
-        D3D12_INDEX_BUFFER_VIEW view;
-        view.BufferLocation = m_Buffer.GetGPUVirtualAddress();
-        view.SizeInBytes = static_cast<UINT>(m_Size);
-        view.Format = m_format;
-
-        return view;
-    }
+    // インデックスバッファビューの取得
+    const D3D12_INDEX_BUFFER_VIEW GetView() const { return m_View; }
 
 private:
-    GPUBuffer m_Buffer;              // バッファリソース
-    D3D12_INDEX_BUFFER_VIEW m_View;  // インデックスバッファビュー
-    size_t m_Size;                   // インデックスバッファのサイズ
-    DXGI_FORMAT m_format;            // インデックスのフォーマット
+    GPUBuffer m_Buffer;                   // バッファリソース
+    D3D12_INDEX_BUFFER_VIEW m_View = {};  // インデックスバッファビュー
 
-    IndexBuffer(const IndexBuffer&) = delete;
+    // コピー禁止
+    IndexBuffer(const IndexBuffer&)            = delete;
     IndexBuffer& operator=(const IndexBuffer&) = delete;
 };

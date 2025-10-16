@@ -167,3 +167,20 @@ Multi-Arch: same
 Description: Build with XAudio 2.9 support for Windows 10/11
 Status: install ok installed
 
+Package: directxtex
+Version: 2025-07-10
+Depends: directxmath, vcpkg-cmake, vcpkg-cmake-config
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 911f5cd13e38aa056c370987a284b3c5e39f5333ffe0a3dd482b0d1e0fa4c581
+Description: DirectXTex texture processing library
+Default-Features: dx11
+Status: install ok installed
+
+Package: directxtex
+Feature: dx11
+Architecture: x64-windows
+Multi-Arch: same
+Description: Build with DirectX11 support
+Status: install ok installed
+

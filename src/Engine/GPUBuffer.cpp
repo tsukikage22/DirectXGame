@@ -13,24 +13,24 @@ bool GPUBuffer::CreateStatic(ID3D12Device* pDevice,
 
     // バッファリソースの設定
     D3D12_HEAP_PROPERTIES prop = {};
-    prop.Type = D3D12_HEAP_TYPE_DEFAULT;
-    prop.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-    prop.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-    prop.VisibleNodeMask = 1;
-    prop.CreationNodeMask = 1;
+    prop.Type                  = D3D12_HEAP_TYPE_DEFAULT;
+    prop.CPUPageProperty       = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    prop.MemoryPoolPreference  = D3D12_MEMORY_POOL_UNKNOWN;
+    prop.VisibleNodeMask       = 1;
+    prop.CreationNodeMask      = 1;
 
     D3D12_RESOURCE_DESC desc = {};
-    desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-    desc.Alignment = 0;
-    desc.Width = (UINT64)size;
-    desc.Height = 1;
-    desc.DepthOrArraySize = 1;
-    desc.MipLevels = 1;
-    desc.Format = DXGI_FORMAT_UNKNOWN;
-    desc.SampleDesc.Count = 1;
-    desc.SampleDesc.Quality = 0;
-    desc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-    desc.Flags = D3D12_RESOURCE_FLAG_NONE;
+    desc.Dimension           = D3D12_RESOURCE_DIMENSION_BUFFER;
+    desc.Alignment           = 0;
+    desc.Width               = (UINT64)size;
+    desc.Height              = 1;
+    desc.DepthOrArraySize    = 1;
+    desc.MipLevels           = 1;
+    desc.Format              = DXGI_FORMAT_UNKNOWN;
+    desc.SampleDesc.Count    = 1;
+    desc.SampleDesc.Quality  = 0;
+    desc.Layout              = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    desc.Flags               = D3D12_RESOURCE_FLAG_NONE;
 
     // DEFAULTヒープの作成
     auto hr = pDevice->CreateCommittedResource(&prop, D3D12_HEAP_FLAG_NONE,
@@ -54,7 +54,7 @@ bool GPUBuffer::CreateStatic(ID3D12Device* pDevice,
 
     // 初期データの書き込み
     void* ptr = nullptr;
-    hr = m_pUpload->Map(0, nullptr, &ptr);
+    hr        = m_pUpload->Map(0, nullptr, &ptr);
     if (FAILED(hr) || ptr == nullptr) {
         Term();
         return false;
@@ -68,10 +68,10 @@ bool GPUBuffer::CreateStatic(ID3D12Device* pDevice,
     // ステートの遷移
     if (m_State != finalState) {
         D3D12_RESOURCE_BARRIER barrier = {};
-        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-        barrier.Transition.pResource = m_pRes.Get();
+        barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        barrier.Transition.pResource   = m_pRes.Get();
         barrier.Transition.StateBefore = m_State;
-        barrier.Transition.StateAfter = finalState;
+        barrier.Transition.StateAfter  = finalState;
         barrier.Transition.Subresource =
             D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         pCmdList->ResourceBarrier(1, &barrier);
