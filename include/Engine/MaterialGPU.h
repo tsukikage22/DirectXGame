@@ -27,9 +27,7 @@ public:
     /// @brief 初期化処理，MaterialAssetからGPUリソースを作成
     /// @return
     bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
-        TexturePool* pTexturePool,
-        DirectX::ResourceUploadBatch& resourceUploadBatch,
-        const MaterialAsset& materialAsset);
+        TexturePool* pTexturePool, const MaterialAsset& materialAsset);
 
     /// @brief 終了処理，リソースの解放
     void Term();

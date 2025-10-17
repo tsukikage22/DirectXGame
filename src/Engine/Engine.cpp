@@ -259,7 +259,7 @@ void Engine::InitApp() {
         m_Materials.resize(model.materials.size());
         for (size_t i = 0; i < model.materials.size(); i++) {
             if (!m_Materials[i].Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV,
-                    &m_TexturePool, batch, model.materials[i])) {
+                    &m_TexturePool, model.materials[i])) {
                 return;
             }
         }
@@ -267,6 +267,18 @@ void Engine::InitApp() {
         // 転送完了を待機
         auto future = batch.End(m_CommandQueue.GetD3DQueue());
         future.wait();
+    }
+
+    // 変換行列用の定数バッファを作成
+    {
+        // ワールド行列の作成
+        for (size_t i = 0; i < m_Transforms.size(); i++) {
+            if (!m_Transforms[i].Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV)) {
+                return;
+            }
+        }
+
+        // ビュー行列・射影行列
     }
 
     // ルートシグニチャの生成
