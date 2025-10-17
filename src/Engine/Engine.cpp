@@ -269,6 +269,18 @@ void Engine::InitApp() {
         future.wait();
     }
 
+    // 変換行列用の定数バッファを作成
+    {
+        // ワールド行列の作成
+        for (size_t i = 0; i < m_Transforms.size(); i++) {
+            if (!m_Transforms[i].Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV)) {
+                return;
+            }
+        }
+
+        // ビュー行列・射影行列
+    }
+
     // ルートシグニチャの生成
     {
         RootSignatureBuilder builder;

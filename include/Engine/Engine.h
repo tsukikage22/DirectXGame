@@ -26,6 +26,7 @@
 #include "Engine/MeshGPU.h"
 #include "Engine/RootSignatureBuilder.h"
 #include "Engine/TexturePool.h"
+#include "Engine/TransformGPU.h"
 #include "Engine/VertexBuffer.h"
 #include "Engine/VertexTypes.h"
 
@@ -75,14 +76,15 @@ protected:
     DescriptorPool* m_pPoolDSV;          // DSV用ディスクリプタプール
     DescriptorPool* m_pPoolSMP;          // サンプラ用ディスクリプタプール
 
-    ColorTarget m_ColorTarget[FrameCount];  // カラーターゲット
-    DepthStencil m_pDepthTarget;            // 深度ステンシル
-    CommandQueue m_CommandQueue;            // コマンドキュー
-    D3D12_VIEWPORT m_Viewport;              // ビューポート
-    D3D12_RECT m_ScissorRect;               // シザー矩形
-    std::vector<MeshGPU> m_Meshes;          // メッシュデータ
-    std::vector<MaterialGPU> m_Materials;   // マテリアルデータ
-    TexturePool m_TexturePool;              // テクスチャプール
+    ColorTarget m_ColorTarget[FrameCount];   // カラーターゲット
+    DepthStencil m_pDepthTarget;             // 深度ステンシル
+    CommandQueue m_CommandQueue;             // コマンドキュー
+    D3D12_VIEWPORT m_Viewport;               // ビューポート
+    D3D12_RECT m_ScissorRect;                // シザー矩形
+    std::vector<MeshGPU> m_Meshes;           // メッシュデータ
+    std::vector<MaterialGPU> m_Materials;    // マテリアルデータ
+    TexturePool m_TexturePool;               // テクスチャプール
+    std::vector<TransformGPU> m_Transforms;  // ワールド行列
 
 private:
     /////////////////////////////////////////////////////////////////////////

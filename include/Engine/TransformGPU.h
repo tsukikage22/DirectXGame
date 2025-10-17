@@ -1,3 +1,5 @@
+/// @file   TransformGPU.h
+/// @brief  ワールド行列の定数バッファ作成
 #pragma once
 
 #include <DirectXMath.h>
