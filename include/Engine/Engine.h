@@ -14,6 +14,7 @@
 #include <dxgi1_4.h>
 
 #include "Engine/AssetPath.h"
+#include "Engine/Camera.h"
 #include "Engine/ColorTarget.h"
 #include "Engine/ComPtr.h"
 #include "Engine/CommandQueue.h"
@@ -25,6 +26,7 @@
 #include "Engine/MaterialGPU.h"
 #include "Engine/MeshGPU.h"
 #include "Engine/RootSignatureBuilder.h"
+#include "Engine/SceneConstantsGPU.h"
 #include "Engine/TexturePool.h"
 #include "Engine/TransformGPU.h"
 #include "Engine/VertexBuffer.h"
@@ -85,6 +87,8 @@ protected:
     std::vector<MaterialGPU> m_Materials;    // マテリアルデータ
     TexturePool m_TexturePool;               // テクスチャプール
     std::vector<TransformGPU> m_Transforms;  // ワールド行列
+    SceneConstantsGPU m_SceneConstants;      // シーン定数
+    Camera m_Camera;                         // カメラ
 
 private:
     /////////////////////////////////////////////////////////////////////////

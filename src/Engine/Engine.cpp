@@ -132,11 +132,12 @@ bool Engine::InitD3D() {
     // コマンドリストの生成
     {
         hr = m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
-            m_pCmdAllocator[m_FrameIndex].Get(), nullptr,
+            m_pCmdAllocator[0].Get(), nullptr,
             IID_PPV_ARGS(m_pCmdList.GetAddressOf()));
         if (FAILED(hr)) {
             return false;
         }
+        m_pCmdList->Close();
     }
 
     // レンダーターゲットビューの生成
@@ -279,6 +280,13 @@ void Engine::InitApp() {
         }
 
         // ビュー行列・射影行列
+        shader::SceneConstants sceneConstants = {};
+        sceneConstants.view                   = m_Camera.GetViewMatrix();
+        sceneConstants.projection             = m_Camera.GetProjectionMatrix();
+        sceneConstants.cameraPosition         = m_Camera.GetPosition();
+        sceneConstants.time                   = 0.0f;
+        m_SceneConstants.Init(
+            m_pDevice.Get(), m_pPoolCBV_SRV_UAV, sceneConstants);
     }
 
     // ルートシグニチャの生成
