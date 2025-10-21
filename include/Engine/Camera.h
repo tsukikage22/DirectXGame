@@ -48,11 +48,15 @@ public:
     //================================
     /// @brief ビュー行列の計算
     /// @return ビュー行列
-    DirectX::XMMATRIX GetViewMatrix() const;
+    DirectX::XMFLOAT4X4 GetViewMatrix();
 
     /// @brief 射影行列の計算
     /// @return 射影行列
-    DirectX::XMMATRIX GetProjectionMatrix() const;
+    DirectX::XMFLOAT4X4 GetProjectionMatrix();
+
+    /// @brief カメラ位置の取得
+    /// @return
+    DirectX::XMFLOAT3 GetPosition() const { return m_position; }
 
 private:
     // カメラの状態 TODO: 回転はクォータニオンの方が良い
@@ -62,8 +66,8 @@ private:
     DirectX::XMFLOAT3 m_up;        // カメラの上方向ベクトル
     float m_fovY;                  // 垂直視野角（ラジアン）
     float m_aspect;                // アスペクト比
-    float m_nearZ = 1.0f;          // ニアクリップ距離
-    float m_farZ  = 1000.0f;       // ファークリップ距離
+    float m_nearZ = 1.0f;          // 描画範囲（最小）
+    float m_farZ  = 1000.0f;       // 描画範囲（最大）
 
     // 行列
     DirectX::XMFLOAT4X4 m_viewMatrix;  // ビュー行列

@@ -21,9 +21,9 @@ static_assert(sizeof(SceneConstants) % 16 == 0, "Must be 16-byte aligned");
 
 /// @brief ライティング計算用の定数（フレーム毎更新）
 struct LightingConstants {
-    DirectX::XMFLOAT3 lightDirection;
-    float lightIntensity;
-    DirectX::XMFLOAT4 lightColor;
+    DirectX::XMFLOAT3 lightDirection;  // 方向
+    float lightIntensity;              // 強度
+    DirectX::XMFLOAT4 lightColor;      // 色
 };
 static_assert(sizeof(LightingConstants) % 16 == 0, "Must be 16-byte aligned");
 

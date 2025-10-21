@@ -12,15 +12,21 @@ Camera::Camera()
 
 /// @brief ビュー行列の計算
 /// @return
-DirectX::XMMATRIX Camera::GetViewMatrix() const {
+DirectX::XMFLOAT4X4 Camera::GetViewMatrix() {
     DirectX::XMVECTOR eyePos    = DirectX::XMLoadFloat3(&m_position);
     DirectX::XMVECTOR targetPos = DirectX::XMLoadFloat3(&m_target);
     DirectX::XMVECTOR upward    = DirectX::XMLoadFloat3(&m_up);
-    return DirectX::XMMatrixLookAtRH(eyePos, targetPos, upward);
+    DirectX::XMMATRIX viewMatrix =
+        DirectX::XMMatrixLookAtRH(eyePos, targetPos, upward);
+    DirectX::XMStoreFloat4x4(&m_viewMatrix, viewMatrix);
+    return m_viewMatrix;
 }
 
 /// @brief 射影行列の計算
 /// @return
-DirectX::XMMATRIX Camera::GetProjectionMatrix() const {
-    return DirectX::XMMatrixPerspectiveFovRH(m_fovY, m_aspect, m_nearZ, m_farZ);
+DirectX::XMFLOAT4X4 Camera::GetProjectionMatrix() {
+    DirectX::XMMATRIX projMatrix =
+        DirectX::XMMatrixPerspectiveFovRH(m_fovY, m_aspect, m_nearZ, m_farZ);
+    DirectX::XMStoreFloat4x4(&m_projMatrix, projMatrix);
+    return m_projMatrix;
 }
