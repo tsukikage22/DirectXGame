@@ -23,6 +23,15 @@ bool SceneConstantsGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
     return true;
 }
 
+bool SceneConstantsGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV) {
+    shader::SceneConstants sc = {};
+    DirectX::XMStoreFloat4x4(&sc.view, DirectX::XMMatrixIdentity());
+    DirectX::XMStoreFloat4x4(&sc.projection, DirectX::XMMatrixIdentity());
+    sc.cameraPosition = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
+    sc.time           = 0.0f;
+    return Init(pDevice, pPoolCBV, sc);
+}
+
 void SceneConstantsGPU::Term() { m_constantBuffer.Term(); }
 
 void SceneConstantsGPU::Update(const shader::SceneConstants& sceneConstants) {

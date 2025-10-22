@@ -14,12 +14,18 @@ public:
     ~SceneConstantsGPU();
 
     /// @brief 定数バッファの作成
-    /// @param pDevice
-    /// @param pPoolCBV
-    /// @param sceneConstants
+    /// @param pDevice デバイス
+    /// @param pPoolCBV 定数バッファのディスクリプタプール
+    /// @param sceneConstants 初期値
     /// @return
     bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
         const shader::SceneConstants& sceneConstants);
+
+    /// @brief 定数バッファの作成（デフォルト値）
+    /// @param pDevice
+    /// @param pPoolCBV
+    /// @return
+    bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV);
 
     /// @brief リソースの解放
     void Term();
