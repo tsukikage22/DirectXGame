@@ -1,4 +1,4 @@
-#include "FrameResource.h"
+﻿#include "Engine/FrameResource.h"
 
 FrameResource::FrameResource()
     : m_pCmdAllocator(nullptr),
@@ -8,8 +8,7 @@ FrameResource::FrameResource()
 
 FrameResource::~FrameResource() { Term(); }
 
-bool FrameResource::Init(
-    ID3D12Device* pDevice, DescriptorPool* pPoolCBV, size_t numObjects) {
+bool FrameResource::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV) {
     // 引数チェック
     if (!pDevice || !pPoolCBV) {
         return false;
@@ -22,14 +21,6 @@ bool FrameResource::Init(
         return false;
     }
 
-    // TransformGPU初期化
-    m_transforms.resize(numObjects);
-    for (size_t i = 0; i < numObjects; ++i) {
-        if (!m_transforms[i].Init(pDevice, pPoolCBV)) {
-            return false;
-        }
-    }
-
     // SceneConstants初期化
     if (!m_sceneConstants.Init(pDevice, pPoolCBV)) {
         return false;
@@ -39,6 +30,12 @@ bool FrameResource::Init(
 }
 
 void FrameResource::Term() {
+    // 初期化前に呼ばれても安全
+    if (!m_pCmdAllocator) {
+        return;
+    }
+
+    // リソースの解放
     for (auto& transform : m_transforms) {
         transform.Term();
     }
@@ -47,12 +44,38 @@ void FrameResource::Term() {
     m_pCmdAllocator.Reset();
 }
 
+bool FrameResource::AddTransform(
+    ID3D12Device* pDevice, DescriptorPool* pPoolCBV, size_t count) {
+    // メモリ確保
+    size_t curSize = m_transforms.size();
+    m_transforms.reserve(m_transforms.size() + count);
+
+    // Transformの初期化と追加
+    for (size_t i = 0; i < count; i++) {
+        TransformGPU transform;
+        if (!transform.Init(pDevice, pPoolCBV)) {
+            // 追加分の削除
+            for (size_t j = curSize; j < m_transforms.size(); j++) {
+                m_transforms[j].Term();
+            }
+            m_transforms.resize(curSize);
+            return false;
+        }
+        m_transforms.push_back(std::move(transform));
+    }
+    return true;
+}
+
 void FrameResource::BeginFrame(ID3D12GraphicsCommandList* pCmdList) {
     // コマンドアロケータのリセット
     m_pCmdAllocator->Reset();
 
     // コマンドリストのリセット
     pCmdList->Reset(m_pCmdAllocator.Get(), nullptr);
+    m_isActive = true;
 }
 
-void FrameResource::EndFrame(UINT64 fenceValue) { m_fenceValue = fenceValue; }
+void FrameResource::EndFrame(UINT64 fenceValue) {
+    m_fenceValue = fenceValue;
+    m_isActive   = false;
+}

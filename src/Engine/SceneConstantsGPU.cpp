@@ -25,10 +25,24 @@ bool SceneConstantsGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
 
 bool SceneConstantsGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV) {
     shader::SceneConstants sc = {};
-    DirectX::XMStoreFloat4x4(&sc.view, DirectX::XMMatrixIdentity());
-    DirectX::XMStoreFloat4x4(&sc.projection, DirectX::XMMatrixIdentity());
-    sc.cameraPosition = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
+
+    // view行列の初期化
+    DirectX::XMVECTOR eyePos    = { 0.0f, 0.0f, -5.0f };
+    DirectX::XMVECTOR targetPos = { 0.0f, 0.0f, 0.0f };
+    DirectX::XMVECTOR upward    = { 0.0f, 1.0f, 0.0f };
+    DirectX::XMMATRIX viewMatrix =
+        DirectX::XMMatrixLookAtRH(eyePos, targetPos, upward);
+    DirectX::XMStoreFloat4x4(&sc.view, viewMatrix);
+
+    // projection行列の初期化
+    DirectX::XMMATRIX projMatrix = DirectX::XMMatrixPerspectiveFovRH(
+        DirectX::XMConvertToRadians(45.0f), 16.0f / 9.0f, 1.0f, 1000.0f);
+    DirectX::XMStoreFloat4x4(&sc.projection, projMatrix);
+
+    // カメラ位置・ゲーム時間の初期化
+    sc.cameraPosition = DirectX::XMFLOAT3(0.0f, 0.0f, -5.0f);
     sc.time           = 0.0f;
+
     return Init(pDevice, pPoolCBV, sc);
 }
 

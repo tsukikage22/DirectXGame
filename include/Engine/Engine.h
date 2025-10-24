@@ -20,6 +20,7 @@
 #include "Engine/CommandQueue.h"
 #include "Engine/DepthStencil.h"
 #include "Engine/DescriptorPool.h"
+#include "Engine/FrameResource.h"
 #include "Engine/GLBImporter.h"
 #include "Engine/GraphicsPipelineBuilder.h"
 #include "Engine/IndexBuffer.h"
@@ -62,11 +63,8 @@ public:
     void Render();
 
 protected:
-    engine::ComPtr<ID3D12Device> m_pDevice;           // デバイス
-    engine::ComPtr<IDXGISwapChain3> m_pSwapChain;     // スワップチェイン
-    engine::ComPtr<ID3D12CommandList> m_CommandList;  // コマンドリスト
-    engine::ComPtr<ID3D12CommandAllocator>
-        m_pCmdAllocator[FrameCount];                       // コマンドアロケータ
+    engine::ComPtr<ID3D12Device> m_pDevice;                // デバイス
+    engine::ComPtr<IDXGISwapChain3> m_pSwapChain;          // スワップチェイン
     engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList;  // コマンドリスト
     engine::ComPtr<ID3D12RootSignature> m_pRootSignature;  // ルートシグネチャ
     engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
@@ -78,17 +76,20 @@ protected:
     DescriptorPool* m_pPoolDSV;          // DSV用ディスクリプタプール
     DescriptorPool* m_pPoolSMP;          // サンプラ用ディスクリプタプール
 
-    ColorTarget m_ColorTarget[FrameCount];   // カラーターゲット
-    DepthStencil m_pDepthTarget;             // 深度ステンシル
-    CommandQueue m_CommandQueue;             // コマンドキュー
-    D3D12_VIEWPORT m_Viewport;               // ビューポート
-    D3D12_RECT m_ScissorRect;                // シザー矩形
-    std::vector<MeshGPU> m_Meshes;           // メッシュデータ
-    std::vector<MaterialGPU> m_Materials;    // マテリアルデータ
-    TexturePool m_TexturePool;               // テクスチャプール
-    std::vector<TransformGPU> m_Transforms;  // ワールド行列
-    SceneConstantsGPU m_SceneConstants;      // シーン定数
-    Camera m_Camera;                         // カメラ
+    ColorTarget m_ColorTarget[FrameCount];  // カラーターゲット
+    DepthStencil m_pDepthTarget;            // 深度ステンシル
+    CommandQueue m_CommandQueue;            // コマンドキュー
+    D3D12_VIEWPORT m_Viewport;              // ビューポート
+    D3D12_RECT m_ScissorRect;               // シザー矩形
+
+    FrameResource m_FrameResources[FrameCount];  // フレームリソース
+
+    std::vector<MeshGPU> m_Meshes;         // メッシュデータ
+    std::vector<MaterialGPU> m_Materials;  // マテリアルデータ
+    TexturePool m_TexturePool;             // テクスチャプール
+    Camera m_Camera;                       // カメラ
+
+    static constexpr size_t maxObjects = 100;  // 最大オブジェクト数
 
 private:
     /////////////////////////////////////////////////////////////////////////
