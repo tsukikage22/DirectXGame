@@ -117,29 +117,6 @@ bool Engine::InitD3D() {
         }
     }
 
-    // コマンドアロケータの生成
-    {
-        for (auto i = 0u; i < FrameCount; i++) {
-            hr = m_pDevice->CreateCommandAllocator(
-                D3D12_COMMAND_LIST_TYPE_DIRECT,
-                IID_PPV_ARGS(m_pCmdAllocator[i].GetAddressOf()));
-            if (FAILED(hr)) {
-                return false;
-            }
-        }
-    }
-
-    // コマンドリストの生成
-    {
-        hr = m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
-            m_pCmdAllocator[0].Get(), nullptr,
-            IID_PPV_ARGS(m_pCmdList.GetAddressOf()));
-        if (FAILED(hr)) {
-            return false;
-        }
-        m_pCmdList->Close();
-    }
-
     // レンダーターゲットビューの生成
     {
         for (auto i = 0u; i < FrameCount; i++) {
@@ -191,14 +168,6 @@ void Engine::TermD3D() {
     // 深度ステンシルビューの解放
     m_pDepthTarget.Term();
 
-    // コマンドリストの解放
-    m_pCmdList.Reset();
-
-    // コマンドアロケータの解放
-    for (auto i = 0u; i < FrameCount; i++) {
-        m_pCmdAllocator[i].Reset();
-    }
-
     // ディスクリプタプールの破棄
     delete m_pPoolCBV_SRV_UAV;
     delete m_pPoolSMP;
@@ -217,24 +186,49 @@ void Engine::TermD3D() {
 
 // アプリケーション固有の初期化
 // パイプライン，メッシュロード，バッファ生成など
-void Engine::InitApp() {
+bool Engine::InitApp() {
+    // フレームリソースの初期化
+    for (int i = 0; i < FrameCount; i++) {
+        m_FrameResources[i].Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
+    }
+
+    // コマンドリストの生成
+    {
+        auto hr =
+            m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+                m_FrameResources[m_FrameIndex].GetCommandAllocator(), nullptr,
+                IID_PPV_ARGS(m_pCmdList.GetAddressOf()));
+        if (FAILED(hr)) {
+            return false;
+        }
+        m_pCmdList->Close();
+    }
+
     // メッシュのロード
     {
         // ファイルの検索
         std::filesystem::path path;
         if (!AssetPath().GetAssetPath(L"box.fbx", path)) {
-            return;
+            return false;
         }
 
         // GLBの読み込み
         ModelAsset model;
         if (!GLBImporter::LoadFromFile(path, model)) {
-            return;
+            return false;
+        }
+
+        // メッシュ数分のTransformを追加
+        for (int i = 0; i < FrameCount; i++) {
+            if (!m_FrameResources[i].AddTransform(
+                    m_pDevice.Get(), m_pPoolCBV_SRV_UAV, model.meshes.size())) {
+                return false;
+            }
         }
 
         // TexturePoolの初期化
         if (!m_TexturePool.Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV)) {
-            return;
+            return false;
         }
 
         // ResourceUploadBatchの生成
@@ -252,7 +246,7 @@ void Engine::InitApp() {
         for (size_t i = 0; i < model.meshes.size(); i++) {
             if (!m_Meshes[i].Init(
                     m_pDevice.Get(), m_pCmdList.Get(), model.meshes[i])) {
-                return;
+                return false;
             }
         }
 
@@ -261,32 +255,13 @@ void Engine::InitApp() {
         for (size_t i = 0; i < model.materials.size(); i++) {
             if (!m_Materials[i].Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV,
                     &m_TexturePool, model.materials[i])) {
-                return;
+                return false;
             }
         }
 
         // 転送完了を待機
         auto future = batch.End(m_CommandQueue.GetD3DQueue());
         future.wait();
-    }
-
-    // 変換行列用の定数バッファを作成
-    {
-        // ワールド行列の作成
-        for (size_t i = 0; i < m_Transforms.size(); i++) {
-            if (!m_Transforms[i].Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV)) {
-                return;
-            }
-        }
-
-        // ビュー行列・射影行列
-        shader::SceneConstants sceneConstants = {};
-        sceneConstants.view                   = m_Camera.GetViewMatrix();
-        sceneConstants.projection             = m_Camera.GetProjectionMatrix();
-        sceneConstants.cameraPosition         = m_Camera.GetPosition();
-        sceneConstants.time                   = 0.0f;
-        m_SceneConstants.Init(
-            m_pDevice.Get(), m_pPoolCBV_SRV_UAV, sceneConstants);
     }
 
     // ルートシグニチャの生成
@@ -304,7 +279,7 @@ void Engine::InitApp() {
                 .Build(m_pDevice.Get());
 
         if (!result) {
-            return;
+            return false;
         }
 
         m_pRootSignature = builder.Get();
@@ -320,7 +295,7 @@ void Engine::InitApp() {
         // シェーダのパスを取得
         if (!assetPath.GetAssetPath(L"BasicVS.cso", vsPath) ||
             !assetPath.GetAssetPath(L"BasicPS.cso", psPath)) {
-            return;
+            return false;
         }
 
         // シェーダの読み込み
@@ -328,11 +303,11 @@ void Engine::InitApp() {
         engine::ComPtr<ID3DBlob> psBlob;
         auto hr = D3DReadFileToBlob(vsPath.c_str(), vsBlob.GetAddressOf());
         if (FAILED(hr)) {
-            return;
+            return false;
         }
         hr = D3DReadFileToBlob(psPath.c_str(), psBlob.GetAddressOf());
         if (FAILED(hr)) {
-            return;
+            return false;
         }
 
         // グラフィックスパイプラインステートの設定
@@ -346,13 +321,15 @@ void Engine::InitApp() {
             .SetDSVFormat(DXGI_FORMAT_D32_FLOAT);
 
         if (!pipelineBuilder.Build(m_pDevice.Get())) {
-            return;
+            return false;
         }
 
         m_pPSO = pipelineBuilder.Get();
     }
 
     // ビューポートとシザー矩形
+
+    return true;
 }
 
 void Engine::TermApp() {
@@ -376,6 +353,14 @@ void Engine::TermApp() {
 
     // ルートシグネチャの解放
     m_pRootSignature.Reset();
+
+    // フレームリソースの解放
+    for (int i = 0; i < FrameCount; i++) {
+        m_FrameResources[i].Term();
+    }
+
+    // コマンドリストの解放
+    m_pCmdList.Reset();
 }
 
 void Engine::BeginFrame() {}

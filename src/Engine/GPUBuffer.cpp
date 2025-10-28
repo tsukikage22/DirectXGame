@@ -81,13 +81,73 @@ bool GPUBuffer::CreateStatic(ID3D12Device* pDevice,
     return true;
 }
 
+// 動的バッファの作成
+bool GPUBuffer::CreateDynamic(ID3D12Device* pDevice, size_t size) {
+    // 引数チェック
+    if (pDevice == nullptr || size == 0) {
+        return false;
+    }
+
+    m_Size = size;
+
+    // バッファリソースの設定
+    D3D12_HEAP_PROPERTIES prop = {};
+    prop.Type                  = D3D12_HEAP_TYPE_UPLOAD;
+    prop.CPUPageProperty       = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    prop.MemoryPoolPreference  = D3D12_MEMORY_POOL_UNKNOWN;
+    prop.VisibleNodeMask       = 1;
+    prop.CreationNodeMask      = 1;
+
+    D3D12_RESOURCE_DESC desc = {};
+    desc.Dimension           = D3D12_RESOURCE_DIMENSION_BUFFER;
+    desc.Alignment           = 0;
+    desc.Width               = (UINT64)m_Size;
+    desc.Height              = 1;
+    desc.DepthOrArraySize    = 1;
+    desc.MipLevels           = 1;
+    desc.Format              = DXGI_FORMAT_UNKNOWN;
+    desc.SampleDesc.Count    = 1;
+    desc.SampleDesc.Quality  = 0;
+    desc.Layout              = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    desc.Flags               = D3D12_RESOURCE_FLAG_NONE;
+
+    // UPLOADヒープの作成
+    auto hr = pDevice->CreateCommittedResource(&prop, D3D12_HEAP_FLAG_NONE,
+        &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+        IID_PPV_ARGS(m_pRes.GetAddressOf()));
+    if (FAILED(hr)) {
+        Term();
+        return false;
+    }
+    m_State = D3D12_RESOURCE_STATE_GENERIC_READ;
+
+    // メモリマッピング
+    hr = m_pRes->Map(0, nullptr, &m_pMappedData);
+    if (FAILED(hr)) {
+        Term();
+        return false;
+    } else {
+        m_IsMapped = true;
+    }
+
+    return true;
+}
+
 // アップロードバッファの破棄,フェンス完了後に呼び出す
 void GPUBuffer::DiscardUpload() { m_pUpload.Reset(); }
 
 // 終了処理
 void GPUBuffer::Term() {
+    // メモリのアンマップ
+    if (m_IsMapped && m_pRes != nullptr) {
+        m_pRes->Unmap(0, nullptr);
+        m_IsMapped = false;
+    }
+    m_pMappedData = nullptr;
+
     m_pRes.Reset();
     m_pUpload.Reset();
+
     m_State = D3D12_RESOURCE_STATE_COMMON;
 }
 

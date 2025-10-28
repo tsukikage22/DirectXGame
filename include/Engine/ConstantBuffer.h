@@ -2,9 +2,12 @@
 
 #include <d3d12.h>
 
+#include <cassert>
+#include <memory>
 #include <vector>
 
 #include "Engine/ComPtr.h"
+#include "Engine/GPUBuffer.h"
 
 class DescriptorPool;
 
@@ -24,11 +27,12 @@ public:
     }
 
 private:
-    engine::ComPtr<ID3D12Resource> m_pCB;    // 定数バッファ
     DescriptorPool* m_pPool;                 // ディスクリプタプール
     void* m_pMappedData;                     // マップ済みデータ
     D3D12_GPU_VIRTUAL_ADDRESS m_GPUAddress;  // GPU仮想アドレス
-    uint32_t m_index;  // ディスクリプタプールのインデックス
+    uint32_t m_index;    // ディスクリプタプールのインデックス
+    GPUBuffer m_buffer;  // アップロード用バッファ
+    size_t m_size;       // バッファサイズ
 
     ConstantBuffer(const ConstantBuffer&)            = delete;
     ConstantBuffer& operator=(const ConstantBuffer&) = delete;

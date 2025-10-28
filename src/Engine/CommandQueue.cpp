@@ -15,10 +15,10 @@ bool CommandQueue::Init(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type) {
     }
 
     D3D12_COMMAND_QUEUE_DESC desc = {};
-    desc.Type = type;
-    desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
-    desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-    desc.NodeMask = 0;
+    desc.Type                     = type;
+    desc.Priority                 = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
+    desc.Flags                    = D3D12_COMMAND_QUEUE_FLAG_NONE;
+    desc.NodeMask                 = 0;
 
     auto hr = pDevice->CreateCommandQueue(
         &desc, IID_PPV_ARGS(m_pQueue.GetAddressOf()));
@@ -43,7 +43,7 @@ bool CommandQueue::Init(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type) {
 }
 
 // フェンスが指定した値になるまで待機
-void CommandQueue::Wait(UINT64 fenceValue, UINT timeout) {
+void CommandQueue::Wait(UINT64 fenceValue, UINT timeout = INFINITE) {
     if (m_fenceEvent == nullptr || m_pFence == nullptr) {
         return;
     }
@@ -105,7 +105,7 @@ UINT64 CommandQueue::Signal() {
 
     // シグナル処理
     const auto fenceValue = m_nextFence;
-    auto hr = m_pQueue->Signal(m_pFence.Get(), fenceValue);
+    auto hr               = m_pQueue->Signal(m_pFence.Get(), fenceValue);
     if (FAILED(hr)) {
         return 0;
     }
