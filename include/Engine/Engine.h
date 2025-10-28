@@ -97,6 +97,6 @@ private:
     /////////////////////////////////////////////////////////////////////////
     bool InitD3D();
     void TermD3D();
-    void InitApp();
+    bool InitApp();
     void TermApp();
 };
