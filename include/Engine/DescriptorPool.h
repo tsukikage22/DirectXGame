@@ -4,8 +4,8 @@
 /////////////////////////////////////////////
 #pragma once
 
-#include <directxtk12/DescriptorHeap.h>
 #include <d3d12.h>
+#include <directxtk12/DescriptorHeap.h>
 
 #include <cassert>
 #include <mutex>
@@ -16,6 +16,16 @@
 class DescriptorPool {
 public:
     /////////////////////////////////////////////////////////////////////////////
+    /// @brief コンストラクタ
+    /////////////////////////////////////////////////////////////////////////////
+    DescriptorPool();
+
+    /////////////////////////////////////////////////////////////////////////////
+    /// @brief デストラクタ
+    /////////////////////////////////////////////////////////////////////////////
+    ~DescriptorPool();
+
+    /////////////////////////////////////////////////////////////////////////////
     /// @brief ディスクリプタヒープの生成
     /// @param[in] pDevice デバイス
     /// @param[in] desc ディスクリプタヒープの設定
@@ -23,9 +33,9 @@ public:
     /// @retval true 成功
     /// @retval false 失敗
     /////////////////////////////////////////////////////////////////////////////
-    static bool Create(ID3D12Device *pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type,
+    static bool Create(ID3D12Device* pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type,
         D3D12_DESCRIPTOR_HEAP_FLAGS flags, uint32_t capacity,
-        DescriptorPool **outPool);
+        DescriptorPool** outPool);
 
     //////////////////////////////////////////////////////////////////////////
     /// @brief ディスクリプタプールへの割り当て
@@ -39,22 +49,19 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     void Free(uint32_t index);
 
+    //========================================================================
+    // アクセサ
+    //========================================================================
+
+    // ヒープの取得
+    ID3D12DescriptorHeap* GetHeap() const { return m_pHeap->Heap(); }
+
     // ハンドルの取得
     D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(uint32_t index) const;
     D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle(uint32_t index) const;
 
     uint32_t Capacity() const;
     uint32_t FreeCount() const;
-
-    /////////////////////////////////////////////////////////////////////////////
-    /// @brief コンストラクタ
-    /////////////////////////////////////////////////////////////////////////////
-    DescriptorPool();
-
-    /////////////////////////////////////////////////////////////////////////////
-    /// @brief デストラクタ
-    /////////////////////////////////////////////////////////////////////////////
-    ~DescriptorPool();
 
 private:
     std::unique_ptr<DirectX::DescriptorHeap> m_pHeap;  // ディスクリプタヒープ
@@ -64,6 +71,6 @@ private:
     std::vector<uint32_t> m_free;  // 空きスロット
     mutable std::mutex m_mutex;
 
-    DescriptorPool(const DescriptorPool &)            = delete;
-    DescriptorPool &operator=(const DescriptorPool &) = delete;
+    DescriptorPool(const DescriptorPool&)            = delete;
+    DescriptorPool& operator=(const DescriptorPool&) = delete;
 };

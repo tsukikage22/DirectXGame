@@ -34,6 +34,12 @@ public:
     /// @param sceneConstants
     void Update(const shader::SceneConstants& sceneConstants);
 
+    //========================================
+    // アクセサ
+    //========================================
+
+    ConstantBuffer& GetConstantBuffer() { return m_constantBuffer; }
+
 private:
     ConstantBuffer m_constantBuffer;     // シーン定数用の定数バッファ
     shader::SceneConstants m_constants;  // 定数バッファ用データ

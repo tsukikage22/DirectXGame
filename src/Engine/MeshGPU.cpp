@@ -49,3 +49,12 @@ void MeshGPU::Term() {
     m_pVB.reset();
     m_pIB.reset();
 }
+
+void MeshGPU::DiscardUpload() {
+    if (m_pVB) {
+        m_pVB->DiscardUpload();
+    }
+    if (m_pIB) {
+        m_pIB->DiscardUpload();
+    }
+}

@@ -8,6 +8,7 @@
 
 #include <assimp/Importer.hpp>
 #include <filesystem>
+#include <locale>
 #include <string>
 #include <vector>
 

@@ -1,9 +1,9 @@
-/// @file MeshGPU.h
+﻿/// @file MeshGPU.h
 /// @brief GPUが扱うメッシュデータ
 
 #pragma once
 
-#include <DDSTextureLoader.h>
+#include <DirectXTK12/DDSTextureLoader.h>
 #include <d3d12.h>
 
 #include <memory>
@@ -23,6 +23,12 @@ public:
 
     void Term();
 
+    /// @brief アップロード用バッファの破棄
+    void DiscardUpload();
+
+    //==============================================================
+    // アクセサ
+    //==============================================================
     /// @brief 頂点バッファビューのgetter
     /// @return 頂点バッファビュー
     const D3D12_VERTEX_BUFFER_VIEW& GetVertexBufferView() const {

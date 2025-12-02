@@ -22,13 +22,13 @@ struct ImageAsset {
     bool IsValid() const { return !imageData.empty(); }
 };
 
-struct TextureReference {
-    // ImageAsset配列のインデックス，-1なら無効
-    // モデルの読み込み時に設定する，
-    // リソースの作成は配列のインデックス順に行うためTexturePoolのインデックスと一致し，
-    // MaterialGPUのインデックスとしても使える
-    int index = -1;
-    bool IsValid() const { return index >= 0; }
+/// @brief グローバルに有効なテクスチャのハンドル
+struct TextureHandle {
+    // assimpのインデックスはscene内でしか意味がないので使わない
+    // TextureManagerが内部配列に追加した際に設定する
+    // 全テクスチャに与えられるID，UINT32_MAXなら無効
+    uint32_t index = UINT32_MAX;
+    bool IsValid() const { return index != UINT32_MAX; }
 };
 
 /// @brief CPUのメモリ上に保持されるマテリアルデータ
@@ -36,15 +36,25 @@ struct MaterialAsset {
     std::wstring name;
 
     // パラメータ
-    DirectX::XMFLOAT4 baseColor = { 1.0f, 1.0f, 1.0f, 1.0f };
-    float metallic              = 0.0f;
-    float roughness             = 0.5f;
+    DirectX::XMFLOAT4 baseColor      = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float metallicFactor             = 1.0f;
+    float roughnessFactor            = 1.0f;
+    DirectX::XMFLOAT3 emissiveFactor = { 0.0f, 0.0f, 0.0f };
+    float occlusionFactor            = 1.0f;
 
-    // テクスチャへの参照（ImageAsset配列へのインデックス）
-    TextureReference baseColorTexture;  // base color
-    TextureReference metallicTexture;   // metallic
-    TextureReference roughnessTexture;  // roughness
-    TextureReference normalTexture;     // normal
+    // テクスチャへの参照（TextureManager内配列のインデックス）
+    TextureHandle baseColorTexture;          // base color
+    TextureHandle metallicRoughnessTexture;  // metallic-roughness
+    TextureHandle occlusionTexture;          // occlusion
+    TextureHandle normalTexture;             // normal
+    TextureHandle emissiveTexture;           // emissive
+
+    // モデルロード時の一時的なインデックス
+    int baseColorLocalTextureIndex         = -1;
+    int metallicRoughnessLocalTextureIndex = -1;
+    int occlusionLocalTextureIndex         = -1;
+    int normalLocalTextureIndex            = -1;
+    int emissiveLocalTextureIndex          = -1;
 };
 
 /// @brief モデル全体のデータ
