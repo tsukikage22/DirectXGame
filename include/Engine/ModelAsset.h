@@ -36,11 +36,11 @@ struct MaterialAsset {
     std::wstring name;
 
     // パラメータ
-    DirectX::XMFLOAT4 baseColor      = { 1.0f, 1.0f, 1.0f, 1.0f };
-    float metallicFactor             = 1.0f;
-    float roughnessFactor            = 1.0f;
-    DirectX::XMFLOAT3 emissiveFactor = { 0.0f, 0.0f, 0.0f };
-    float occlusionFactor            = 1.0f;
+    DirectX::XMFLOAT4 baseColorFactor = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float metallicFactor              = 1.0f;
+    float roughnessFactor             = 1.0f;
+    DirectX::XMFLOAT3 emissiveFactor  = { 0.0f, 0.0f, 0.0f };
+    float occlusionFactor             = 1.0f;
 
     // テクスチャへの参照（TextureManager内配列のインデックス）
     TextureHandle baseColorTexture;          // base color

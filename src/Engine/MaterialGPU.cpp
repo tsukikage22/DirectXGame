@@ -36,7 +36,7 @@ bool MaterialGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
     }
 
     // マテリアル定数の設定
-    m_constants.baseColor = materialAsset.baseColor;
+    m_constants.baseColor = materialAsset.baseColorFactor;
     m_constants.metallic  = materialAsset.metallicFactor;
     m_constants.roughness = materialAsset.roughnessFactor;
     m_constants.emissive  = materialAsset.emissiveFactor;

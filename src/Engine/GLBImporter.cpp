@@ -158,10 +158,8 @@ bool GLBImporter::ParseMaterial(
     // baseColor
     aiColor4D baseColor;
     if (srcMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, baseColor) == AI_SUCCESS) {
-        outMaterial.baseColor = DirectX::XMFLOAT4(
+        outMaterial.baseColorFactor = DirectX::XMFLOAT4(
             baseColor.r, baseColor.g, baseColor.b, baseColor.a);
-    } else {
-        outMaterial.baseColor = DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 0.5f);
     }
 
     // metallic
@@ -175,6 +173,15 @@ bool GLBImporter::ParseMaterial(
     if (srcMaterial->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness) == AI_SUCCESS) {
         outMaterial.roughnessFactor = roughness;
     }
+
+    // emissive
+    aiColor3D emissive;
+    if (srcMaterial->Get(AI_MATKEY_COLOR_EMISSIVE, emissive) == AI_SUCCESS) {
+        outMaterial.emissiveFactor =
+            DirectX::XMFLOAT3(emissive.r, emissive.g, emissive.b);
+    }
+
+    // occlusion factorはassimpでは取得できない
 
     // テクスチャ参照の設定
     // base color

@@ -34,10 +34,17 @@ public:
     /// @brief 終了処理，リソースの解放
     void Term();
 
-    /// @brief マテリアル定数用の定数バッファのGPUハンドルを返す
-    /// @return 定数バッファのGPUハンドル
+    //========================================
+    // アクセサ
+    //========================================
+    /// @brief GPUディスクリプタハンドルの取得
     D3D12_GPU_DESCRIPTOR_HANDLE GetConstantBufferHandle() const {
         return m_constantBuffer.GetGPUHandle();
+    }
+
+    /// @brief GPU仮想アドレスの取得
+    D3D12_GPU_VIRTUAL_ADDRESS GetConstantBufferGPUAddress() const {
+        return m_constantBuffer.GetGPUVirtualAddress();
     }
 
     /// @brief 描画で使うためのテクスチャを取得する

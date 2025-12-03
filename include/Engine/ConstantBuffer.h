@@ -22,8 +22,17 @@ public:
 
     void Update(const void* pData, size_t size);
 
+    //========================================
+    // アクセサ
+    //========================================
+    /// @brief ディスクリプタハンドルの取得
     D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const {
         return m_pPool->GetGPUHandle(m_index);
+    }
+
+    /// @brief GPU仮想アドレスの取得
+    D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() const {
+        return m_GPUAddress;
     }
 
 private:

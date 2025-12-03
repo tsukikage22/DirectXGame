@@ -27,10 +27,17 @@ public:
     /// @param world ワールド行列
     void Update(const DirectX::XMMATRIX& world);
 
-    /// @brief GPUハンドルの取得
-    /// @return GPUハンドル
+    //========================================
+    // アクセサ
+    //========================================
+    /// @brief GPUディスクリプタハンドルの取得
     D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const {
         return m_constantBuffer.GetGPUHandle();
+    }
+
+    /// @brief GPU仮想アドレスの取得
+    D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const {
+        return m_constantBuffer.GetGPUVirtualAddress();
     }
 
 private:
