@@ -158,10 +158,10 @@ bool Engine::InitD3D() {
 #if defined(_DEBUG)
     // デバッグレイヤーを有効化
     {
-        engine::ComPtr<ID3D12Debug> debug;
+        engine::ComPtr<ID3D12Debug1> debug1;
         if (SUCCEEDED(
-                D3D12GetDebugInterface(IID_PPV_ARGS(debug.GetAddressOf())))) {
-            debug->EnableDebugLayer();
+                D3D12GetDebugInterface(IID_PPV_ARGS(debug1.GetAddressOf())))) {
+            debug1->SetEnableGPUBasedValidation(TRUE);
         }
     }
 #endif
@@ -361,7 +361,7 @@ bool Engine::InitApp() {
         m_Models.push_back(model);
         m_textureCount = static_cast<UINT>(model.images.size());
 
-        // オブジェクト数分のTransformを追加
+        // maxObjectsの数だけTransformの定数バッファを確保
         for (int i = 0; i < FrameCount; i++) {
             if (!m_FrameResources[i].AddTransform(
                     m_pDevice.Get(), m_pPoolCBV_SRV_UAV, m_Models.size())) {
@@ -407,6 +407,11 @@ bool Engine::InitApp() {
         // 転送完了を待機
         auto future = batch.End(m_CommandQueue.GetD3DQueue());
         future.wait();
+
+        // アップロードヒープの破棄
+        for (auto& mesh : m_Meshes) {
+            mesh.DiscardUpload();
+        }
     }
 
     // ルートシグニチャの生成
@@ -489,15 +494,9 @@ bool Engine::InitApp() {
 
 void Engine::TermApp() {
     // メッシュの解放
-    for (auto& mesh : m_Meshes) {
-        mesh.Term();
-    }
     m_Meshes.clear();
 
     // マテリアルの解放
-    for (auto& material : m_Materials) {
-        material.Term();
-    }
     m_Materials.clear();
 
     // テクスチャプールの解放

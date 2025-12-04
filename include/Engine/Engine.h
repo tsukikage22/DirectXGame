@@ -83,7 +83,8 @@ protected:
     engine::ComPtr<ID3D12RootSignature> m_pRootSignature;  // ルートシグネチャ
     engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
 
-    uint32_t m_FrameIndex;  // 現在のフレーム番号
+    uint32_t m_FrameIndex;       // 現在のフレーム番号
+    size_t m_maxObjects = 1000;  // 最大オブジェクト数
 
     DescriptorPool* m_pPoolCBV_SRV_UAV;  // CBV/SRV/UAV用ディスクリプタプール
     DescriptorPool* m_pPoolRTV;          // RTV用ディスクリプタプール
