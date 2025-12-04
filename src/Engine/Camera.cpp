@@ -17,7 +17,7 @@ DirectX::XMFLOAT4X4 Camera::GetViewMatrix() {
     DirectX::XMVECTOR targetPos = DirectX::XMLoadFloat3(&m_target);
     DirectX::XMVECTOR upward    = DirectX::XMLoadFloat3(&m_up);
     DirectX::XMMATRIX viewMatrix =
-        DirectX::XMMatrixLookAtRH(eyePos, targetPos, upward);
+        DirectX::XMMatrixLookAtLH(eyePos, targetPos, upward);
     DirectX::XMStoreFloat4x4(&m_viewMatrix, viewMatrix);
     return m_viewMatrix;
 }
@@ -26,7 +26,7 @@ DirectX::XMFLOAT4X4 Camera::GetViewMatrix() {
 /// @return
 DirectX::XMFLOAT4X4 Camera::GetProjectionMatrix() {
     DirectX::XMMATRIX projMatrix =
-        DirectX::XMMatrixPerspectiveFovRH(m_fovY, m_aspect, m_nearZ, m_farZ);
+        DirectX::XMMatrixPerspectiveFovLH(m_fovY, m_aspect, m_nearZ, m_farZ);
     DirectX::XMStoreFloat4x4(&m_projMatrix, projMatrix);
     return m_projMatrix;
 }

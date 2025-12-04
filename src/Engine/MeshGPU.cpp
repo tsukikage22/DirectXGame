@@ -46,6 +46,17 @@ bool MeshGPU::Init(ID3D12Device* pDevice, ID3D12GraphicsCommandList* pCmdList,
 
 // 終了処理，リソースの解放
 void MeshGPU::Term() {
+    m_pVB->Term();
+    m_pIB->Term();
     m_pVB.reset();
     m_pIB.reset();
+}
+
+void MeshGPU::DiscardUpload() {
+    if (m_pVB) {
+        m_pVB->DiscardUpload();
+    }
+    if (m_pIB) {
+        m_pIB->DiscardUpload();
+    }
 }

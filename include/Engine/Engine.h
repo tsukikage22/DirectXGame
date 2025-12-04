@@ -1,4 +1,4 @@
-////////////////////////////////////////
+﻿////////////////////////////////////////
 /// @file Engine.h
 /// @brief
 ////////////////////////////////////////
@@ -18,7 +18,7 @@
 #include "Engine/ColorTarget.h"
 #include "Engine/ComPtr.h"
 #include "Engine/CommandQueue.h"
-#include "Engine/DepthStencil.h"
+#include "Engine/DepthTarget.h"
 #include "Engine/DescriptorPool.h"
 #include "Engine/FrameResource.h"
 #include "Engine/GLBImporter.h"
@@ -28,7 +28,7 @@
 #include "Engine/MeshGPU.h"
 #include "Engine/RootSignatureBuilder.h"
 #include "Engine/SceneConstantsGPU.h"
-#include "Engine/TexturePool.h"
+#include "Engine/TextureManager.h"
 #include "Engine/TransformGPU.h"
 #include "Engine/VertexBuffer.h"
 #include "Engine/VertexTypes.h"
@@ -56,11 +56,25 @@ public:
     uint32_t m_Width;   // ウィンドウ横幅
     uint32_t m_Height;  // ウィンドウ縦幅
 
-    void Initialize();
+    //==================================================================
+    // ライフサイクル管理
+    //==================================================================
+    bool Initialize();
+
     void Shutdown();
+
+    //==================================================================
+    // フレーム制御
+    //==================================================================
     void BeginFrame();
-    void EndFrame();
+
+    void Update();
+
     void Render();
+
+    void EndFrame();
+
+    void Present();
 
 protected:
     engine::ComPtr<ID3D12Device> m_pDevice;                // デバイス
@@ -69,7 +83,8 @@ protected:
     engine::ComPtr<ID3D12RootSignature> m_pRootSignature;  // ルートシグネチャ
     engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
 
-    uint32_t m_FrameIndex;  // 現在のフレーム番号
+    uint32_t m_FrameIndex;       // 現在のフレーム番号
+    size_t m_maxObjects = 1000;  // 最大オブジェクト数
 
     DescriptorPool* m_pPoolCBV_SRV_UAV;  // CBV/SRV/UAV用ディスクリプタプール
     DescriptorPool* m_pPoolRTV;          // RTV用ディスクリプタプール
@@ -77,16 +92,18 @@ protected:
     DescriptorPool* m_pPoolSMP;          // サンプラ用ディスクリプタプール
 
     ColorTarget m_ColorTarget[FrameCount];  // カラーターゲット
-    DepthStencil m_pDepthTarget;            // 深度ステンシル
+    DepthTarget m_pDepthTarget;             // 深度ステンシル
     CommandQueue m_CommandQueue;            // コマンドキュー
     D3D12_VIEWPORT m_Viewport;              // ビューポート
     D3D12_RECT m_ScissorRect;               // シザー矩形
 
     FrameResource m_FrameResources[FrameCount];  // フレームリソース
 
+    std::vector<ModelAsset> m_Models;      // モデルデータ
     std::vector<MeshGPU> m_Meshes;         // メッシュデータ
     std::vector<MaterialGPU> m_Materials;  // マテリアルデータ
-    TexturePool m_TexturePool;             // テクスチャプール
+    UINT m_textureCount = 0;               // テクスチャ数
+    TextureManager m_TextureManager;       // テクスチャマネージャ
     Camera m_Camera;                       // カメラ
 
     static constexpr size_t maxObjects = 100;  // 最大オブジェクト数

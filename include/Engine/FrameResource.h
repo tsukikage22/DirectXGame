@@ -34,7 +34,6 @@ public:
     //=======================================
     // アクセサ
     //=======================================
-
     /// @brief コマンドアロケータの取得
     /// @return
     ID3D12CommandAllocator* GetCommandAllocator() const {

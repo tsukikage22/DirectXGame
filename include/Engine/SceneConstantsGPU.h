@@ -34,6 +34,17 @@ public:
     /// @param sceneConstants
     void Update(const shader::SceneConstants& sceneConstants);
 
+    //========================================
+    // アクセサ
+    //========================================
+    /// @brief 定数バッファの取得
+    ConstantBuffer& GetConstantBuffer() { return m_constantBuffer; }
+
+    /// @brief 定数バッファのGPU仮想アドレスの取得
+    D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const {
+        return m_constantBuffer.GetGPUVirtualAddress();
+    }
+
 private:
     ConstantBuffer m_constantBuffer;     // シーン定数用の定数バッファ
     shader::SceneConstants m_constants;  // 定数バッファ用データ

@@ -6,8 +6,8 @@
 
 class CommandQueue {
 public:
-    CommandQueue() = default;
-    ~CommandQueue() = default;
+    CommandQueue();
+    ~CommandQueue();
 
     /////////////////////////////////////////////////////////////////////////
     /// @brief コマンドキューとフェンスとイベントを生成して初期化
@@ -52,9 +52,9 @@ private:
     engine::ComPtr<ID3D12CommandQueue> m_pQueue;
     engine::ComPtr<ID3D12Fence> m_pFence;
 
-    UINT64 m_nextFence = 1;
+    UINT64 m_nextFence  = 1;
     HANDLE m_fenceEvent = nullptr;
 
-    CommandQueue(const CommandQueue&) = delete;
+    CommandQueue(const CommandQueue&)            = delete;
     CommandQueue& operator=(const CommandQueue&) = delete;
 };

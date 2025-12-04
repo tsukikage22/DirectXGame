@@ -7,11 +7,12 @@
 
 #include "Engine/ComPtr.h"
 #include "Engine/DescriptorPool.h"
+#include "Engine/TextureResource.h"
 
-class DepthStencil {
+class DepthTarget {
 public:
-    DepthStencil();
-    ~DepthStencil();
+    DepthTarget();
+    ~DepthTarget();
 
     ///////////////////////////////////////////////////////////////////////////
     /// @brief 深度ステンシルバッファの初期化
@@ -36,11 +37,11 @@ public:
     uint32_t GetDSVIndex() const { return m_DSVIndex; }
 
 private:
-    engine::ComPtr<ID3D12Resource> m_pTarget;  // リソース
+    TextureResource m_Target;                  // リソース
     DescriptorPool* m_pPoolDSV;                // ディスクリプタプール
     uint32_t m_DSVIndex;                       // DSVインデックス
     D3D12_DEPTH_STENCIL_VIEW_DESC m_ViewDesc;  // DSVのディスクリプタ
 
-    DepthStencil(const DepthStencil&) = delete;
-    void operator=(const DepthStencil&) = delete;
+    DepthTarget(const DepthTarget&)    = delete;
+    void operator=(const DepthTarget&) = delete;
 };

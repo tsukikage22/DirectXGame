@@ -26,7 +26,7 @@ bool GLBImporter::LoadFromFile(
              aiProcess_OptimizeMeshes;             // メッシュの最適化
 
     const aiScene* scene = importer.ReadFile(path.string(), flags);
-    if (!scene || !scene->mRootNode) {
+    if (!scene || !scene->mRootNode || !scene->HasMeshes()) {
         return false;
     }
 
@@ -45,7 +45,13 @@ bool GLBImporter::LoadFromFile(
             const uint8_t* src = reinterpret_cast<uint8_t*>(texture->pcData);
             const size_t size  = static_cast<size_t>(texture->mWidth);
             imageAsset.imageData.assign(src, src + size);
-            imageAsset.format = texture->achFormatHint;
+
+            // formatは小文字にする
+            std::string format;
+            for (unsigned char c : texture->achFormatHint) {
+                format += static_cast<char>(c);
+            }
+            imageAsset.format = format;
         }
         outModel.images.push_back(std::move(imageAsset));
     }
@@ -152,23 +158,30 @@ bool GLBImporter::ParseMaterial(
     // baseColor
     aiColor4D baseColor;
     if (srcMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, baseColor) == AI_SUCCESS) {
-        outMaterial.baseColor = DirectX::XMFLOAT4(
+        outMaterial.baseColorFactor = DirectX::XMFLOAT4(
             baseColor.r, baseColor.g, baseColor.b, baseColor.a);
-    } else {
-        outMaterial.baseColor = DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 0.5f);
     }
 
     // metallic
     float metallic = 0.0f;
     if (srcMaterial->Get(AI_MATKEY_METALLIC_FACTOR, metallic) == AI_SUCCESS) {
-        outMaterial.metallic = metallic;
+        outMaterial.metallicFactor = metallic;
     }
 
     // roughness
     float roughness = 1.0f;
     if (srcMaterial->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness) == AI_SUCCESS) {
-        outMaterial.roughness = roughness;
+        outMaterial.roughnessFactor = roughness;
     }
+
+    // emissive
+    aiColor3D emissive;
+    if (srcMaterial->Get(AI_MATKEY_COLOR_EMISSIVE, emissive) == AI_SUCCESS) {
+        outMaterial.emissiveFactor =
+            DirectX::XMFLOAT3(emissive.r, emissive.g, emissive.b);
+    }
+
+    // occlusion factorはassimpでは取得できない
 
     // テクスチャ参照の設定
     // base color
@@ -182,33 +195,33 @@ bool GLBImporter::ParseMaterial(
             // 数字部分を抜き出してインデックスとして記録する
             int texIndex = std::atoi(pathStr.substr(1).c_str());
             if (texIndex >= 0 && texIndex < imageCount) {
-                outMaterial.baseColorTexture.index = texIndex;
+                outMaterial.baseColorLocalTextureIndex = texIndex;
             }
         }
     }
 
-    // metallic
-    aiString metallicPath;
-    if (srcMaterial->GetTexture(aiTextureType_METALNESS, 0, &metallicPath) ==
-        AI_SUCCESS) {
-        std::string pathStr = metallicPath.C_Str();
-        if (pathStr[0] == '*') {
+    // metallic-roughness
+    aiString metallicRoughnessPath;
+    if (srcMaterial->GetTexture(aiTextureType_GLTF_METALLIC_ROUGHNESS, 0,
+            &metallicRoughnessPath) == AI_SUCCESS) {
+        std::string pathStr = metallicRoughnessPath.C_Str();
+        if (pathStr[0] == '*') {  // 埋め込みテクスチャ
             int texIndex = std::atoi(pathStr.substr(1).c_str());
             if (texIndex >= 0 && texIndex < imageCount) {
-                outMaterial.metallicTexture.index = texIndex;
+                outMaterial.metallicRoughnessLocalTextureIndex = texIndex;
             }
         }
     }
 
-    // roughness
-    aiString roughnessPath;
+    // occlusion
+    aiString occlusionPath;
     if (srcMaterial->GetTexture(
-            aiTextureType_DIFFUSE_ROUGHNESS, 0, &roughnessPath) == AI_SUCCESS) {
-        std::string pathStr = roughnessPath.C_Str();
+            aiTextureType_AMBIENT_OCCLUSION, 0, &occlusionPath) == AI_SUCCESS) {
+        std::string pathStr = occlusionPath.C_Str();
         if (pathStr[0] == '*') {
             int texIndex = std::atoi(pathStr.substr(1).c_str());
             if (texIndex >= 0 && texIndex < imageCount) {
-                outMaterial.roughnessTexture.index = texIndex;
+                outMaterial.occlusionLocalTextureIndex = texIndex;
             }
         }
     }
@@ -221,7 +234,20 @@ bool GLBImporter::ParseMaterial(
         if (pathStr[0] == '*') {
             int texIndex = std::atoi(pathStr.substr(1).c_str());
             if (texIndex >= 0 && texIndex < imageCount) {
-                outMaterial.normalTexture.index = texIndex;
+                outMaterial.normalLocalTextureIndex = texIndex;
+            }
+        }
+    }
+
+    // emissive
+    aiString emissivePath;
+    if (srcMaterial->GetTexture(aiTextureType_EMISSIVE, 0, &emissivePath) ==
+        AI_SUCCESS) {
+        std::string pathStr = emissivePath.C_Str();
+        if (pathStr[0] == '*') {
+            int texIndex = std::atoi(pathStr.substr(1).c_str());
+            if (texIndex >= 0 && texIndex < imageCount) {
+                outMaterial.emissiveLocalTextureIndex = texIndex;
             }
         }
     }

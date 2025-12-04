@@ -47,6 +47,8 @@ struct MaterialConstants {
     DirectX::XMFLOAT4 baseColor;
     float metallic;
     float roughness;
+    DirectX::XMFLOAT3 emissive;
+    float occlusion;
     float _padding0;  // 16バイトアラインメント用
     float _padding1;  // 16バイトアラインメント用
 };
