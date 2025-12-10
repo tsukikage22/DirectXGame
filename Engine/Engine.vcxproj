@@ -154,6 +154,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\Engine\Camera.h" />
     <ClInclude Include="..\include\Engine\ColorTarget.h" />
     <ClInclude Include="..\include\Engine\CommandQueue.h" />
     <ClInclude Include="..\include\Engine\ComPtr.h" />
@@ -162,38 +163,56 @@
     <ClInclude Include="..\include\Engine\DescriptorPool.h" />
     <ClInclude Include="..\include\Engine\Engine.h" />
     <ClInclude Include="..\include\Engine\AssetPath.h" />
+    <ClInclude Include="..\include\Engine\Fence.h" />
+    <ClInclude Include="..\include\Engine\FrameResource.h" />
+    <ClInclude Include="..\include\Engine\GameObject.h" />
     <ClInclude Include="..\include\Engine\GLBImporter.h" />
     <ClInclude Include="..\include\Engine\GPUBuffer.h" />
     <ClInclude Include="..\include\Engine\IndexBuffer.h" />
     <ClInclude Include="..\include\Engine\GraphicsPipelineBuilder.h" />
     <ClInclude Include="..\include\Engine\MaterialGPU.h" />
+    <ClInclude Include="..\include\Engine\Model.h" />
     <ClInclude Include="..\include\Engine\ModelAsset.h" />
     <ClInclude Include="..\include\Engine\MeshGPU.h" />
     <ClInclude Include="..\include\Engine\RootSignatureBuilder.h" />
+    <ClInclude Include="..\include\Engine\Scene.h" />
+    <ClInclude Include="..\include\Engine\SceneConstantsGPU.h" />
     <ClInclude Include="..\include\Engine\ShaderConstants.h" />
     <ClInclude Include="..\include\Engine\ShaderResourceTexture.h" />
     <ClInclude Include="..\include\Engine\TextureManager.h" />
     <ClInclude Include="..\include\Engine\TextureResource.h" />
+    <ClInclude Include="..\include\Engine\Transform.h" />
+    <ClInclude Include="..\include\Engine\TransformGPU.h" />
     <ClInclude Include="..\include\Engine\VertexBuffer.h" />
     <ClInclude Include="..\include\Engine\VertexTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\Engine\AssetPath.cpp" />
+    <ClCompile Include="..\src\Engine\Camera.cpp" />
     <ClCompile Include="..\src\Engine\ColorTarget.cpp" />
     <ClCompile Include="..\src\Engine\CommandQueue.cpp" />
     <ClCompile Include="..\src\Engine\ConstantBuffer.cpp" />
     <ClCompile Include="..\src\Engine\DepthTarget.cpp" />
     <ClCompile Include="..\src\Engine\DescriptorPool.cpp" />
     <ClCompile Include="..\src\Engine\Engine.cpp" />
+    <ClCompile Include="..\src\Engine\Fence.cpp" />
+    <ClCompile Include="..\src\Engine\FrameResource.cpp" />
+    <ClCompile Include="..\src\Engine\GameObject.cpp" />
     <ClCompile Include="..\src\Engine\GLBImporter.cpp" />
     <ClCompile Include="..\src\Engine\GPUBuffer.cpp" />
+    <ClCompile Include="..\src\Engine\GraphicsPipelineBuilder.cpp" />
     <ClCompile Include="..\src\Engine\GraphicsPipilineBuilder.cpp" />
     <ClCompile Include="..\src\Engine\MaterialGPU.cpp" />
     <ClCompile Include="..\src\Engine\MeshGPU.cpp" />
+    <ClCompile Include="..\src\Engine\Model.cpp" />
     <ClCompile Include="..\src\Engine\RootSignatureBuilder.cpp" />
+    <ClCompile Include="..\src\Engine\Scene.cpp" />
+    <ClCompile Include="..\src\Engine\SceneConstantsGPU.cpp" />
     <ClCompile Include="..\src\Engine\ShaderResourceTexture.cpp" />
     <ClCompile Include="..\src\Engine\TextureManager.cpp" />
     <ClCompile Include="..\src\Engine\TextureResource.cpp" />
+    <ClCompile Include="..\src\Engine\Transform.cpp" />
+    <ClCompile Include="..\src\Engine\TransformGPU.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
