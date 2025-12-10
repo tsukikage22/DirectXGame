@@ -47,10 +47,10 @@ struct MaterialConstants {
     DirectX::XMFLOAT4 baseColor;
     float metallic;
     float roughness;
-    DirectX::XMFLOAT3 emissive;
-    float occlusion;
     float _padding0;  // 16バイトアラインメント用
     float _padding1;  // 16バイトアラインメント用
+    DirectX::XMFLOAT3 emissive;
+    float occlusion;
 };
 static_assert(sizeof(MaterialConstants) % 16 == 0, "Must be 16-byte aligned");
 }  // namespace shader
