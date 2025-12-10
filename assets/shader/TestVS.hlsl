@@ -5,8 +5,9 @@
 struct VSInput{
     float3 position : POSITION;     // 頂点座標
     float3 normal   : NORMAL;       // 頂点法線
-    float2 texCoord : TEXCOORD;     // テクスチャ座標
     float3 tangent  : TANGENT;      // 接線ベクトル
+    float2 texCoord : TEXCOORD;     // テクスチャ座標
+    float4 color    : COLOR;        // 頂点カラー
 }
 
 //===========================================

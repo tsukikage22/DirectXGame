@@ -10,7 +10,6 @@ struct StandardVertex {
     DirectX::XMFLOAT3 position;  // 座標
     DirectX::XMFLOAT3 normal;    // 法線
     DirectX::XMFLOAT3 tangent;   // 接空間
-    DirectX::XMFLOAT2 uv;        // UV座標
     DirectX::XMFLOAT2 texcoord;  // テクスチャ座標
     DirectX::XMFLOAT4 color;     // 頂点カラー
 
