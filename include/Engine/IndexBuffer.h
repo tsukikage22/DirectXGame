@@ -2,6 +2,9 @@
 
 #include <d3d12.h>
 
+#include <cassert>
+#include <type_traits>
+
 #include "Engine/GPUBuffer.h"
 
 class IndexBuffer {
@@ -14,9 +17,7 @@ public:
     bool Init(ID3D12Device* pDevice, ID3D12GraphicsCommandList* pCmdList,
         size_t size, DXGI_FORMAT format, const void* pInitData = nullptr) {
         // 引数チェック
-        if (pDevice == nullptr || pCmdList == nullptr || size == 0 ||
-            (format != DXGI_FORMAT_R16_UINT &&
-                format != DXGI_FORMAT_R32_UINT)) {
+        if (pDevice == nullptr || pCmdList == nullptr || size == 0) {
             return false;
         }
 
@@ -32,6 +33,20 @@ public:
         m_View.Format         = format;
 
         return true;
+    }
+
+    template <typename T>
+    bool Init(ID3D12Device* pDevice, ID3D12GraphicsCommandList* pCmdList,
+        const std::vector<T>& indices) {
+        // インデックスの型チェック
+        static_assert(
+            std::is_same_v<T, uint16_t> || std::is_same_v<T, uint32_t>,
+            "Index type must be uint16_t or uint32_t.");
+        // formatの決定
+        DXGI_FORMAT format =
+            (sizeof(T) == 2) ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
+        return Init(pDevice, pCmdList, sizeof(T) * indices.size(), format,
+            indices.data());
     }
 
     bool Term() {

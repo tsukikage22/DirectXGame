@@ -12,8 +12,7 @@ bool SceneConstantsGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
     }
 
     // 定数バッファの作成
-    if (!m_constantBuffer.Init(
-            pDevice, pPoolCBV, sizeof(shader::SceneConstants))) {
+    if (!m_constantBuffer.Init<shader::SceneConstants>(pDevice, pPoolCBV)) {
         return false;
     }
 

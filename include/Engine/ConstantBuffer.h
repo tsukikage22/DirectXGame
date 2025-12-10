@@ -18,6 +18,11 @@ public:
 
     bool Init(ID3D12Device* pDevice, DescriptorPool* pPool, size_t size);
 
+    template <typename T>
+    bool Init(ID3D12Device* pDevice, DescriptorPool* pPool) {
+        return Init(pDevice, pPool, sizeof(T));
+    };
+
     void Term();
 
     void Update(const void* pData, size_t size);

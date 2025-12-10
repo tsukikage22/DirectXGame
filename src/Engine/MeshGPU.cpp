@@ -32,8 +32,7 @@ bool MeshGPU::Init(ID3D12Device* pDevice, ID3D12GraphicsCommandList* pCmdList,
 
     // インデックスバッファの作成
     IndexBuffer IB;
-    if (!IB.Init(pDevice, pCmdList, sizeof(uint32_t) * mesh.indices.size(),
-            DXGI_FORMAT_R32_UINT, mesh.indices.data())) {
+    if (!IB.Init(pDevice, pCmdList, mesh.indices)) {
         return false;
     }
     m_pIB = std::make_unique<IndexBuffer>(std::move(IB));

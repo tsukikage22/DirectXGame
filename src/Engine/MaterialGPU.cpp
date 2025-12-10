@@ -30,8 +30,7 @@ bool MaterialGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
     m_pTextureManager = pTextureManager;
 
     // 定数バッファの作成
-    if (!m_constantBuffer.Init(
-            pDevice, pPoolCBV, sizeof(shader::MaterialConstants))) {
+    if (!m_constantBuffer.Init<shader::MaterialConstants>(pDevice, pPoolCBV)) {
         return false;
     }
 
