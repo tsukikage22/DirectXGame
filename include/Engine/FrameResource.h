@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Engine/ComPtr.h"
+#include "Engine/DescriptorPool.h"
 #include "Engine/SceneConstantsGPU.h"
 #include "Engine/TransformGPU.h"
 

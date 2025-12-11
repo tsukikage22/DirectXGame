@@ -111,17 +111,25 @@ bool GLBImporter::ParseMesh(const aiMesh* srcMesh, MeshAsset& outMesh) {
             vertex.normal.z = srcMesh->mNormals[i].z;
         }
 
-        // UV座標
-        if (srcMesh->HasTextureCoords(0)) {
-            vertex.uv.x = srcMesh->mTextureCoords[0][i].x;
-            vertex.uv.y = srcMesh->mTextureCoords[0][i].y;
-        }
-
         // 接線ベクトル
         if (srcMesh->HasTangentsAndBitangents()) {
             vertex.tangent.x = srcMesh->mTangents[i].x;
             vertex.tangent.y = srcMesh->mTangents[i].y;
             vertex.tangent.z = srcMesh->mTangents[i].z;
+        }
+
+        // UV座標
+        if (srcMesh->HasTextureCoords(0)) {
+            vertex.texcoord.x = srcMesh->mTextureCoords[0][i].x;
+            vertex.texcoord.y = srcMesh->mTextureCoords[0][i].y;
+        }
+
+        // 頂点カラー
+        if (srcMesh->HasVertexColors(0)) {
+            vertex.color.x = srcMesh->mColors[0][i].r;
+            vertex.color.y = srcMesh->mColors[0][i].g;
+            vertex.color.z = srcMesh->mColors[0][i].b;
+            vertex.color.w = srcMesh->mColors[0][i].a;
         }
     }
 

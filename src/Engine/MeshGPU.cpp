@@ -10,9 +10,6 @@ MeshGPU::MeshGPU()
       m_MaterialID(UINT32_MAX),
       m_IndexCount(0) {}
 
-// デストラクタ
-MeshGPU::~MeshGPU() { Term(); }
-
 // 初期化処理・VB/IBの作成
 bool MeshGPU::Init(ID3D12Device* pDevice, ID3D12GraphicsCommandList* pCmdList,
     const MeshAsset& mesh) {
