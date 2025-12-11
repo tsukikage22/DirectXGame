@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Engine/ComPtr.h"
+#include "Engine/DescriptorPool.h"
 #include "Engine/GPUBuffer.h"
 
 class DescriptorPool;
