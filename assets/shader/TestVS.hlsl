@@ -24,8 +24,8 @@ struct VSOutput{
 //===========================================
 // [b0] シーン定数（View, Projection行列）
 cbuffer Transform : register(b0) {
-    float4x4 view   : packoffset(c4); // ビュー行列
-    float4x4 proj   : packoffset(c8); // プロジェクション行列
+    float4x4 view;      // ビュー行列
+    float4x4 proj;      // プロジェクション行列
     float3 cameraPos;   // カメラ位置（ワールド座標系）
 };
 
@@ -46,9 +46,6 @@ VSOutput main(VSInput input) {
 
     // 3. ビュー座標 -> 射影変換
     output.position = mul(viewPos, proj);
-
-    // 法線変換
-    output.normal = mul(input.normal, (float3x3)world);
 
     // UV座標の受け渡し
     output.texCoord = input.texCoord;
