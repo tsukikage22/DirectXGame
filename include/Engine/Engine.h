@@ -13,6 +13,9 @@
 #include <d3dcompiler.h>
 #include <dxgi1_4.h>
 
+#include <memory>
+#include <vector>
+
 #include "Engine/AssetPath.h"
 #include "Engine/Camera.h"
 #include "Engine/ColorTarget.h"
@@ -100,7 +103,7 @@ protected:
     FrameResource m_FrameResources[FrameCount];  // フレームリソース
 
     std::vector<ModelAsset> m_Models;                       // モデルデータ
-    std::vector<MeshGPU> m_Meshes;                          // メッシュデータ
+    std::vector<std::unique_ptr<MeshGPU>> m_Meshes;         // メッシュデータ
     std::vector<std::unique_ptr<MaterialGPU>> m_Materials;  // マテリアルデータ
     UINT m_textureCount = 0;                                // テクスチャ数
     TextureManager m_TextureManager;  // テクスチャマネージャ

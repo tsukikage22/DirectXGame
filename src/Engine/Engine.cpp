@@ -98,7 +98,7 @@ void Engine::Render() {
 
         // [b1] TransformConstants
         m_pCmdList->SetGraphicsRootConstantBufferView(1,
-            m_FrameResources[m_FrameIndex].GetTransforms()[0].GetGPUAddress());
+            m_FrameResources[m_FrameIndex].GetTransforms()[0]->GetGPUAddress());
 
         // [b2] MaterialConstants
         m_pCmdList->SetGraphicsRootConstantBufferView(
@@ -108,7 +108,7 @@ void Engine::Render() {
         m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
 
         m_pCmdList->DrawIndexedInstanced(
-            m_Meshes[0].GetIndexCount(), 1, 0, 0, 0);
+            m_Meshes[0]->GetIndexCount(), 1, 0, 0, 0);
     }
 }
 
@@ -390,7 +390,8 @@ bool Engine::InitApp() {
         // メッシュをGPUに転送
         m_Meshes.resize(model.meshes.size());
         for (size_t i = 0; i < model.meshes.size(); i++) {
-            if (!m_Meshes[i].Init(
+            m_Meshes[i] = std::make_unique<MeshGPU>();
+            if (!m_Meshes[i]->Init(
                     m_pDevice.Get(), m_pCmdList.Get(), model.meshes[i])) {
                 return false;
             }
@@ -398,7 +399,6 @@ bool Engine::InitApp() {
 
         // マテリアルをGPUに転送
         m_Materials.resize(model.materials.size());
-
         for (size_t i = 0; i < model.materials.size(); i++) {
             m_Materials[i] = std::make_unique<MaterialGPU>();
             if (!m_Materials[i]->Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV,
@@ -413,7 +413,7 @@ bool Engine::InitApp() {
 
         // アップロードヒープの破棄
         for (auto& mesh : m_Meshes) {
-            mesh.DiscardUpload();
+            mesh->DiscardUpload();
         }
     }
 

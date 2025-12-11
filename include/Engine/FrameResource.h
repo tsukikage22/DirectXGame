@@ -2,6 +2,9 @@
 
 #include <d3d12.h>
 
+#include <memory>
+#include <vector>
+
 #include "Engine/ComPtr.h"
 #include "Engine/SceneConstantsGPU.h"
 #include "Engine/TransformGPU.h"
@@ -42,7 +45,9 @@ public:
 
     /// @brief TransformGPUの取得
     /// @return
-    std::vector<TransformGPU>& GetTransforms() { return m_transforms; }
+    std::vector<std::unique_ptr<TransformGPU>>& GetTransforms() {
+        return m_pTransforms;
+    }
 
     /// @brief SceneConstantsGPUの取得
     /// @return
@@ -54,10 +59,11 @@ public:
 
 private:
     engine::ComPtr<ID3D12CommandAllocator>
-        m_pCmdAllocator;                     // コマンドアロケータ
-    std::vector<TransformGPU> m_transforms;  // 各オブジェクトのワールド行列
-    SceneConstantsGPU m_sceneConstants;      // シーン定数
-    UINT64 m_fenceValue = 0;                 // フェンス値
+        m_pCmdAllocator;  // コマンドアロケータ
+    std::vector<std::unique_ptr<TransformGPU>>
+        m_pTransforms;                   // 各オブジェクトのワールド行列
+    SceneConstantsGPU m_sceneConstants;  // シーン定数
+    UINT64 m_fenceValue = 0;             // フェンス値
     // このフレームを作成した時点のフェンス値を持つことで，
     // 再利用の判断や寿命の管理に使用できる
 
