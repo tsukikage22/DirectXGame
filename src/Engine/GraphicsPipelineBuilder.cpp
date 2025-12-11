@@ -132,8 +132,3 @@ bool GraphicsPipelineBuilder::Build(ID3D12Device* pDevice) {
 
     return true;
 }
-
-// パイプラインステートの取得
-ID3D12PipelineState* GraphicsPipelineBuilder::Get() const {
-    return m_pPipelineState.Get();
-}

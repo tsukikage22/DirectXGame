@@ -201,7 +201,6 @@
     <ClCompile Include="..\src\Engine\GLBImporter.cpp" />
     <ClCompile Include="..\src\Engine\GPUBuffer.cpp" />
     <ClCompile Include="..\src\Engine\GraphicsPipelineBuilder.cpp" />
-    <ClCompile Include="..\src\Engine\GraphicsPipilineBuilder.cpp" />
     <ClCompile Include="..\src\Engine\MaterialGPU.cpp" />
     <ClCompile Include="..\src\Engine\MeshGPU.cpp" />
     <ClCompile Include="..\src\Engine\Model.cpp" />

@@ -131,9 +131,6 @@
     <ClCompile Include="..\src\Engine\GPUBuffer.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\GraphicsPipilineBuilder.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\Engine\RootSignatureBuilder.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
