@@ -68,3 +68,4 @@ void Application::MainLoop() {
         // 画面表示
         m_Engine.Present();
     }
+}
