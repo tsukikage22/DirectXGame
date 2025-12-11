@@ -19,20 +19,20 @@ bool MeshGPU::Init(ID3D12Device* pDevice, ID3D12GraphicsCommandList* pCmdList,
     }
 
     // 頂点バッファの作成
-    VertexBuffer VB;
-    if (!VB.Init(pDevice, pCmdList,
+    auto pVB = std::make_unique<VertexBuffer>();
+    if (!pVB->Init(pDevice, pCmdList,
             sizeof(StandardVertex) * mesh.vertices.size(),
             mesh.vertices.data())) {
         return false;
     }
-    m_pVB = std::make_unique<VertexBuffer>(std::move(VB));
+    m_pVB = std::move(pVB);
 
     // インデックスバッファの作成
-    IndexBuffer IB;
-    if (!IB.Init(pDevice, pCmdList, mesh.indices)) {
+    auto pIB = std::make_unique<IndexBuffer>();
+    if (!pIB->Init(pDevice, pCmdList, mesh.indices)) {
         return false;
     }
-    m_pIB = std::make_unique<IndexBuffer>(std::move(IB));
+    m_pIB = std::move(pIB);
 
     m_MaterialID = mesh.materialID;
     m_IndexCount = static_cast<uint32_t>(mesh.indices.size());
