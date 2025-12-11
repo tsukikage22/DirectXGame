@@ -60,8 +60,9 @@ void Engine::BeginFrame() {
     // レンダーターゲットの設定
     uint32_t RTVIndex = m_ColorTarget[m_FrameIndex].GetRTVIndex();
     uint32_t DSVIndex = m_pDepthTarget.GetDSVIndex();
-    m_pCmdList->OMSetRenderTargets(1, &m_pPoolRTV->GetCPUHandle(RTVIndex),
-        FALSE, &m_pPoolDSV->GetCPUHandle(DSVIndex));
+    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_pPoolRTV->GetCPUHandle(RTVIndex);
+    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_pPoolDSV->GetCPUHandle(DSVIndex);
+    m_pCmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
     // レンダーターゲットのクリア
     const float clearColor[] = { 0.25f, 0.25f, 0.25f, 1.0f };
@@ -101,7 +102,7 @@ void Engine::Render() {
 
         // [b2] MaterialConstants
         m_pCmdList->SetGraphicsRootConstantBufferView(
-            2, m_Materials[0].GetConstantBufferGPUAddress());
+            2, m_Materials[0]->GetConstantBufferGPUAddress());
 
         // [t0-t4] PBR Textures
         m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
@@ -397,8 +398,10 @@ bool Engine::InitApp() {
 
         // マテリアルをGPUに転送
         m_Materials.resize(model.materials.size());
+
         for (size_t i = 0; i < model.materials.size(); i++) {
-            if (!m_Materials[i].Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV,
+            m_Materials[i] = std::make_unique<MaterialGPU>();
+            if (!m_Materials[i]->Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV,
                     &m_TextureManager, model.materials[i])) {
                 return false;
             }

@@ -99,12 +99,12 @@ protected:
 
     FrameResource m_FrameResources[FrameCount];  // フレームリソース
 
-    std::vector<ModelAsset> m_Models;      // モデルデータ
-    std::vector<MeshGPU> m_Meshes;         // メッシュデータ
-    std::vector<MaterialGPU> m_Materials;  // マテリアルデータ
-    UINT m_textureCount = 0;               // テクスチャ数
-    TextureManager m_TextureManager;       // テクスチャマネージャ
-    Camera m_Camera;                       // カメラ
+    std::vector<ModelAsset> m_Models;                       // モデルデータ
+    std::vector<MeshGPU> m_Meshes;                          // メッシュデータ
+    std::vector<std::unique_ptr<MaterialGPU>> m_Materials;  // マテリアルデータ
+    UINT m_textureCount = 0;                                // テクスチャ数
+    TextureManager m_TextureManager;  // テクスチャマネージャ
+    Camera m_Camera;                  // カメラ
 
     static constexpr size_t maxObjects = 100;  // 最大オブジェクト数
 
