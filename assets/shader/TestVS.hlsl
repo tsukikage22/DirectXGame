@@ -8,7 +8,7 @@ struct VSInput{
     float3 tangent  : TANGENT;      // 接線ベクトル
     float2 texCoord : TEXCOORD;     // テクスチャ座標
     float4 color    : COLOR;        // 頂点カラー
-}
+};
 
 //===========================================
 // VS Output structure
@@ -35,7 +35,7 @@ cbuffer SceneConstants : register(b1) {
     float4x4 worldInv;
 };
 
-VSOutPut main(VSInput input) {
+VSOutput main(VSInput input) {
     VSOutput output;
 
     // 1. ローカル座標 -> ワールド座標変換

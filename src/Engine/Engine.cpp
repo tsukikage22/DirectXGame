@@ -349,7 +349,7 @@ bool Engine::InitApp() {
     {
         // ファイルの検索
         std::filesystem::path path;
-        if (!AssetPath().GetAssetPath(L"box.fbx", path)) {
+        if (!AssetPath().GetAssetPath(L"box.glb", path)) {
             return false;
         }
 
@@ -455,8 +455,8 @@ bool Engine::InitApp() {
         AssetPath assetPath;
 
         // シェーダのパスを取得
-        if (!assetPath.GetAssetPath(L"BasicVS.cso", vsPath) ||
-            !assetPath.GetAssetPath(L"BasicPS.cso", psPath)) {
+        if (!assetPath.GetAssetPath(L"TestVS.cso", vsPath) ||
+            !assetPath.GetAssetPath(L"TestPS.cso", psPath)) {
             return false;
         }
 
