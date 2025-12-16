@@ -25,8 +25,10 @@ bool Application::Init() {
         return false;
     }
 
-    // TODO: エンジンの初期化
-    m_Engine.Initialize();
+    // エンジンの初期化
+    if (!m_Engine.Initialize()) {
+        return false;
+    }
 
     return true;
 }

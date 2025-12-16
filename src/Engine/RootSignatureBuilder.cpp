@@ -1,5 +1,7 @@
 #include "Engine/RootSignatureBuilder.h"
 
+#include "Engine/DxDebug.h"
+
 // CBVのルートパラメータ定義
 RootSignatureBuilder& RootSignatureBuilder::AddCBV(UINT shaderRegister,
     UINT registerSpace, D3D12_SHADER_VISIBILITY visibility,
@@ -140,18 +142,13 @@ bool RootSignatureBuilder::Build(ID3D12Device* pDevice) {
     engine::ComPtr<ID3DBlob> pBlob = nullptr;
     engine::ComPtr<ID3DBlob> pErr  = nullptr;
 
-    auto hr = D3D12SerializeVersionedRootSignature(
-        &desc, pBlob.GetAddressOf(), pErr.GetAddressOf());
-    if (FAILED(hr)) {
-        return false;
-    }
+    CHECK_HR(pDevice, D3D12SerializeVersionedRootSignature(
+                          &desc, pBlob.GetAddressOf(), pErr.GetAddressOf()));
 
     // ルートシグニチャの生成
-    hr = pDevice->CreateRootSignature(0, pBlob->GetBufferPointer(),
-        pBlob->GetBufferSize(), IID_PPV_ARGS(m_pRootSignature.GetAddressOf()));
-    if (FAILED(hr)) {
-        return false;
-    }
+    CHECK_HR(pDevice, pDevice->CreateRootSignature(0, pBlob->GetBufferPointer(),
+                          pBlob->GetBufferSize(),
+                          IID_PPV_ARGS(m_pRootSignature.GetAddressOf())));
 
     return true;
 }

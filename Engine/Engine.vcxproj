@@ -161,6 +161,7 @@
     <ClInclude Include="..\include\Engine\ConstantBuffer.h" />
     <ClInclude Include="..\include\Engine\DepthTarget.h" />
     <ClInclude Include="..\include\Engine\DescriptorPool.h" />
+    <ClInclude Include="..\include\Engine\DxDebug.h" />
     <ClInclude Include="..\include\Engine\Engine.h" />
     <ClInclude Include="..\include\Engine\AssetPath.h" />
     <ClInclude Include="..\include\Engine\Fence.h" />

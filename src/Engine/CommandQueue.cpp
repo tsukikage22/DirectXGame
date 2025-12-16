@@ -1,4 +1,6 @@
-#include "Engine/CommandQueue.h"
+﻿#include "Engine/CommandQueue.h"
+
+#include "Engine/DxDebug.h"
 
 // コンストラクタ
 CommandQueue::CommandQueue()
@@ -20,17 +22,11 @@ bool CommandQueue::Init(ID3D12Device* pDevice, D3D12_COMMAND_LIST_TYPE type) {
     desc.Flags                    = D3D12_COMMAND_QUEUE_FLAG_NONE;
     desc.NodeMask                 = 0;
 
-    auto hr = pDevice->CreateCommandQueue(
-        &desc, IID_PPV_ARGS(m_pQueue.GetAddressOf()));
-    if (FAILED(hr)) {
-        return false;
-    }
+    CHECK_HR(pDevice, pDevice->CreateCommandQueue(
+                          &desc, IID_PPV_ARGS(m_pQueue.GetAddressOf())));
 
-    hr = pDevice->CreateFence(
-        0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(m_pFence.GetAddressOf()));
-    if (FAILED(hr)) {
-        return false;
-    }
+    CHECK_HR(pDevice, pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE,
+                          IID_PPV_ARGS(m_pFence.GetAddressOf())));
 
     m_fenceEvent = CreateEventEx(nullptr, nullptr, 0, EVENT_ALL_ACCESS);
     if (m_fenceEvent == nullptr) {

@@ -162,10 +162,13 @@ bool Engine::InitD3D() {
     dxdebug::EnableDebugLayer();
 
     // デバイスの生成
-    auto hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0,
-        IID_PPV_ARGS(m_pDevice.GetAddressOf()));
-    if (FAILED(hr)) {
-        return false;
+    {
+        auto hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0,
+            IID_PPV_ARGS(m_pDevice.GetAddressOf()));
+        if (FAILED(hr)) {
+            OutputDebugStringW(L"Failed to create D3D12 Device.\n");
+            return false;
+        }
     }
 
     // InfoQueueの設定
@@ -183,10 +186,7 @@ bool Engine::InitD3D() {
     {
         // DXGIファクトリの生成
         engine::ComPtr<IDXGIFactory4> pFactory = nullptr;
-        hr = CreateDXGIFactory1(IID_PPV_ARGS(pFactory.GetAddressOf()));
-        if (FAILED(hr)) {
-            return false;
-        }
+        CHECK_HR(m_pDevice.Get(), CreateDXGIFactory1(IID_PPV_ARGS(&pFactory)));
 
         // スワップチェインの設定
         DXGI_SWAP_CHAIN_DESC desc               = {};
@@ -208,14 +208,12 @@ bool Engine::InitD3D() {
 
         // スワップチェインの生成
         engine::ComPtr<IDXGISwapChain> pSwapChain;
-        hr = pFactory->CreateSwapChain(
-            m_CommandQueue.GetD3DQueue(), &desc, pSwapChain.GetAddressOf());
-        if (FAILED(hr)) {
-            return false;
-        }
+        CHECK_HR(m_pDevice.Get(),
+            pFactory->CreateSwapChain(m_CommandQueue.GetD3DQueue(), &desc,
+                pSwapChain.GetAddressOf()));
 
         // IDXGISwapChain3を取得
-        hr = pSwapChain.As(&m_pSwapChain);
+        CHECK_HR(m_pDevice.Get(), pSwapChain.As(&m_pSwapChain));
 
         // バックバッファ番号を取得
         m_FrameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
@@ -335,13 +333,10 @@ bool Engine::InitApp() {
 
     // コマンドリストの生成
     {
-        auto hr =
+        CHECK_HR(m_pDevice.Get(),
             m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
                 m_FrameResources[m_FrameIndex].GetCommandAllocator(), nullptr,
-                IID_PPV_ARGS(m_pCmdList.GetAddressOf()));
-        if (FAILED(hr)) {
-            return false;
-        }
+                IID_PPV_ARGS(m_pCmdList.GetAddressOf())));
         m_pCmdList->Close();
     }
 
@@ -465,14 +460,10 @@ bool Engine::InitApp() {
         // シェーダの読み込み
         engine::ComPtr<ID3DBlob> vsBlob;
         engine::ComPtr<ID3DBlob> psBlob;
-        auto hr = D3DReadFileToBlob(vsPath.c_str(), vsBlob.GetAddressOf());
-        if (FAILED(hr)) {
-            return false;
-        }
-        hr = D3DReadFileToBlob(psPath.c_str(), psBlob.GetAddressOf());
-        if (FAILED(hr)) {
-            return false;
-        }
+        CHECK_HR(m_pDevice.Get(),
+            D3DReadFileToBlob(vsPath.c_str(), vsBlob.GetAddressOf()));
+        CHECK_HR(m_pDevice.Get(),
+            D3DReadFileToBlob(psPath.c_str(), psBlob.GetAddressOf()));
 
         // グラフィックスパイプラインステートの設定
         GraphicsPipelineBuilder pipelineBuilder;
