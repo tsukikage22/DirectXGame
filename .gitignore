@@ -373,3 +373,6 @@ AGENTS.md
 
 #Ignore vcpkg installed libraries
 vcpkg_installed/
+
+#Ignore 3D Model files
+assets/model
