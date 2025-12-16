@@ -1,5 +1,7 @@
 ﻿#include "Engine/FrameResource.h"
 
+#include "Engine/DxDebug.h"
+
 FrameResource::FrameResource()
     : m_pCmdAllocator(nullptr),
       m_pTransforms(),
@@ -15,11 +17,9 @@ bool FrameResource::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV) {
     }
 
     // コマンドアロケータ作成
-    auto hr = pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
-        IID_PPV_ARGS(m_pCmdAllocator.GetAddressOf()));
-    if (FAILED(hr)) {
-        return false;
-    }
+    CHECK_HR(
+        pDevice, pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
+                     IID_PPV_ARGS(m_pCmdAllocator.GetAddressOf())));
 
     // SceneConstants初期化
     if (!m_sceneConstants.Init(pDevice, pPoolCBV)) {

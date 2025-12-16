@@ -8,6 +8,8 @@
 ///////////////////////////////////////////
 #include "Engine/Engine.h"
 
+#include "Engine/DxDebug.h"
+
 ////////////////////////////////////////////
 // Engine class
 ////////////////////////////////////////////
@@ -156,16 +158,8 @@ void Engine::Present() {
 // D3D12を動かすための初期化
 // デバイス，コマンドキュー，スワップチェインの生成
 bool Engine::InitD3D() {
-#if defined(_DEBUG)
-    // デバッグレイヤーを有効化
-    {
-        engine::ComPtr<ID3D12Debug1> debug1;
-        if (SUCCEEDED(
-                D3D12GetDebugInterface(IID_PPV_ARGS(debug1.GetAddressOf())))) {
-            debug1->SetEnableGPUBasedValidation(TRUE);
-        }
-    }
-#endif
+    // デバッグレイヤーの有効化
+    dxdebug::EnableDebugLayer();
 
     // デバイスの生成
     auto hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0,
@@ -173,6 +167,9 @@ bool Engine::InitD3D() {
     if (FAILED(hr)) {
         return false;
     }
+
+    // InfoQueueの設定
+    dxdebug::SetupInfoQueue(m_pDevice.Get());
 
     // コマンドキュー・フェンスの生成
     {
@@ -331,7 +328,9 @@ void Engine::TermD3D() {
 bool Engine::InitApp() {
     // フレームリソースの初期化
     for (int i = 0; i < FrameCount; i++) {
-        m_FrameResources[i].Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
+        if (!m_FrameResources[i].Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV)) {
+            return false;
+        }
     }
 
     // コマンドリストの生成
@@ -350,7 +349,7 @@ bool Engine::InitApp() {
     {
         // ファイルの検索
         std::filesystem::path path;
-        if (!AssetPath().GetAssetPath(L"box.glb", path)) {
+        if (!AssetPath().GetAssetPath(L"BlueSphere.glb", path)) {
             return false;
         }
 
