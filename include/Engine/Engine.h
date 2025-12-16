@@ -55,14 +55,10 @@ class Engine {
 public:
     static constexpr uint32_t FrameCount = 2;  // フレームバッファ数
 
-    HWND m_hWnd;        // ウィンドウハンドル
-    uint32_t m_Width;   // ウィンドウ横幅
-    uint32_t m_Height;  // ウィンドウ縦幅
-
     //==================================================================
     // ライフサイクル管理
     //==================================================================
-    bool Initialize();
+    bool Initialize(HWND hWnd, uint32_t width, uint32_t height);
 
     void Shutdown();
 
@@ -115,7 +111,7 @@ private:
     /////////////////////////////////////////////////////////////////////////
     // private methods
     /////////////////////////////////////////////////////////////////////////
-    bool InitD3D();
+    bool InitD3D(HWND hWnd, uint32_t width, uint32_t height);
     void TermD3D();
     bool InitApp();
     void TermApp();

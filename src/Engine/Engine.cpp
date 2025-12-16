@@ -15,9 +15,9 @@
 ////////////////////////////////////////////
 
 // 初期化
-bool Engine::Initialize() {
+bool Engine::Initialize(HWND hWnd, uint32_t width, uint32_t height) {
     // D3D初期化
-    if (!InitD3D()) {
+    if (!InitD3D(hWnd, width, height)) {
         return false;
     }
 
@@ -157,7 +157,7 @@ void Engine::Present() {
 
 // D3D12を動かすための初期化
 // デバイス，コマンドキュー，スワップチェインの生成
-bool Engine::InitD3D() {
+bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
     // デバッグレイヤーの有効化
     dxdebug::EnableDebugLayer();
 
@@ -190,8 +190,8 @@ bool Engine::InitD3D() {
 
         // スワップチェインの設定
         DXGI_SWAP_CHAIN_DESC desc               = {};
-        desc.BufferDesc.Width                   = m_Width;
-        desc.BufferDesc.Height                  = m_Height;
+        desc.BufferDesc.Width                   = width;
+        desc.BufferDesc.Height                  = height;
         desc.BufferDesc.RefreshRate.Numerator   = 60;
         desc.BufferDesc.RefreshRate.Denominator = 1;
         desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
@@ -201,7 +201,7 @@ bool Engine::InitD3D() {
         desc.SampleDesc.Quality          = 0;
         desc.BufferUsage                 = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         desc.BufferCount                 = FrameCount;
-        desc.OutputWindow                = m_hWnd;
+        desc.OutputWindow                = hWnd;
         desc.Windowed                    = TRUE;
         desc.SwapEffect                  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
@@ -266,7 +266,7 @@ bool Engine::InitD3D() {
 
     // 深度ステンシルバッファの生成
     {
-        if (!m_pDepthTarget.Init(m_pDevice.Get(), m_pPoolDSV, m_Width, m_Height,
+        if (!m_pDepthTarget.Init(m_pDevice.Get(), m_pPoolDSV, width, height,
                 DXGI_FORMAT_D32_FLOAT)) {
             return false;
         }
@@ -276,8 +276,8 @@ bool Engine::InitD3D() {
     {
         m_Viewport.TopLeftX = 0.0f;
         m_Viewport.TopLeftY = 0.0f;
-        m_Viewport.Width    = static_cast<float>(m_Width);
-        m_Viewport.Height   = static_cast<float>(m_Height);
+        m_Viewport.Width    = static_cast<float>(width);
+        m_Viewport.Height   = static_cast<float>(height);
         m_Viewport.MinDepth = 0.0f;
         m_Viewport.MaxDepth = 1.0f;
     }
@@ -286,8 +286,8 @@ bool Engine::InitD3D() {
     {
         m_ScissorRect.left   = 0;
         m_ScissorRect.top    = 0;
-        m_ScissorRect.right  = m_Width;
-        m_ScissorRect.bottom = m_Height;
+        m_ScissorRect.right  = width;
+        m_ScissorRect.bottom = height;
     }
 
     return true;

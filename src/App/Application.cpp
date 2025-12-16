@@ -26,7 +26,7 @@ bool Application::Init() {
     }
 
     // エンジンの初期化
-    if (!m_Engine.Initialize()) {
+    if (!m_Engine.Initialize(m_Window.GetHwnd(), windowWidth, windowHeight)) {
         return false;
     }
 
