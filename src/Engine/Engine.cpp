@@ -109,6 +109,15 @@ void Engine::Render() {
         // [t0-t4] PBR Textures
         m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
 
+        // PrimitiveTopologyの指定
+        m_pCmdList->IASetPrimitiveTopology(
+            D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+        // 頂点バッファ・インデックスバッファの設定
+        m_pCmdList->IASetVertexBuffers(
+            0, 1, &m_Meshes[0]->GetVertexBufferView());
+        m_pCmdList->IASetIndexBuffer(&m_Meshes[0]->GetIndexBufferView());
+
         m_pCmdList->DrawIndexedInstanced(
             m_Meshes[0]->GetIndexCount(), 1, 0, 0, 0);
     }

@@ -23,14 +23,15 @@ struct VSOutput{
 // constants buffer
 //===========================================
 // [b0] シーン定数（View, Projection行列）
-cbuffer Transform : register(b0) {
+cbuffer SceneConstants: register(b0) {
     float4x4 view;      // ビュー行列
     float4x4 proj;      // プロジェクション行列
     float3 cameraPos;   // カメラ位置（ワールド座標系）
+    float time;        // 経過時間（秒）
 };
 
 // [b1] ワールド変換行列
-cbuffer SceneConstants : register(b1) {
+cbuffer TransformConstants: register(b1) {
     float4x4 world;
     float4x4 worldInv;
 };
