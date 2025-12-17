@@ -50,6 +50,8 @@ public:
 
     D3D12_GPU_DESCRIPTOR_HANDLE GetDefaultSrvGpu() const;
 
+    D3D12_CPU_DESCRIPTOR_HANDLE GetDefaultSrvCpu() const;
+
 private:
     TextureResource m_Texture;     // テクスチャリソース
     DescriptorPool* m_pPoolSRV;    // SRV用ディスクリプタプール

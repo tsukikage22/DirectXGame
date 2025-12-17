@@ -108,6 +108,8 @@ void Engine::Render() {
 
         // [t0-t4] PBR Textures
         m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
+        m_pCmdList->SetGraphicsRootDescriptorTable(
+            3, m_Materials[0]->GetSrvTableBaseGPUHandle());
 
         // PrimitiveTopologyの指定
         m_pCmdList->IASetPrimitiveTopology(
@@ -405,7 +407,8 @@ bool Engine::InitApp() {
         for (size_t i = 0; i < model.materials.size(); i++) {
             m_Materials[i] = std::make_unique<MaterialGPU>();
             if (!m_Materials[i]->Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV,
-                    &m_TextureManager, model.materials[i])) {
+                    m_pPoolCBV_SRV_UAV, &m_TextureManager,
+                    model.materials[i])) {
                 return false;
             }
         }
@@ -426,8 +429,9 @@ bool Engine::InitApp() {
 
         // SRVのレンジを作成
         std::vector<D3D12_DESCRIPTOR_RANGE1> range;
-        range.push_back(RootSignatureBuilder::CreateRange(
-            D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0));
+        range.push_back(
+            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                5, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
 
         // ルートシグニチャ構成
         // [b0] SceneConstants (Root CBV)

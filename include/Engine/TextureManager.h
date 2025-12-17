@@ -62,7 +62,9 @@ public:
     size_t GetTextureCount() const { return m_textures.size(); }
 
     /// @brief SRVハンドルの取得
-    D3D12_GPU_DESCRIPTOR_HANDLE GetSrvHandle(TextureHandle handle) const;
+    D3D12_GPU_DESCRIPTOR_HANDLE GetSrvGPUHandle(TextureHandle handle) const;
+
+    D3D12_CPU_DESCRIPTOR_HANDLE GetSrvCpuHandle(TextureHandle handle) const;
 
 private:
     ID3D12Device* m_pDevice;                        // デバイス

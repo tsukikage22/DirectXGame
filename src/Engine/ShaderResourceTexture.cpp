@@ -161,6 +161,13 @@ D3D12_GPU_DESCRIPTOR_HANDLE ShaderResourceTexture::GetDefaultSrvGpu() const {
     return m_pPoolSRV->GetGPUHandle(m_srvs.front().index);
 }
 
+D3D12_CPU_DESCRIPTOR_HANDLE ShaderResourceTexture::GetDefaultSrvCpu() const {
+    if (m_srvs.empty() || !m_srvs.front().IsValid() || !m_pPoolSRV) {
+        return {};
+    }
+    return m_pPoolSRV->GetCPUHandle(m_srvs.front().index);
+}
+
 SrvIndex ShaderResourceTexture::GetDefaultSrvIndex() const {
     if (m_srvs.empty() || !m_srvs.front().IsValid() || !m_pPoolSRV) {
         return SrvIndex{};

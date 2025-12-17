@@ -111,13 +111,23 @@ ShaderResourceTexture* TextureManager::GetTexture(uint32_t index) {
     }
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetSrvHandle(
+D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetSrvGPUHandle(
     TextureHandle handle) const {
     if (!handle.IsValid() ||
         handle.index >= static_cast<uint32_t>(m_textures.size())) {
         return {};
     } else {
         return m_textures[handle.index].GetDefaultSrvGpu();
+    }
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE TextureManager::GetSrvCpuHandle(
+    TextureHandle handle) const {
+    if (!handle.IsValid() ||
+        handle.index >= static_cast<uint32_t>(m_textures.size())) {
+        return {};
+    } else {
+        return m_textures[handle.index].GetDefaultSrvCpu();
     }
 }
 

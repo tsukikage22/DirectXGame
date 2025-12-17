@@ -99,6 +99,15 @@ void DescriptorPool::Free(uint32_t index) {
     m_free.push_back(index);
 }
 
+void DescriptorPool::FreeRange(uint32_t startIndex, uint32_t count) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+
+    if (startIndex + count > m_capacity) return;
+    for (uint32_t i = 0; i < count; i++) {
+        m_free.push_back(startIndex + i);
+    }
+}
+
 // CPUハンドル取得
 D3D12_CPU_DESCRIPTOR_HANDLE DescriptorPool::GetCPUHandle(uint32_t index) const {
     return m_pHeap->GetCpuHandle(index);

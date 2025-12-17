@@ -46,7 +46,12 @@
 #pragma comment(lib, "DirectXTK12.lib")
 #pragma comment(lib, "DirectXTex.lib")
 
-enum RootParam { CBV_Material = 0, SRV_Texture = 1 };
+enum RootParam {
+    CBV_Scene     = 0,
+    CBV_Transform = 1,
+    CBV_Material  = 2,
+    SRV_Texture   = 3
+};
 
 ////////////////////////////////////////////
 // Engine class
