@@ -43,7 +43,10 @@ void Engine::Shutdown() {
 void Engine::BeginFrame() {
     // 1. フェンス同期
     uint64_t fenceValue = m_FrameResources[m_FrameIndex].GetFenceValue();
-    m_CommandQueue.Wait(fenceValue, INFINITE);
+    // 初回フレーム（fencevalue == 0）の場合は待機をスキップ
+    if (fenceValue != 0) {
+        m_CommandQueue.Wait(fenceValue, INFINITE);
+    }
 
     // 2. コマンドリスト/アロケータのリセット
     m_FrameResources[m_FrameIndex].BeginFrame(m_pCmdList.Get());

@@ -172,6 +172,7 @@
     <ClInclude Include="..\include\Engine\IndexBuffer.h" />
     <ClInclude Include="..\include\Engine\GraphicsPipelineBuilder.h" />
     <ClInclude Include="..\include\Engine\MaterialGPU.h" />
+    <ClInclude Include="..\include\Engine\MaterialSrvTable.h" />
     <ClInclude Include="..\include\Engine\Model.h" />
     <ClInclude Include="..\include\Engine\ModelAsset.h" />
     <ClInclude Include="..\include\Engine\MeshGPU.h" />
@@ -203,6 +204,7 @@
     <ClCompile Include="..\src\Engine\GPUBuffer.cpp" />
     <ClCompile Include="..\src\Engine\GraphicsPipelineBuilder.cpp" />
     <ClCompile Include="..\src\Engine\MaterialGPU.cpp" />
+    <ClCompile Include="..\src\Engine\MaterialSrvTable.cpp" />
     <ClCompile Include="..\src\Engine\MeshGPU.cpp" />
     <ClCompile Include="..\src\Engine\Model.cpp" />
     <ClCompile Include="..\src\Engine\RootSignatureBuilder.cpp" />
