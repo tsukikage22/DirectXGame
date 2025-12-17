@@ -81,6 +81,30 @@ bool GPUBuffer::CreateStatic(ID3D12Device* pDevice,
     return true;
 }
 
+// ResourceUploadBatchを使った静的バッファの作成
+bool GPUBuffer::CreateStatic(ID3D12Device* pDevice,
+    DirectX::ResourceUploadBatch& batch, size_t count, size_t stride,
+    const void* pInitData, D3D12_RESOURCE_STATES finalState) {
+    // 引数チェック
+    if (pDevice == nullptr || count == 0 || stride == 0 ||
+        pInitData == nullptr) {
+        return false;
+    }
+
+    m_Size = count * stride;
+
+    auto hr = DirectX::CreateStaticBuffer(pDevice, batch, pInitData, count,
+        stride, finalState, m_pRes.GetAddressOf());
+
+    if (FAILED(hr)) {
+        Term();
+        return false;
+    }
+
+    m_State = finalState;
+    return true;
+}
+
 // 動的バッファの作成
 bool GPUBuffer::CreateDynamic(ID3D12Device* pDevice, size_t size) {
     // 引数チェック

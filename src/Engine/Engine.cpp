@@ -399,8 +399,7 @@ bool Engine::InitApp() {
         m_Meshes.resize(model.meshes.size());
         for (size_t i = 0; i < model.meshes.size(); i++) {
             m_Meshes[i] = std::make_unique<MeshGPU>();
-            if (!m_Meshes[i]->Init(
-                    m_pDevice.Get(), m_pCmdList.Get(), model.meshes[i])) {
+            if (!m_Meshes[i]->Init(m_pDevice.Get(), batch, model.meshes[i])) {
                 return false;
             }
         }

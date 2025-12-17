@@ -40,6 +40,36 @@ bool MeshGPU::Init(ID3D12Device* pDevice, ID3D12GraphicsCommandList* pCmdList,
     return true;
 }
 
+// VB/IBの作成 batch版
+bool MeshGPU::Init(ID3D12Device* pDevice, DirectX::ResourceUploadBatch& batch,
+    const MeshAsset& mesh) {
+    // 引数チェック
+    if (!pDevice) {
+        return false;
+    }
+
+    // 頂点バッファの作成
+    auto pVB = std::make_unique<VertexBuffer>();
+    if (!pVB->Init(pDevice, batch,
+            mesh.vertices.size() * sizeof(StandardVertex),
+            mesh.vertices.data())) {
+        return false;
+    }
+    m_pVB = std::move(pVB);
+
+    // インデックスバッファの作成
+    auto pIB = std::make_unique<IndexBuffer>();
+    if (!pIB->Init(pDevice, batch, mesh.indices)) {
+        return false;
+    }
+    m_pIB = std::move(pIB);
+
+    m_MaterialID = mesh.materialID;
+    m_IndexCount = static_cast<uint32_t>(mesh.indices.size());
+
+    return true;
+}
+
 // 終了処理，リソースの解放
 void MeshGPU::Term() {
     m_pVB->Term();
