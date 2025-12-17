@@ -358,7 +358,7 @@ bool Engine::InitApp() {
     {
         // ファイルの検索
         std::filesystem::path path;
-        if (!AssetPath().GetAssetPath(L"BlueSphere.glb", path)) {
+        if (!AssetPath().GetAssetPath(L"model/BlueSphere.glb", path)) {
             return false;
         }
 
