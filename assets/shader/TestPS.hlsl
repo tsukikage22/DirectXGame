@@ -29,6 +29,18 @@ cbuffer MaterialConstants : register(b2) {
 // [t0] ベースカラーテクスチャ
 Texture2D<float4> baseColorTexture : register(t0);
 
+// [t1] metallic-roughness
+Texture2D<float4> metallicRoughnessTexture : register(t1);
+
+// [t2] normal map
+Texture2D<float4> normalTexture : register(t2);
+
+// [t3] emissive map
+Texture2D<float4> emissiveTexture : register(t3);
+
+// [t4] occlusion map
+Texture2D<float4> occlusionTexture : register(t4);
+
 // [s0] サンプラー
 SamplerState smp : register(s0);
 
