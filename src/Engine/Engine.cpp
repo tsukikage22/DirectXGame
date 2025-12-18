@@ -210,7 +210,7 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         desc.BufferDesc.RefreshRate.Denominator = 1;
         desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
         desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
-        desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
         desc.SampleDesc.Count            = 1;
         desc.SampleDesc.Quality          = 0;
         desc.BufferUsage                 = DXGI_USAGE_RENDER_TARGET_OUTPUT;
