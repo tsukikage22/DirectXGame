@@ -1,16 +1,22 @@
 #include "Engine/TextureManager.h"
 
-TextureManager::TextureManager() : m_pDevice(nullptr), m_pPoolSRV(nullptr) {}
+TextureManager::TextureManager()
+    : m_pDevice(nullptr), m_pPoolAssetSRV(nullptr) {}
 
 // 初期化
-bool TextureManager::Init(ID3D12Device* pDevice, DescriptorPool* pPoolSRV) {
+bool TextureManager::Init(ID3D12Device* pDevice) {
     // 引数チェック
-    if (!pDevice || !pPoolSRV) {
+    if (!pDevice) {
         return false;
     }
 
-    m_pDevice  = pDevice;
-    m_pPoolSRV = pPoolSRV;
+    m_pDevice = pDevice;
+
+    // アセット用SRVプールの作成
+    if (!DescriptorPool::Create(pDevice, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+            D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 2048, &m_pPoolAssetSRV)) {
+        return false;
+    }
 
     return true;
 }
@@ -28,8 +34,13 @@ void TextureManager::Term() {
     }
     m_textures.clear();
 
-    m_pPoolSRV = nullptr;
-    m_pDevice  = nullptr;
+    // ディスクリプタプールの解放
+    if (m_pPoolAssetSRV) {
+        delete m_pPoolAssetSRV;
+        m_pPoolAssetSRV = nullptr;
+    }
+
+    m_pDevice = nullptr;
 }
 
 void TextureManager::BuildTexturesFromModelAsset(
@@ -82,7 +93,7 @@ uint32_t TextureManager::CreateFromImageAsset(
 
     ShaderResourceTexture shaderResourceTexture;
     if (!shaderResourceTexture.InitFromImage(
-            m_pDevice, m_pPoolSRV, image, batch)) {
+            m_pDevice, m_pPoolAssetSRV, image, batch)) {
         return UINT32_MAX;
     }
 
@@ -96,8 +107,8 @@ uint32_t TextureManager::CreateFromImageAsset(
 // 単色テクスチャの生成
 bool TextureManager::CreateSolidColorTexture(
     DirectX::ResourceUploadBatch& batch, uint32_t color,
-    ShaderResourceTexture& outTexture) {
-    return outTexture.InitSolidColorRGBA8(m_pDevice, m_pPoolSRV, color, batch);
+    DescriptorPool* poolSRV, ShaderResourceTexture& outTexture) {
+    return outTexture.InitSolidColorRGBA8(m_pDevice, poolSRV, color, batch);
 }
 
 // 指定したインデックスのテクスチャを取得
@@ -111,13 +122,23 @@ ShaderResourceTexture* TextureManager::GetTexture(uint32_t index) {
     }
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetSrvHandle(
+D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetSrvGPUHandle(
     TextureHandle handle) const {
     if (!handle.IsValid() ||
         handle.index >= static_cast<uint32_t>(m_textures.size())) {
         return {};
     } else {
         return m_textures[handle.index].GetDefaultSrvGpu();
+    }
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE TextureManager::GetSrvCpuHandle(
+    TextureHandle handle) const {
+    if (!handle.IsValid() ||
+        handle.index >= static_cast<uint32_t>(m_textures.size())) {
+        return {};
+    } else {
+        return m_textures[handle.index].GetDefaultSrvCpu();
     }
 }
 
@@ -129,21 +150,22 @@ bool TextureManager::CreateDefaultTextures(
     m_pDefaultRmaTexture        = std::make_unique<ShaderResourceTexture>();
 
     // 白色ベースカラー（1.0, 1.0, 1.0），A=0xFF, R=0xFF, G=0xFF, B=0xFF
-    bool result =
-        CreateSolidColorTexture(batch, 0xFFFFFFFF, *m_pDefaultWhiteTexture);
+    bool result = CreateSolidColorTexture(
+        batch, 0xFFFFFFFF, m_pPoolAssetSRV, *m_pDefaultWhiteTexture);
     if (!result) {
         return false;
     }
 
     // 法線マップ（0.5, 0.5, 1.0），A=0xFF, R=0x80, G=0x80, B=0xFF
     result = CreateSolidColorTexture(
-        batch, 0xFF8080FF, *m_pDefaultNormalFlatTexture);
+        batch, 0xFF8080FF, m_pPoolAssetSRV, *m_pDefaultNormalFlatTexture);
     if (!result) {
         return false;
     }
 
     // RMAテクスチャ（1.0, 0.0, 1.0），A=0xFF, R=0xFF, G=0x00, B=0xFF
-    result = CreateSolidColorTexture(batch, 0xFFFF00FF, *m_pDefaultRmaTexture);
+    result = CreateSolidColorTexture(
+        batch, 0xFFFF00FF, m_pPoolAssetSRV, *m_pDefaultRmaTexture);
     if (!result) {
         return false;
     }

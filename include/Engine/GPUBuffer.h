@@ -1,6 +1,8 @@
 #pragma once
 
 #include <d3d12.h>
+#include <directXTK12/ResourceUploadBatch.h>
+#include <directxtk12/BufferHelpers.h>
 
 #include <cstring>
 #include <optional>
@@ -12,16 +14,15 @@ public:
     GPUBuffer() : m_Size(0) {}
     ~GPUBuffer() { Term(); }
 
-    /// @brief VBやIBなどの静的バッファを作成する
-    /// @param pDevice
-    /// @param pCmdList
-    /// @param size
-    /// @param pInitData
-    /// @param finalState
-    /// @return
+    /// @brief VBやIBなどの静的バッファを作成する，コマンドリスト使用
     bool CreateStatic(ID3D12Device* pDevice,
         ID3D12GraphicsCommandList* pCmdList, size_t size, const void* pInitData,
         D3D12_RESOURCE_STATES finalState);
+
+    /// @brief VBやIBなどの静的バッファを作成する，ResourceUploadBatch使用
+    bool CreateStatic(ID3D12Device* pDevice,
+        DirectX::ResourceUploadBatch& batch, size_t count, size_t stride,
+        const void* pInitData, D3D12_RESOURCE_STATES finalState);
 
     /// @brief 変換行列などの更新が必要なバッファを作成する
     /// @param pDevice

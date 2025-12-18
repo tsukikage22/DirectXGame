@@ -10,9 +10,6 @@ MeshGPU::MeshGPU()
       m_MaterialID(UINT32_MAX),
       m_IndexCount(0) {}
 
-// デストラクタ
-MeshGPU::~MeshGPU() { Term(); }
-
 // 初期化処理・VB/IBの作成
 bool MeshGPU::Init(ID3D12Device* pDevice, ID3D12GraphicsCommandList* pCmdList,
     const MeshAsset& mesh) {
@@ -22,21 +19,50 @@ bool MeshGPU::Init(ID3D12Device* pDevice, ID3D12GraphicsCommandList* pCmdList,
     }
 
     // 頂点バッファの作成
-    VertexBuffer VB;
-    if (!VB.Init(pDevice, pCmdList,
+    auto pVB = std::make_unique<VertexBuffer>();
+    if (!pVB->Init(pDevice, pCmdList,
             sizeof(StandardVertex) * mesh.vertices.size(),
             mesh.vertices.data())) {
         return false;
     }
-    m_pVB = std::make_unique<VertexBuffer>(std::move(VB));
+    m_pVB = std::move(pVB);
 
     // インデックスバッファの作成
-    IndexBuffer IB;
-    if (!IB.Init(pDevice, pCmdList, sizeof(uint32_t) * mesh.indices.size(),
-            DXGI_FORMAT_R32_UINT, mesh.indices.data())) {
+    auto pIB = std::make_unique<IndexBuffer>();
+    if (!pIB->Init(pDevice, pCmdList, mesh.indices)) {
         return false;
     }
-    m_pIB = std::make_unique<IndexBuffer>(std::move(IB));
+    m_pIB = std::move(pIB);
+
+    m_MaterialID = mesh.materialID;
+    m_IndexCount = static_cast<uint32_t>(mesh.indices.size());
+
+    return true;
+}
+
+// VB/IBの作成 batch版
+bool MeshGPU::Init(ID3D12Device* pDevice, DirectX::ResourceUploadBatch& batch,
+    const MeshAsset& mesh) {
+    // 引数チェック
+    if (!pDevice) {
+        return false;
+    }
+
+    // 頂点バッファの作成
+    auto pVB = std::make_unique<VertexBuffer>();
+    if (!pVB->Init(pDevice, batch,
+            mesh.vertices.size() * sizeof(StandardVertex),
+            mesh.vertices.data())) {
+        return false;
+    }
+    m_pVB = std::move(pVB);
+
+    // インデックスバッファの作成
+    auto pIB = std::make_unique<IndexBuffer>();
+    if (!pIB->Init(pDevice, batch, mesh.indices)) {
+        return false;
+    }
+    m_pIB = std::move(pIB);
 
     m_MaterialID = mesh.materialID;
     m_IndexCount = static_cast<uint32_t>(mesh.indices.size());

@@ -1,8 +1,10 @@
 ﻿#include "Engine/FrameResource.h"
 
+#include "Engine/DxDebug.h"
+
 FrameResource::FrameResource()
     : m_pCmdAllocator(nullptr),
-      m_transforms(),
+      m_pTransforms(),
       m_sceneConstants(),
       m_fenceValue(0) {}
 
@@ -15,11 +17,9 @@ bool FrameResource::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV) {
     }
 
     // コマンドアロケータ作成
-    auto hr = pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
-        IID_PPV_ARGS(m_pCmdAllocator.GetAddressOf()));
-    if (FAILED(hr)) {
-        return false;
-    }
+    CHECK_HR(
+        pDevice, pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
+                     IID_PPV_ARGS(m_pCmdAllocator.GetAddressOf())));
 
     // SceneConstants初期化
     if (!m_sceneConstants.Init(pDevice, pPoolCBV)) {
@@ -36,10 +36,7 @@ void FrameResource::Term() {
     }
 
     // リソースの解放
-    for (auto& transform : m_transforms) {
-        transform.Term();
-    }
-    m_transforms.clear();
+    m_pTransforms.clear();
     m_sceneConstants.Term();
     m_pCmdAllocator.Reset();
 }
@@ -47,21 +44,18 @@ void FrameResource::Term() {
 bool FrameResource::AddTransform(
     ID3D12Device* pDevice, DescriptorPool* pPoolCBV, size_t count) {
     // メモリ確保
-    size_t curSize = m_transforms.size();
-    m_transforms.reserve(m_transforms.size() + count);
+    size_t curSize = m_pTransforms.size();
+    m_pTransforms.reserve(m_pTransforms.size() + count);
 
     // Transformの初期化と追加
     for (size_t i = 0; i < count; i++) {
-        TransformGPU transform;
-        if (!transform.Init(pDevice, pPoolCBV)) {
+        auto transform = std::make_unique<TransformGPU>();
+        if (!transform->Init(pDevice, pPoolCBV)) {
             // 追加分の削除
-            for (size_t j = curSize; j < m_transforms.size(); j++) {
-                m_transforms[j].Term();
-            }
-            m_transforms.resize(curSize);
+            m_pTransforms.resize(curSize);
             return false;
         }
-        m_transforms.push_back(std::move(transform));
+        m_pTransforms.push_back(std::move(transform));
     }
     return true;
 }

@@ -20,7 +20,7 @@ public:
     TextureManager();
     ~TextureManager() { Term(); }
 
-    bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolSRV);
+    bool Init(ID3D12Device* pDevice);
 
     void Term();
 
@@ -46,7 +46,8 @@ public:
 
     /// @brief 単色テクスチャの生成
     bool CreateSolidColorTexture(DirectX::ResourceUploadBatch& batch,
-        uint32_t color, ShaderResourceTexture& outTexture);
+        uint32_t color, DescriptorPool* poolSRV,
+        ShaderResourceTexture& outTexture);
 
     /// @brief デフォルトテクスチャすべての生成
     bool CreateDefaultTextures(DirectX::ResourceUploadBatch& batch);
@@ -62,11 +63,13 @@ public:
     size_t GetTextureCount() const { return m_textures.size(); }
 
     /// @brief SRVハンドルの取得
-    D3D12_GPU_DESCRIPTOR_HANDLE GetSrvHandle(TextureHandle handle) const;
+    D3D12_GPU_DESCRIPTOR_HANDLE GetSrvGPUHandle(TextureHandle handle) const;
+
+    D3D12_CPU_DESCRIPTOR_HANDLE GetSrvCpuHandle(TextureHandle handle) const;
 
 private:
-    ID3D12Device* m_pDevice;                        // デバイス
-    DescriptorPool* m_pPoolSRV;                     // SRV用ディスクリプタプール
+    ID3D12Device* m_pDevice;          // デバイス
+    DescriptorPool* m_pPoolAssetSRV;  // アセットSRV用ディスクリプタプール
     std::vector<ShaderResourceTexture> m_textures;  // テクスチャプール
 
     // デフォルトテクスチャ

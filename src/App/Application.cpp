@@ -25,8 +25,10 @@ bool Application::Init() {
         return false;
     }
 
-    // TODO: エンジンの初期化
-    m_Engine.Initialize();
+    // エンジンの初期化
+    if (!m_Engine.Initialize(m_Window.GetHwnd(), windowWidth, windowHeight)) {
+        return false;
+    }
 
     return true;
 }
@@ -68,3 +70,4 @@ void Application::MainLoop() {
         // 画面表示
         m_Engine.Present();
     }
+}

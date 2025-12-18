@@ -1,5 +1,7 @@
 #include "Engine/ShaderResourceTexture.h"
 
+#include "Engine/DxDebug.h"
+
 ShaderResourceTexture::ShaderResourceTexture() : m_pPoolSRV(nullptr) {}
 
 ShaderResourceTexture::~ShaderResourceTexture() { Term(); }
@@ -21,17 +23,15 @@ bool ShaderResourceTexture::InitFromImage(ID3D12Device* pDevice,
     {
         // 画像データの読み込み
         DirectX::ScratchImage srcImage;
-        auto hr = DirectX::LoadFromWICMemory(image.imageData.data(),
-            image.imageData.size(), DirectX::WIC_FLAGS_NONE, nullptr, srcImage);
-        if (FAILED(hr)) {
-            return false;
-        }
+        CHECK_HR(pDevice, DirectX::LoadFromWICMemory(image.imageData.data(),
+                              image.imageData.size(), DirectX::WIC_FLAGS_NONE,
+                              nullptr, srcImage));
 
         // ミップチェーン生成
         DirectX::ScratchImage mipChain;
         const DirectX::TexMetadata& srcMeta = srcImage.GetMetadata();
 
-        hr = DirectX::GenerateMipMaps(srcImage.GetImages(),
+        auto hr = DirectX::GenerateMipMaps(srcImage.GetImages(),
             srcImage.GetImageCount(), srcMeta, DirectX::TEX_FILTER_DEFAULT, 0,
             mipChain);
         if (FAILED(hr)) {
@@ -159,6 +159,13 @@ D3D12_GPU_DESCRIPTOR_HANDLE ShaderResourceTexture::GetDefaultSrvGpu() const {
         return {};
     }
     return m_pPoolSRV->GetGPUHandle(m_srvs.front().index);
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE ShaderResourceTexture::GetDefaultSrvCpu() const {
+    if (m_srvs.empty() || !m_srvs.front().IsValid() || !m_pPoolSRV) {
+        return {};
+    }
+    return m_pPoolSRV->GetCPUHandle(m_srvs.front().index);
 }
 
 SrvIndex ShaderResourceTexture::GetDefaultSrvIndex() const {

@@ -19,6 +19,7 @@ bool ConstantBuffer::Init(
 
     m_pPool = pPool;
     m_index = m_pPool->Allocate();
+    m_size  = size;
 
     // 定数バッファのサイズを256の倍数に切り上げる
     // ~(align - 1) は，2^8-1 のビット反転なので，下位8ビットが0，

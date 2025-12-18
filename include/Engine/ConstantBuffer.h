@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Engine/ComPtr.h"
+#include "Engine/DescriptorPool.h"
 #include "Engine/GPUBuffer.h"
 
 class DescriptorPool;
@@ -17,6 +18,11 @@ public:
     ~ConstantBuffer();
 
     bool Init(ID3D12Device* pDevice, DescriptorPool* pPool, size_t size);
+
+    template <typename T>
+    bool Init(ID3D12Device* pDevice, DescriptorPool* pPool) {
+        return Init(pDevice, pPool, sizeof(T));
+    };
 
     void Term();
 

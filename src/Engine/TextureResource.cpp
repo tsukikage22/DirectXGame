@@ -1,5 +1,7 @@
 #include "Engine/TextureResource.h"
 
+#include "Engine/DxDebug.h"
+
 TextureResource::TextureResource()
     : m_pResource(nullptr), m_width(0), m_height(0), m_mipLevels(0) {}
 
@@ -56,12 +58,9 @@ bool TextureResource::InitAsTexture2D(ID3D12Device* pDevice, UINT width,
     desc.Flags               = flags;
 
     // リソースの生成
-    auto hr =
+    CHECK_HR(pDevice,
         pDevice->CreateCommittedResource(&prop, D3D12_HEAP_FLAG_NONE, &desc,
-            initState, pClearValue, IID_PPV_ARGS(m_pResource.GetAddressOf()));
-    if (FAILED(hr)) {
-        return false;
-    }
+            initState, pClearValue, IID_PPV_ARGS(m_pResource.GetAddressOf())));
 
     m_width     = width;
     m_height    = height;

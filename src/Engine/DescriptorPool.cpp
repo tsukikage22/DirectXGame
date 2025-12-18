@@ -51,12 +51,61 @@ uint32_t DescriptorPool::Allocate() {
     return index;
 }
 
+uint32_t DescriptorPool::LinearAllocateRange(uint32_t count) {
+    // 引数チェック
+    if (count == 0) {
+        return UINT32_MAX;
+    }
+    if (count == 1) return Allocate();
+
+    std::lock_guard<std::mutex> lock(m_mutex);
+
+    if (m_free.size() < count) {
+        assert(false && "Not enough free descriptors");
+        return UINT32_MAX;
+    }
+
+    // ソート
+    std::sort(m_free.begin(), m_free.end());
+
+    // 連続した領域を検索
+    for (size_t i = 0; i + count <= m_free.size(); i++) {
+        bool continuous = true;
+        for (uint32_t j = 1; j < count; j++) {
+            // i番目からcount個の要素が連続しているか確認
+            if (m_free[i + j] != m_free[i] + j) {
+                continuous = false;
+                break;
+            }
+        }
+
+        if (continuous) {
+            uint32_t startIndex = m_free[i];
+            // 割り当てた領域をフリーリストから削除
+            m_free.erase(m_free.begin() + i, m_free.begin() + i + count);
+            return startIndex;
+        }
+    }
+
+    assert(false && "No continuous range found");
+    return UINT32_MAX;
+}
+
 // 割り当ての解放
 void DescriptorPool::Free(uint32_t index) {
     std::lock_guard<std::mutex> lock(m_mutex);
 
     if (index >= m_capacity) return;
     m_free.push_back(index);
+}
+
+void DescriptorPool::FreeRange(uint32_t startIndex, uint32_t count) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+
+    if (startIndex + count > m_capacity) return;
+    for (uint32_t i = 0; i < count; i++) {
+        m_free.push_back(startIndex + i);
+    }
 }
 
 // CPUハンドル取得

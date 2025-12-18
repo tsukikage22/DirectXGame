@@ -20,9 +20,10 @@ MaterialGPU::~MaterialGPU() { Term(); }
 
 // 初期化処理，MaterialAssetからGPUリソースを作成
 bool MaterialGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
-    TextureManager* pTextureManager, const MaterialAsset& materialAsset) {
+    DescriptorPool* pPoolSRV, TextureManager* pTextureManager,
+    const MaterialAsset& materialAsset) {
     // 引数チェック
-    if (pDevice == nullptr || pPoolCBV == nullptr ||
+    if (pDevice == nullptr || pPoolCBV == nullptr || pPoolSRV == nullptr ||
         pTextureManager == nullptr) {
         return false;
     }
@@ -30,8 +31,7 @@ bool MaterialGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
     m_pTextureManager = pTextureManager;
 
     // 定数バッファの作成
-    if (!m_constantBuffer.Init(
-            pDevice, pPoolCBV, sizeof(shader::MaterialConstants))) {
+    if (!m_constantBuffer.Init<shader::MaterialConstants>(pDevice, pPoolCBV)) {
         return false;
     }
 
@@ -62,16 +62,24 @@ bool MaterialGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
         m_emissiveIndex = materialAsset.emissiveTexture.index;
     }
 
+    // SRVテーブルの初期化
+    if (!m_srvTable.Init(pDevice, pPoolSRV, this, pTextureManager)) {
+        return false;
+    }
+
     return true;
 }
 
 // 終了処理
 void MaterialGPU::Term() {
     m_constantBuffer.Term();
+    m_srvTable.Term();
     m_pTextureManager        = nullptr;
     m_baseColorIndex         = std::nullopt;
     m_metallicRoughnessIndex = std::nullopt;
     m_normalIndex            = std::nullopt;
+    m_emissiveIndex          = std::nullopt;
+    m_occlusionIndex         = std::nullopt;
 }
 
 // 描画で使うためのテクスチャを取得する
@@ -117,4 +125,26 @@ ShaderResourceTexture* MaterialGPU::GetTexture(TextureUsage usage) const {
     }
 
     return m_pTextureManager->GetTexture(index);
+}
+
+std::optional<uint32_t> MaterialGPU::GetTextureHandle(
+    TextureUsage usage) const {
+    switch (usage) {
+        case TextureUsage::BaseColor:
+            return m_baseColorIndex;
+        case TextureUsage::MetallicRoughness:
+            return m_metallicRoughnessIndex;
+        case TextureUsage::Normal:
+            return m_normalIndex;
+        case TextureUsage::Emissive:
+            return m_emissiveIndex;
+        case TextureUsage::Occlusion:
+            return m_occlusionIndex;
+        default:
+            return std::nullopt;
+    }
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE MaterialGPU::GetSrvTableBaseGPUHandle() const {
+    return m_srvTable.GetBaseGPUHandle();
 }

@@ -1,4 +1,4 @@
-/// @file GLBImporter.cpp
+﻿/// @file GLBImporter.cpp
 /// @brief GLBファイルの読み込み
 
 #include "Engine/GLBImporter.h"
@@ -7,6 +7,7 @@ bool GLBImporter::LoadFromFile(
     const std::filesystem::path& path, ModelAsset& outModel) {
     // ファイルパスの確認
     if (!std::filesystem::exists(path)) {
+        OutputDebugStringW(L"Error: File not found.\n");
         return false;
     }
 
@@ -15,7 +16,7 @@ bool GLBImporter::LoadFromFile(
     outModel.materials.clear();
     outModel.images.clear();
 
-    static Assimp::Importer importer;
+    Assimp::Importer importer;
     unsigned int flags = 0;
     flags |= aiProcess_Triangulate |               // 三角形化
              aiProcess_PreTransformVertices |      // 変換の適用
@@ -26,7 +27,17 @@ bool GLBImporter::LoadFromFile(
              aiProcess_OptimizeMeshes;             // メッシュの最適化
 
     const aiScene* scene = importer.ReadFile(path.string(), flags);
-    if (!scene || !scene->mRootNode || !scene->HasMeshes()) {
+
+    if (!scene) {
+        OutputDebugStringW(L"Error: Scene is null.\n");
+        return false;
+    }
+    if (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
+        OutputDebugStringW(L"Error: Scene is incomplete.\n");
+        return false;
+    }
+    if (!scene->mRootNode || !scene->HasMeshes()) {
+        OutputDebugStringW(L"Error: Scene invalid.\n");
         return false;
     }
 
@@ -111,17 +122,25 @@ bool GLBImporter::ParseMesh(const aiMesh* srcMesh, MeshAsset& outMesh) {
             vertex.normal.z = srcMesh->mNormals[i].z;
         }
 
-        // UV座標
-        if (srcMesh->HasTextureCoords(0)) {
-            vertex.uv.x = srcMesh->mTextureCoords[0][i].x;
-            vertex.uv.y = srcMesh->mTextureCoords[0][i].y;
-        }
-
         // 接線ベクトル
         if (srcMesh->HasTangentsAndBitangents()) {
             vertex.tangent.x = srcMesh->mTangents[i].x;
             vertex.tangent.y = srcMesh->mTangents[i].y;
             vertex.tangent.z = srcMesh->mTangents[i].z;
+        }
+
+        // UV座標
+        if (srcMesh->HasTextureCoords(0)) {
+            vertex.texcoord.x = srcMesh->mTextureCoords[0][i].x;
+            vertex.texcoord.y = srcMesh->mTextureCoords[0][i].y;
+        }
+
+        // 頂点カラー
+        if (srcMesh->HasVertexColors(0)) {
+            vertex.color.x = srcMesh->mColors[0][i].r;
+            vertex.color.y = srcMesh->mColors[0][i].g;
+            vertex.color.z = srcMesh->mColors[0][i].b;
+            vertex.color.w = srcMesh->mColors[0][i].a;
         }
     }
 

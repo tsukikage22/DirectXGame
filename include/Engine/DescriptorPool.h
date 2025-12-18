@@ -7,6 +7,7 @@
 #include <d3d12.h>
 #include <directxtk12/DescriptorHeap.h>
 
+#include <algorithm>
 #include <cassert>
 #include <mutex>
 #include <vector>
@@ -44,10 +45,18 @@ public:
     uint32_t Allocate();
 
     ///////////////////////////////////////////////////////////////////////////
+    /// @brief ディスクリプタプールに連続した領域を確保
+    /// @param count
+    ///////////////////////////////////////////////////////////////////////////
+    uint32_t LinearAllocateRange(uint32_t count);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// @brief ディスクリプタプールの解放
     /// @param index インデックス
     ///////////////////////////////////////////////////////////////////////////
     void Free(uint32_t index);
+
+    void FreeRange(uint32_t startIndex, uint32_t count);
 
     //========================================================================
     // アクセサ

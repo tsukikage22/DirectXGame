@@ -67,6 +67,10 @@ bool Window::Create(int width, int height, const wchar_t* title) {
         return false;
     }
 
+    // ウィンドウの表示
+    ShowWindow(m_hWnd, SW_SHOW);
+    UpdateWindow(m_hWnd);
+
     return true;
 }
 

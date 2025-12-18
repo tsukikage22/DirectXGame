@@ -13,6 +13,9 @@
 #include <d3dcompiler.h>
 #include <dxgi1_4.h>
 
+#include <memory>
+#include <vector>
+
 #include "Engine/AssetPath.h"
 #include "Engine/Camera.h"
 #include "Engine/ColorTarget.h"
@@ -43,7 +46,12 @@
 #pragma comment(lib, "DirectXTK12.lib")
 #pragma comment(lib, "DirectXTex.lib")
 
-enum RootParam { CBV_Material = 0, SRV_Texture = 1 };
+enum RootParam {
+    CBV_Scene     = 0,
+    CBV_Transform = 1,
+    CBV_Material  = 2,
+    SRV_Texture   = 3
+};
 
 ////////////////////////////////////////////
 // Engine class
@@ -52,14 +60,10 @@ class Engine {
 public:
     static constexpr uint32_t FrameCount = 2;  // フレームバッファ数
 
-    HWND m_hWnd;        // ウィンドウハンドル
-    uint32_t m_Width;   // ウィンドウ横幅
-    uint32_t m_Height;  // ウィンドウ縦幅
-
     //==================================================================
     // ライフサイクル管理
     //==================================================================
-    bool Initialize();
+    bool Initialize(HWND hWnd, uint32_t width, uint32_t height);
 
     void Shutdown();
 
@@ -99,12 +103,12 @@ protected:
 
     FrameResource m_FrameResources[FrameCount];  // フレームリソース
 
-    std::vector<ModelAsset> m_Models;      // モデルデータ
-    std::vector<MeshGPU> m_Meshes;         // メッシュデータ
-    std::vector<MaterialGPU> m_Materials;  // マテリアルデータ
-    UINT m_textureCount = 0;               // テクスチャ数
-    TextureManager m_TextureManager;       // テクスチャマネージャ
-    Camera m_Camera;                       // カメラ
+    std::vector<ModelAsset> m_Models;                       // モデルデータ
+    std::vector<std::unique_ptr<MeshGPU>> m_Meshes;         // メッシュデータ
+    std::vector<std::unique_ptr<MaterialGPU>> m_Materials;  // マテリアルデータ
+    UINT m_textureCount = 0;                                // テクスチャ数
+    TextureManager m_TextureManager;  // テクスチャマネージャ
+    Camera m_Camera;                  // カメラ
 
     static constexpr size_t maxObjects = 100;  // 最大オブジェクト数
 
@@ -112,7 +116,7 @@ private:
     /////////////////////////////////////////////////////////////////////////
     // private methods
     /////////////////////////////////////////////////////////////////////////
-    bool InitD3D();
+    bool InitD3D(HWND hWnd, uint32_t width, uint32_t height);
     void TermD3D();
     bool InitApp();
     void TermApp();

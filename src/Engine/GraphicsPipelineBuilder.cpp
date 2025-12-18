@@ -1,5 +1,7 @@
 #include "Engine/GraphicsPipelineBuilder.h"
 
+#include "Engine/DxDebug.h"
+
 // デフォルトのパイプライン設定
 GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDefault() {
     // ラスタライザステートの設定
@@ -124,16 +126,8 @@ bool GraphicsPipelineBuilder::Build(ID3D12Device* pDevice) {
     }
 
     // パイプラインステートの生成
-    HRESULT hr = pDevice->CreateGraphicsPipelineState(
-        &m_PSOdesc, IID_PPV_ARGS(m_pPipelineState.GetAddressOf()));
-    if (FAILED(hr)) {
-        return false;
-    }
+    CHECK_HR(pDevice, pDevice->CreateGraphicsPipelineState(&m_PSOdesc,
+                          IID_PPV_ARGS(m_pPipelineState.GetAddressOf())));
 
     return true;
-}
-
-// パイプラインステートの取得
-ID3D12PipelineState* GraphicsPipelineBuilder::Get() const {
-    return m_pPipelineState.Get();
 }

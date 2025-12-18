@@ -19,8 +19,7 @@ bool TransformGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
     }
 
     // 定数バッファの作成
-    if (!m_constantBuffer.Init(
-            pDevice, pPoolCBV, sizeof(shader::TransformConstants))) {
+    if (!m_constantBuffer.Init<shader::TransformConstants>(pDevice, pPoolCBV)) {
         return false;
     }
 

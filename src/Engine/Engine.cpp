@@ -8,14 +8,16 @@
 ///////////////////////////////////////////
 #include "Engine/Engine.h"
 
+#include "Engine/DxDebug.h"
+
 ////////////////////////////////////////////
 // Engine class
 ////////////////////////////////////////////
 
 // 初期化
-bool Engine::Initialize() {
+bool Engine::Initialize(HWND hWnd, uint32_t width, uint32_t height) {
     // D3D初期化
-    if (!InitD3D()) {
+    if (!InitD3D(hWnd, width, height)) {
         return false;
     }
 
@@ -41,7 +43,10 @@ void Engine::Shutdown() {
 void Engine::BeginFrame() {
     // 1. フェンス同期
     uint64_t fenceValue = m_FrameResources[m_FrameIndex].GetFenceValue();
-    m_CommandQueue.Wait(fenceValue, INFINITE);
+    // 初回フレーム（fencevalue == 0）の場合は待機をスキップ
+    if (fenceValue != 0) {
+        m_CommandQueue.Wait(fenceValue, INFINITE);
+    }
 
     // 2. コマンドリスト/アロケータのリセット
     m_FrameResources[m_FrameIndex].BeginFrame(m_pCmdList.Get());
@@ -60,8 +65,9 @@ void Engine::BeginFrame() {
     // レンダーターゲットの設定
     uint32_t RTVIndex = m_ColorTarget[m_FrameIndex].GetRTVIndex();
     uint32_t DSVIndex = m_pDepthTarget.GetDSVIndex();
-    m_pCmdList->OMSetRenderTargets(1, &m_pPoolRTV->GetCPUHandle(RTVIndex),
-        FALSE, &m_pPoolDSV->GetCPUHandle(DSVIndex));
+    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_pPoolRTV->GetCPUHandle(RTVIndex);
+    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_pPoolDSV->GetCPUHandle(DSVIndex);
+    m_pCmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
     // レンダーターゲットのクリア
     const float clearColor[] = { 0.25f, 0.25f, 0.25f, 1.0f };
@@ -97,17 +103,27 @@ void Engine::Render() {
 
         // [b1] TransformConstants
         m_pCmdList->SetGraphicsRootConstantBufferView(1,
-            m_FrameResources[m_FrameIndex].GetTransforms()[0].GetGPUAddress());
+            m_FrameResources[m_FrameIndex].GetTransforms()[0]->GetGPUAddress());
 
         // [b2] MaterialConstants
         m_pCmdList->SetGraphicsRootConstantBufferView(
-            2, m_Materials[0].GetConstantBufferGPUAddress());
+            2, m_Materials[0]->GetConstantBufferGPUAddress());
 
         // [t0-t4] PBR Textures
         m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
+        m_pCmdList->SetGraphicsRootDescriptorTable(
+            3, m_Materials[0]->GetSrvTableBaseGPUHandle());
+
+        // PrimitiveTopologyの指定
+        m_pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+        // 頂点バッファ・インデックスバッファの設定
+        m_pCmdList->IASetVertexBuffers(
+            0, 1, &m_Meshes[0]->GetVertexBufferView());
+        m_pCmdList->IASetIndexBuffer(&m_Meshes[0]->GetIndexBufferView());
 
         m_pCmdList->DrawIndexedInstanced(
-            m_Meshes[0].GetIndexCount(), 1, 0, 0, 0);
+            m_Meshes[0]->GetIndexCount(), 1, 0, 0, 0);
     }
 }
 
@@ -154,24 +170,22 @@ void Engine::Present() {
 
 // D3D12を動かすための初期化
 // デバイス，コマンドキュー，スワップチェインの生成
-bool Engine::InitD3D() {
-#if defined(_DEBUG)
-    // デバッグレイヤーを有効化
-    {
-        engine::ComPtr<ID3D12Debug1> debug1;
-        if (SUCCEEDED(
-                D3D12GetDebugInterface(IID_PPV_ARGS(debug1.GetAddressOf())))) {
-            debug1->SetEnableGPUBasedValidation(TRUE);
-        }
-    }
-#endif
+bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
+    // デバッグレイヤーの有効化
+    dxdebug::EnableDebugLayer();
 
     // デバイスの生成
-    auto hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0,
-        IID_PPV_ARGS(m_pDevice.GetAddressOf()));
-    if (FAILED(hr)) {
-        return false;
+    {
+        auto hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0,
+            IID_PPV_ARGS(m_pDevice.GetAddressOf()));
+        if (FAILED(hr)) {
+            OutputDebugStringW(L"Failed to create D3D12 Device.\n");
+            return false;
+        }
     }
+
+    // InfoQueueの設定
+    dxdebug::SetupInfoQueue(m_pDevice.Get());
 
     // コマンドキュー・フェンスの生成
     {
@@ -185,39 +199,49 @@ bool Engine::InitD3D() {
     {
         // DXGIファクトリの生成
         engine::ComPtr<IDXGIFactory4> pFactory = nullptr;
-        hr = CreateDXGIFactory1(IID_PPV_ARGS(pFactory.GetAddressOf()));
-        if (FAILED(hr)) {
-            return false;
-        }
+        CHECK_HR(m_pDevice.Get(), CreateDXGIFactory1(IID_PPV_ARGS(&pFactory)));
 
         // スワップチェインの設定
-        DXGI_SWAP_CHAIN_DESC desc               = {};
-        desc.BufferDesc.Width                   = m_Width;
-        desc.BufferDesc.Height                  = m_Height;
+        DXGI_SWAP_CHAIN_DESC1 desc = {};
+        desc.Width                 = width;
+        desc.Height                = height;
+        desc.Format                = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.Stereo                = FALSE;
+        desc.SampleDesc.Count      = 1;
+        desc.SampleDesc.Quality    = 0;
+        desc.BufferUsage           = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        desc.BufferCount           = FrameCount;
+        desc.Scaling               = DXGI_SCALING_STRETCH;
+        desc.SwapEffect            = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        desc.AlphaMode             = DXGI_ALPHA_MODE_IGNORE;
+        desc.Flags                 = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+        /*
+        desc.BufferDesc.Width                   = width;
+        desc.BufferDesc.Height                  = height;
         desc.BufferDesc.RefreshRate.Numerator   = 60;
         desc.BufferDesc.RefreshRate.Denominator = 1;
         desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
         desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
-        desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
         desc.SampleDesc.Count            = 1;
         desc.SampleDesc.Quality          = 0;
         desc.BufferUsage                 = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         desc.BufferCount                 = FrameCount;
-        desc.OutputWindow                = m_hWnd;
+        desc.OutputWindow                = hWnd;
         desc.Windowed                    = TRUE;
         desc.SwapEffect                  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+        */
 
         // スワップチェインの生成
-        engine::ComPtr<IDXGISwapChain> pSwapChain;
-        hr = pFactory->CreateSwapChain(
-            m_CommandQueue.GetD3DQueue(), &desc, pSwapChain.GetAddressOf());
-        if (FAILED(hr)) {
-            return false;
-        }
+        engine::ComPtr<IDXGISwapChain1> pSwapChain;
+        CHECK_HR(m_pDevice.Get(),
+            pFactory->CreateSwapChainForHwnd(m_CommandQueue.GetD3DQueue(), hWnd,
+                &desc, nullptr, nullptr, pSwapChain.GetAddressOf()));
 
         // IDXGISwapChain3を取得
-        hr = pSwapChain.As(&m_pSwapChain);
+        CHECK_HR(m_pDevice.Get(), pSwapChain.As(&m_pSwapChain));
 
         // バックバッファ番号を取得
         m_FrameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
@@ -270,7 +294,7 @@ bool Engine::InitD3D() {
 
     // 深度ステンシルバッファの生成
     {
-        if (!m_pDepthTarget.Init(m_pDevice.Get(), m_pPoolDSV, m_Width, m_Height,
+        if (!m_pDepthTarget.Init(m_pDevice.Get(), m_pPoolDSV, width, height,
                 DXGI_FORMAT_D32_FLOAT)) {
             return false;
         }
@@ -280,8 +304,8 @@ bool Engine::InitD3D() {
     {
         m_Viewport.TopLeftX = 0.0f;
         m_Viewport.TopLeftY = 0.0f;
-        m_Viewport.Width    = static_cast<float>(m_Width);
-        m_Viewport.Height   = static_cast<float>(m_Height);
+        m_Viewport.Width    = static_cast<float>(width);
+        m_Viewport.Height   = static_cast<float>(height);
         m_Viewport.MinDepth = 0.0f;
         m_Viewport.MaxDepth = 1.0f;
     }
@@ -290,8 +314,8 @@ bool Engine::InitD3D() {
     {
         m_ScissorRect.left   = 0;
         m_ScissorRect.top    = 0;
-        m_ScissorRect.right  = m_Width;
-        m_ScissorRect.bottom = m_Height;
+        m_ScissorRect.right  = width;
+        m_ScissorRect.bottom = height;
     }
 
     return true;
@@ -330,18 +354,17 @@ void Engine::TermD3D() {
 bool Engine::InitApp() {
     // フレームリソースの初期化
     for (int i = 0; i < FrameCount; i++) {
-        m_FrameResources[i].Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
+        if (!m_FrameResources[i].Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV)) {
+            return false;
+        }
     }
 
     // コマンドリストの生成
     {
-        auto hr =
+        CHECK_HR(m_pDevice.Get(),
             m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
                 m_FrameResources[m_FrameIndex].GetCommandAllocator(), nullptr,
-                IID_PPV_ARGS(m_pCmdList.GetAddressOf()));
-        if (FAILED(hr)) {
-            return false;
-        }
+                IID_PPV_ARGS(m_pCmdList.GetAddressOf())));
         m_pCmdList->Close();
     }
 
@@ -349,7 +372,8 @@ bool Engine::InitApp() {
     {
         // ファイルの検索
         std::filesystem::path path;
-        if (!AssetPath().GetAssetPath(L"box.fbx", path)) {
+        if (!AssetPath().GetAssetPath(L"model/BlueSphere.glb", path)) {
+            OutputDebugStringW(L"Error: model/BlueSphere.glb not found.\n");
             return false;
         }
 
@@ -370,7 +394,7 @@ bool Engine::InitApp() {
         }
 
         // TextureManagerの初期化
-        if (!m_TextureManager.Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV)) {
+        if (!m_TextureManager.Init(m_pDevice.Get())) {
             return false;
         }
 
@@ -389,8 +413,8 @@ bool Engine::InitApp() {
         // メッシュをGPUに転送
         m_Meshes.resize(model.meshes.size());
         for (size_t i = 0; i < model.meshes.size(); i++) {
-            if (!m_Meshes[i].Init(
-                    m_pDevice.Get(), m_pCmdList.Get(), model.meshes[i])) {
+            m_Meshes[i] = std::make_unique<MeshGPU>();
+            if (!m_Meshes[i]->Init(m_pDevice.Get(), batch, model.meshes[i])) {
                 return false;
             }
         }
@@ -398,8 +422,12 @@ bool Engine::InitApp() {
         // マテリアルをGPUに転送
         m_Materials.resize(model.materials.size());
         for (size_t i = 0; i < model.materials.size(); i++) {
-            if (!m_Materials[i].Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV,
-                    &m_TextureManager, model.materials[i])) {
+            m_Materials[i] = std::make_unique<MaterialGPU>();
+            if (!m_Materials[i]->Init(m_pDevice.Get(),
+                    m_pPoolCBV_SRV_UAV,  // CBV用（定数バッファ）
+                    m_pPoolCBV_SRV_UAV,  // SRV用（テクスチャコピー先）
+                    &m_TextureManager,   // テクスチャソース
+                    model.materials[i])) {
                 return false;
             }
         }
@@ -410,7 +438,7 @@ bool Engine::InitApp() {
 
         // アップロードヒープの破棄
         for (auto& mesh : m_Meshes) {
-            mesh.DiscardUpload();
+            mesh->DiscardUpload();
         }
     }
 
@@ -420,8 +448,9 @@ bool Engine::InitApp() {
 
         // SRVのレンジを作成
         std::vector<D3D12_DESCRIPTOR_RANGE1> range;
-        range.push_back(RootSignatureBuilder::CreateRange(
-            D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0));
+        range.push_back(
+            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                5, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
 
         // ルートシグニチャ構成
         // [b0] SceneConstants (Root CBV)
@@ -431,6 +460,8 @@ bool Engine::InitApp() {
         // baseColor, metallic-roughness, normal, emissive, occlusion
         // [s0] Default Sampler (Static Sampler)
         builder
+            .SetFlags(
+                D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)
             .AddCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL,
                 D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC)
             .AddCBV(1, 0, D3D12_SHADER_VISIBILITY_VERTEX,
@@ -455,22 +486,18 @@ bool Engine::InitApp() {
         AssetPath assetPath;
 
         // シェーダのパスを取得
-        if (!assetPath.GetAssetPath(L"BasicVS.cso", vsPath) ||
-            !assetPath.GetAssetPath(L"BasicPS.cso", psPath)) {
+        if (!assetPath.GetAssetPath(L"TestVS.cso", vsPath) ||
+            !assetPath.GetAssetPath(L"TestPS.cso", psPath)) {
             return false;
         }
 
         // シェーダの読み込み
         engine::ComPtr<ID3DBlob> vsBlob;
         engine::ComPtr<ID3DBlob> psBlob;
-        auto hr = D3DReadFileToBlob(vsPath.c_str(), vsBlob.GetAddressOf());
-        if (FAILED(hr)) {
-            return false;
-        }
-        hr = D3DReadFileToBlob(psPath.c_str(), psBlob.GetAddressOf());
-        if (FAILED(hr)) {
-            return false;
-        }
+        CHECK_HR(m_pDevice.Get(),
+            D3DReadFileToBlob(vsPath.c_str(), vsBlob.GetAddressOf()));
+        CHECK_HR(m_pDevice.Get(),
+            D3DReadFileToBlob(psPath.c_str(), psBlob.GetAddressOf()));
 
         // グラフィックスパイプラインステートの設定
         GraphicsPipelineBuilder pipelineBuilder;

@@ -1,5 +1,12 @@
 {
   "name": "mygame",
   "version-string": "0.1.0",
-  "dependencies": ["directxtk12", "assimp", "directxtex"]
+  "dependencies": [
+    "directxtk12",
+    "assimp",
+    {
+      "name": "directxtex",
+      "features": ["dx12"]
+    }
+  ]
 }

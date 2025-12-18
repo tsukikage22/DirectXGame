@@ -21,6 +21,10 @@ public:
     bool Init(ID3D12Device* pDevice, ID3D12GraphicsCommandList* pCmdList,
         const MeshAsset& mesh);
 
+    /// @brief VB/IBの作成 batch版
+    bool Init(ID3D12Device* pDevice, DirectX::ResourceUploadBatch& batch,
+        const MeshAsset& mesh);
+
     void Term();
 
     /// @brief アップロード用バッファの破棄
