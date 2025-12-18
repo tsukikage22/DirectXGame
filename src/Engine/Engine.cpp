@@ -203,7 +203,21 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         CHECK_HR(m_pDevice.Get(), CreateDXGIFactory1(IID_PPV_ARGS(&pFactory)));
 
         // スワップチェインの設定
-        DXGI_SWAP_CHAIN_DESC desc               = {};
+        DXGI_SWAP_CHAIN_DESC1 desc = {};
+        desc.Width                 = width;
+        desc.Height                = height;
+        desc.Format                = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.Stereo                = FALSE;
+        desc.SampleDesc.Count      = 1;
+        desc.SampleDesc.Quality    = 0;
+        desc.BufferUsage           = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        desc.BufferCount           = FrameCount;
+        desc.Scaling               = DXGI_SCALING_STRETCH;
+        desc.SwapEffect            = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        desc.AlphaMode             = DXGI_ALPHA_MODE_IGNORE;
+        desc.Flags                 = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+        /*
         desc.BufferDesc.Width                   = width;
         desc.BufferDesc.Height                  = height;
         desc.BufferDesc.RefreshRate.Numerator   = 60;
@@ -219,12 +233,13 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         desc.Windowed                    = TRUE;
         desc.SwapEffect                  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+        */
 
         // スワップチェインの生成
-        engine::ComPtr<IDXGISwapChain> pSwapChain;
+        engine::ComPtr<IDXGISwapChain1> pSwapChain;
         CHECK_HR(m_pDevice.Get(),
-            pFactory->CreateSwapChain(m_CommandQueue.GetD3DQueue(), &desc,
-                pSwapChain.GetAddressOf()));
+            pFactory->CreateSwapChainForHwnd(m_CommandQueue.GetD3DQueue(), hWnd,
+                &desc, nullptr, nullptr, pSwapChain.GetAddressOf()));
 
         // IDXGISwapChain3を取得
         CHECK_HR(m_pDevice.Get(), pSwapChain.As(&m_pSwapChain));
