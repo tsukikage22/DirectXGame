@@ -436,7 +436,7 @@ bool Engine::InitApp() {
         std::vector<D3D12_DESCRIPTOR_RANGE1> range;
         range.push_back(
             RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                5, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
+                5, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
 
         // ルートシグニチャ構成
         // [b0] SceneConstants (Root CBV)
