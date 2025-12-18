@@ -29,7 +29,6 @@ public:
     ~MaterialGPU();
 
     /// @brief 初期化処理，MaterialAssetからGPUリソースを作成
-    /// @return
     bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
         DescriptorPool* pPoolSRV, TextureManager* pTextureManager,
         const MaterialAsset& materialAsset);

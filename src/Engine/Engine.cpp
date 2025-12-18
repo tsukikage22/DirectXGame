@@ -359,6 +359,7 @@ bool Engine::InitApp() {
         // ファイルの検索
         std::filesystem::path path;
         if (!AssetPath().GetAssetPath(L"model/BlueSphere.glb", path)) {
+            OutputDebugStringW(L"Error: model/BlueSphere.glb not found.\n");
             return false;
         }
 
@@ -379,7 +380,7 @@ bool Engine::InitApp() {
         }
 
         // TextureManagerの初期化
-        if (!m_TextureManager.Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV)) {
+        if (!m_TextureManager.Init(m_pDevice.Get())) {
             return false;
         }
 
@@ -408,8 +409,10 @@ bool Engine::InitApp() {
         m_Materials.resize(model.materials.size());
         for (size_t i = 0; i < model.materials.size(); i++) {
             m_Materials[i] = std::make_unique<MaterialGPU>();
-            if (!m_Materials[i]->Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV,
-                    m_pPoolCBV_SRV_UAV, &m_TextureManager,
+            if (!m_Materials[i]->Init(m_pDevice.Get(),
+                    m_pPoolCBV_SRV_UAV,  // CBV用（定数バッファ）
+                    m_pPoolCBV_SRV_UAV,  // SRV用（テクスチャコピー先）
+                    &m_TextureManager,   // テクスチャソース
                     model.materials[i])) {
                 return false;
             }
@@ -443,6 +446,8 @@ bool Engine::InitApp() {
         // baseColor, metallic-roughness, normal, emissive, occlusion
         // [s0] Default Sampler (Static Sampler)
         builder
+            .SetFlags(
+                D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)
             .AddCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL,
                 D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC)
             .AddCBV(1, 0, D3D12_SHADER_VISIBILITY_VERTEX,
