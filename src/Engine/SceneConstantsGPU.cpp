@@ -31,12 +31,14 @@ bool SceneConstantsGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV) {
     DirectX::XMVECTOR upward    = { 0.0f, 1.0f, 0.0f };
     DirectX::XMMATRIX viewMatrix =
         DirectX::XMMatrixLookAtRH(eyePos, targetPos, upward);
-    DirectX::XMStoreFloat4x4(&sc.view, viewMatrix);
+    DirectX::XMMATRIX viewT = DirectX::XMMatrixTranspose(viewMatrix);
+    DirectX::XMStoreFloat4x4(&sc.view, viewT);
 
     // projection行列の初期化
     DirectX::XMMATRIX projMatrix = DirectX::XMMatrixPerspectiveFovRH(
         DirectX::XMConvertToRadians(45.0f), 16.0f / 9.0f, 1.0f, 1000.0f);
-    DirectX::XMStoreFloat4x4(&sc.projection, projMatrix);
+    DirectX::XMMATRIX projT = DirectX::XMMatrixTranspose(projMatrix);
+    DirectX::XMStoreFloat4x4(&sc.projection, projT);
 
     // カメラ位置・ゲーム時間の初期化
     sc.cameraPosition = DirectX::XMFLOAT3(0.0f, 0.0f, -5.0f);

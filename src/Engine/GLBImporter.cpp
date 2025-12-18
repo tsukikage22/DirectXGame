@@ -1,4 +1,4 @@
-/// @file GLBImporter.cpp
+﻿/// @file GLBImporter.cpp
 /// @brief GLBファイルの読み込み
 
 #include "Engine/GLBImporter.h"
@@ -7,6 +7,7 @@ bool GLBImporter::LoadFromFile(
     const std::filesystem::path& path, ModelAsset& outModel) {
     // ファイルパスの確認
     if (!std::filesystem::exists(path)) {
+        OutputDebugStringW(L"Error: File not found.\n");
         return false;
     }
 
@@ -15,7 +16,7 @@ bool GLBImporter::LoadFromFile(
     outModel.materials.clear();
     outModel.images.clear();
 
-    static Assimp::Importer importer;
+    Assimp::Importer importer;
     unsigned int flags = 0;
     flags |= aiProcess_Triangulate |               // 三角形化
              aiProcess_PreTransformVertices |      // 変換の適用
@@ -26,7 +27,17 @@ bool GLBImporter::LoadFromFile(
              aiProcess_OptimizeMeshes;             // メッシュの最適化
 
     const aiScene* scene = importer.ReadFile(path.string(), flags);
-    if (!scene || !scene->mRootNode || !scene->HasMeshes()) {
+
+    if (!scene) {
+        OutputDebugStringW(L"Error: Scene is null.\n");
+        return false;
+    }
+    if (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
+        OutputDebugStringW(L"Error: Scene is incomplete.\n");
+        return false;
+    }
+    if (!scene->mRootNode || !scene->HasMeshes()) {
+        OutputDebugStringW(L"Error: Scene invalid.\n");
         return false;
     }
 

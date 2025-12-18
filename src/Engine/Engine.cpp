@@ -115,8 +115,7 @@ void Engine::Render() {
             3, m_Materials[0]->GetSrvTableBaseGPUHandle());
 
         // PrimitiveTopologyの指定
-        m_pCmdList->IASetPrimitiveTopology(
-            D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        m_pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         // 頂点バッファ・インデックスバッファの設定
         m_pCmdList->IASetVertexBuffers(
