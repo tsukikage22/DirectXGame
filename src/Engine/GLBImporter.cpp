@@ -60,7 +60,8 @@ bool GLBImporter::LoadFromFile(
             // formatは小文字にする
             std::string format;
             for (unsigned char c : texture->achFormatHint) {
-                format += static_cast<char>(c);
+                if (c == '\0') break;  // null文字は入れない
+                format += static_cast<char>(std::tolower(c));
             }
             imageAsset.format = format;
         }
