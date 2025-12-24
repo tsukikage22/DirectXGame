@@ -85,7 +85,7 @@ public:
     /// @param visibility
     /// @return
     RootSignatureBuilder& AddStaticSampler(UINT shaderRegister,
-        D3D12_FILTER filter                 = D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+        D3D12_FILTER filter                 = D3D12_FILTER_ANISOTROPIC,
         D3D12_TEXTURE_ADDRESS_MODE addressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
         D3D12_TEXTURE_ADDRESS_MODE addressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
         D3D12_TEXTURE_ADDRESS_MODE addressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
