@@ -85,6 +85,23 @@ void Engine::BeginFrame() {
 // GPUバッファへの書き込み
 void Engine::Update() {
     // 定数バッファの中身(行列やマテリアル情報)の更新
+    // シーン定数の更新
+    shader::SceneConstants sc = {};
+
+    // ビュー行列・射影行列を転置して格納
+    DirectX::XMFLOAT4X4 view       = m_Camera.GetViewMatrix();
+    DirectX::XMFLOAT4X4 projection = m_Camera.GetProjectionMatrix();
+    DirectX::XMMATRIX viewMat      = DirectX::XMLoadFloat4x4(&view);
+    DirectX::XMMATRIX projMat      = DirectX::XMLoadFloat4x4(&projection);
+    DirectX::XMStoreFloat4x4(&sc.view, DirectX::XMMatrixTranspose(viewMat));
+    DirectX::XMStoreFloat4x4(
+        &sc.projection, DirectX::XMMatrixTranspose(projMat));
+
+    // カメラ位置・時間の設定
+    sc.cameraPosition = m_Camera.GetPosition();
+    sc.time           = static_cast<float>(GetTickCount64()) / 1000.0f;
+
+    m_FrameResources[m_FrameIndex].GetSceneConstants().Update(sc);
 }
 
 // 描画コマンドの記録

@@ -17,7 +17,7 @@ public:
         m_position = position;
     };
 
-    /// @brief 向きの設定（角度）
+    /// @brief 向きの設定（ラジアン）
     /// @param rotation
     void SetRotation(const DirectX::XMFLOAT3& rotation) {
         m_rotation = rotation;
@@ -25,7 +25,7 @@ public:
 
     /// @brief 向きの設定（注視点）
     /// @param target
-    void SetTarget(const DirectX::XMFLOAT3& target) { m_target = target; };
+    void SetTarget(const DirectX::XMFLOAT3& target);
 
     /// @brief 垂直視野角の設定
     /// @param fovY
@@ -61,7 +61,7 @@ public:
 private:
     // カメラの状態 TODO: 回転はクォータニオンの方が良い
     DirectX::XMFLOAT3 m_position;  // カメラの位置
-    DirectX::XMFLOAT3 m_rotation;  // カメラの向き
+    DirectX::XMFLOAT3 m_rotation;  // カメラの向き（ラジアン）
     DirectX::XMFLOAT3 m_target;    // カメラの注視点
     DirectX::XMFLOAT3 m_up;        // カメラの上方向ベクトル
     float m_fovY;                  // 垂直視野角（ラジアン）

@@ -30,7 +30,7 @@ bool SceneConstantsGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV) {
     DirectX::XMVECTOR targetPos = { 0.0f, 0.0f, 0.0f };
     DirectX::XMVECTOR upward    = { 0.0f, 1.0f, 0.0f };
     DirectX::XMMATRIX viewMatrix =
-        DirectX::XMMatrixLookAtRH(eyePos, targetPos, upward);
+        DirectX::XMMatrixLookAtLH(eyePos, targetPos, upward);
     DirectX::XMMATRIX viewT = DirectX::XMMatrixTranspose(viewMatrix);
     DirectX::XMStoreFloat4x4(&sc.view, viewT);
 
