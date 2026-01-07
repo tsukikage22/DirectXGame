@@ -86,6 +86,8 @@ public:
     //==================================================================
     InputSystem& GetInputSystem() { return m_InputSystem; }
 
+    Camera& GetCamera() { return m_Camera; }
+
 protected:
     engine::ComPtr<ID3D12Device> m_pDevice;                // デバイス
     engine::ComPtr<IDXGISwapChain3> m_pSwapChain;          // スワップチェイン

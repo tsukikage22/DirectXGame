@@ -46,17 +46,16 @@ public:
     //================================
     // 行列の計算
     //================================
-    /// @brief ビュー行列の計算
-    /// @return ビュー行列
     DirectX::XMFLOAT4X4 GetViewMatrix();
 
-    /// @brief 射影行列の計算
-    /// @return 射影行列
     DirectX::XMFLOAT4X4 GetProjectionMatrix();
 
-    /// @brief カメラ位置の取得
-    /// @return
+    //================================
+    // アクセサ
+    //================================
     DirectX::XMFLOAT3 GetPosition() const { return m_position; }
+
+    DirectX::XMFLOAT3 GetRotation() const { return m_rotation; }
 
 private:
     // カメラの状態 TODO: 回転はクォータニオンの方が良い
