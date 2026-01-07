@@ -27,6 +27,7 @@
 #include "Engine/GLBImporter.h"
 #include "Engine/GraphicsPipelineBuilder.h"
 #include "Engine/IndexBuffer.h"
+#include "Engine/InputSystem.h"
 #include "Engine/MaterialGPU.h"
 #include "Engine/MeshGPU.h"
 #include "Engine/RootSignatureBuilder.h"
@@ -80,6 +81,11 @@ public:
 
     void Present();
 
+    //==================================================================
+    // アクセサ
+    //==================================================================
+    InputSystem& GetInputSystem() { return m_InputSystem; }
+
 protected:
     engine::ComPtr<ID3D12Device> m_pDevice;                // デバイス
     engine::ComPtr<IDXGISwapChain3> m_pSwapChain;          // スワップチェイン
@@ -111,6 +117,8 @@ protected:
     Camera m_Camera;                  // カメラ
 
     static constexpr size_t maxObjects = 100;  // 最大オブジェクト数
+
+    InputSystem m_InputSystem;  // 入力システム
 
 private:
     /////////////////////////////////////////////////////////////////////////

@@ -47,14 +47,17 @@ void Application::MainLoop() {
 
     // メインループ
     while (m_isRunning) {
-        // 1.メッセージポンプ
+        // 1. 入力処理のフレーム開始
+        m_Engine.GetInputSystem().BeginFrame();
+
+        // 2.メッセージポンプ
         // OSからのメッセージを処理する
         if (!m_Window.ProcessMessages()) {
             m_isRunning = false;
             break;
         }
 
-        // 2. 描画処理
+        // 3. 描画処理
         // フレーム開始
         m_Engine.BeginFrame();
 
