@@ -30,6 +30,12 @@ bool Application::Init() {
         return false;
     }
 
+    // InputSystemの登録
+    m_Window.SetInputReceiver(&m_Engine.GetInputSystem());
+
+    // ゲームロジックの初期化
+    m_Game.Init(&m_Engine);
+
     return true;
 }
 
@@ -57,7 +63,10 @@ void Application::MainLoop() {
             break;
         }
 
-        // 3. 描画処理
+        // 3. ゲームロジックの更新
+        m_Game.Tick();
+
+        // 4. 描画処理
         // フレーム開始
         m_Engine.BeginFrame();
 
