@@ -1,4 +1,4 @@
-#include "Engine/TextureManager.h"
+﻿#include "Engine/TextureManager.h"
 
 TextureManager::TextureManager()
     : m_pDevice(nullptr), m_pPoolAssetSRV(nullptr) {}
@@ -88,6 +88,7 @@ uint32_t TextureManager::CreateFromImageAsset(
     // GLBの埋め込み画像想定で，png, jpgを対象にする
     if (image.format != "png" && image.format != "jpg" &&
         image.format != "jpeg") {
+        OutputDebugStringW(L"Error: texture format invalid");
         return UINT32_MAX;
     }
 

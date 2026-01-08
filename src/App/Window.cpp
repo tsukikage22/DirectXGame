@@ -1,24 +1,23 @@
 #include "App/Window.h"
 
+#include "Engine/IInputReceiver.h"
+
 namespace /* anonymous */ {
 /// @brief ウィンドウプロシージャ
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     auto instance =
         reinterpret_cast<Window*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
-    switch (msg) {
-        case WM_CREATE: {
-            auto pCreateStruct = reinterpret_cast<LPCREATESTRUCT>(lParam);
-            SetWindowLongPtr(hWnd, GWLP_USERDATA,
-                reinterpret_cast<LONG_PTR>(pCreateStruct->lpCreateParams));
-        } break;
+    if (msg == WM_NCCREATE) {
+        auto pCreateStruct = reinterpret_cast<LPCREATESTRUCT>(lParam);
+        instance = reinterpret_cast<Window*>(pCreateStruct->lpCreateParams);
+        SetWindowLongPtr(hWnd, GWLP_USERDATA,
+            reinterpret_cast<LONG_PTR>(pCreateStruct->lpCreateParams));
+        return DefWindowProc(hWnd, msg, wParam, lParam);
+    }
 
-        case WM_DESTROY: {
-            PostQuitMessage(0);
-        } break;
-
-        default: {
-        } break;
+    if (instance) {
+        return instance->HandleMessage(msg, wParam, lParam);
     }
 
     return DefWindowProc(hWnd, msg, wParam, lParam);
@@ -98,4 +97,34 @@ bool Window::ProcessMessages() {
     }
 
     return true;
+}
+
+LRESULT Window::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
+    switch (msg) {
+        case WM_ACTIVATE: {
+            m_isActive = (wParam != WA_INACTIVE);
+        } break;
+
+        case WM_DESTROY: {
+            PostQuitMessage(0);
+        } break;
+
+        case WM_KEYDOWN: {
+            if (m_inputReceiver) {
+                m_inputReceiver->OnKeyDown(static_cast<uint32_t>(wParam));
+            }
+        } break;
+
+        case WM_KEYUP: {
+            if (m_inputReceiver) {
+                m_inputReceiver->OnKeyUp(static_cast<uint32_t>(wParam));
+            }
+        } break;
+
+        default: {
+            return DefWindowProc(m_hWnd, msg, wParam, lParam);
+        } break;
+    }
+
+    return 0;
 }

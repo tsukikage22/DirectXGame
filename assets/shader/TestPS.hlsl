@@ -52,5 +52,8 @@ PSOutput main(VSOutput input) : SV_TARGET {
 
     output.color = baseColorTexture.Sample(smp, input.texCoord) * baseColor;
 
+    // デバッグ用: テクスチャ座標をカラーとして表示
+    // output.color = float4(input.texCoord, 0.0f, 1.0f);
+
     return output;
 }

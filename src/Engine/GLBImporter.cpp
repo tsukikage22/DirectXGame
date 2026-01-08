@@ -18,13 +18,13 @@ bool GLBImporter::LoadFromFile(
 
     Assimp::Importer importer;
     unsigned int flags = 0;
-    flags |= aiProcess_Triangulate |               // 三角形化
-             aiProcess_PreTransformVertices |      // 変換の適用
-             aiProcess_GenSmoothNormals |          // スムース法線ベクトル生成
-             aiProcess_CalcTangentSpace |          // 接線ベクトル計算
-             aiProcess_GenUVCoords |               // UV座標生成
-             aiProcess_RemoveRedundantMaterials |  // 冗長なマテリアルの削除
-             aiProcess_OptimizeMeshes;             // メッシュの最適化
+    flags |=
+        aiProcess_Triangulate |               // 三角形化
+        aiProcess_GenSmoothNormals |          // スムース法線ベクトル生成
+        aiProcess_CalcTangentSpace |          // 接線ベクトル計算
+        aiProcess_RemoveRedundantMaterials |  // 冗長なマテリアルの削除
+        aiProcess_ConvertToLeftHanded;  // 左手座標系への変換 (MakeLeftHanded +
+                                        // FlipUVs + FlipWindingOrder)
 
     const aiScene* scene = importer.ReadFile(path.string(), flags);
 
@@ -60,7 +60,8 @@ bool GLBImporter::LoadFromFile(
             // formatは小文字にする
             std::string format;
             for (unsigned char c : texture->achFormatHint) {
-                format += static_cast<char>(c);
+                if (c == '\0') break;  // null文字は入れない
+                format += static_cast<char>(std::tolower(c));
             }
             imageAsset.format = format;
         }
@@ -120,6 +121,8 @@ bool GLBImporter::ParseMesh(const aiMesh* srcMesh, MeshAsset& outMesh) {
             vertex.normal.x = srcMesh->mNormals[i].x;
             vertex.normal.y = srcMesh->mNormals[i].y;
             vertex.normal.z = srcMesh->mNormals[i].z;
+        } else {
+            vertex.normal = { 0.0f, 1.0f, 0.0f };
         }
 
         // 接線ベクトル
@@ -127,12 +130,16 @@ bool GLBImporter::ParseMesh(const aiMesh* srcMesh, MeshAsset& outMesh) {
             vertex.tangent.x = srcMesh->mTangents[i].x;
             vertex.tangent.y = srcMesh->mTangents[i].y;
             vertex.tangent.z = srcMesh->mTangents[i].z;
+        } else {
+            vertex.tangent = { 0.0f, 0.0f, 0.0f };
         }
 
         // UV座標
         if (srcMesh->HasTextureCoords(0)) {
             vertex.texcoord.x = srcMesh->mTextureCoords[0][i].x;
             vertex.texcoord.y = srcMesh->mTextureCoords[0][i].y;
+        } else {
+            vertex.texcoord = { 0.0f, 0.0f };
         }
 
         // 頂点カラー
@@ -141,6 +148,8 @@ bool GLBImporter::ParseMesh(const aiMesh* srcMesh, MeshAsset& outMesh) {
             vertex.color.y = srcMesh->mColors[0][i].g;
             vertex.color.z = srcMesh->mColors[0][i].b;
             vertex.color.w = srcMesh->mColors[0][i].a;
+        } else {
+            vertex.color = { 1.0f, 1.0f, 1.0f, 1.0f };
         }
     }
 

@@ -115,14 +115,14 @@ RootSignatureBuilder& RootSignatureBuilder::AddStaticSampler(
     sampler.AddressV                  = addressV;
     sampler.AddressW                  = addressW;
     sampler.MipLODBias                = 0.0f;
-    sampler.MaxAnisotropy             = 1;
+    sampler.MaxAnisotropy             = 16;
     sampler.ComparisonFunc            = D3D12_COMPARISON_FUNC_ALWAYS;
-    sampler.BorderColor      = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
-    sampler.MinLOD           = 0.0f;
-    sampler.MaxLOD           = D3D12_FLOAT32_MAX;
-    sampler.ShaderRegister   = shaderRegister;
-    sampler.RegisterSpace    = registerSpace;
-    sampler.ShaderVisibility = visibility;
+    sampler.BorderColor               = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
+    sampler.MinLOD                    = 0.0f;
+    sampler.MaxLOD                    = D3D12_FLOAT32_MAX;
+    sampler.ShaderRegister            = shaderRegister;
+    sampler.RegisterSpace             = registerSpace;
+    sampler.ShaderVisibility          = visibility;
 
     m_samplers.push_back(sampler);
     return *this;

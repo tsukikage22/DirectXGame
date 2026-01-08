@@ -46,8 +46,9 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDefault() {
     }
 
     // 設定を反映
-    m_PSOdesc.RasterizerState = RSdesc;
-    m_PSOdesc.BlendState      = BSdesc;
+    m_PSOdesc.RasterizerState   = RSdesc;
+    m_PSOdesc.BlendState        = BSdesc;
+    m_PSOdesc.DepthStencilState = DSdesc;
 
     // その他の設定
     m_PSOdesc.SampleMask            = UINT_MAX;

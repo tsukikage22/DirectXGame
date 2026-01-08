@@ -85,6 +85,23 @@ void Engine::BeginFrame() {
 // GPUバッファへの書き込み
 void Engine::Update() {
     // 定数バッファの中身(行列やマテリアル情報)の更新
+    // シーン定数の更新
+    shader::SceneConstants sc = {};
+
+    // ビュー行列・射影行列を転置して格納
+    DirectX::XMFLOAT4X4 view       = m_Camera.GetViewMatrix();
+    DirectX::XMFLOAT4X4 projection = m_Camera.GetProjectionMatrix();
+    DirectX::XMMATRIX viewMat      = DirectX::XMLoadFloat4x4(&view);
+    DirectX::XMMATRIX projMat      = DirectX::XMLoadFloat4x4(&projection);
+    DirectX::XMStoreFloat4x4(&sc.view, DirectX::XMMatrixTranspose(viewMat));
+    DirectX::XMStoreFloat4x4(
+        &sc.projection, DirectX::XMMatrixTranspose(projMat));
+
+    // カメラ位置・時間の設定
+    sc.cameraPosition = m_Camera.GetPosition();
+    sc.time           = static_cast<float>(GetTickCount64()) / 1000.0f;
+
+    m_FrameResources[m_FrameIndex].GetSceneConstants().Update(sc);
 }
 
 // 描画コマンドの記録
@@ -97,33 +114,41 @@ void Engine::Render() {
     {
         ID3D12DescriptorHeap* ppHeaps = { m_pPoolCBV_SRV_UAV->GetHeap() };
 
-        // [b0] SceneConstants
+        // [b0] SceneConstants (共通)
         m_pCmdList->SetGraphicsRootConstantBufferView(0,
             m_FrameResources[m_FrameIndex].GetSceneConstants().GetGPUAddress());
 
-        // [b1] TransformConstants
+        // [b1] TransformConstants (モデル単位)
         m_pCmdList->SetGraphicsRootConstantBufferView(1,
             m_FrameResources[m_FrameIndex].GetTransforms()[0]->GetGPUAddress());
-
-        // [b2] MaterialConstants
-        m_pCmdList->SetGraphicsRootConstantBufferView(
-            2, m_Materials[0]->GetConstantBufferGPUAddress());
-
-        // [t0-t4] PBR Textures
-        m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
-        m_pCmdList->SetGraphicsRootDescriptorTable(
-            3, m_Materials[0]->GetSrvTableBaseGPUHandle());
 
         // PrimitiveTopologyの指定
         m_pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        // 頂点バッファ・インデックスバッファの設定
-        m_pCmdList->IASetVertexBuffers(
-            0, 1, &m_Meshes[0]->GetVertexBufferView());
-        m_pCmdList->IASetIndexBuffer(&m_Meshes[0]->GetIndexBufferView());
+        // 全メッシュを描画
+        for (const auto& mesh : m_Meshes) {
+            // このメッシュが使うマテリアルを取得
+            uint32_t materialID = mesh->GetMaterialID();
 
-        m_pCmdList->DrawIndexedInstanced(
-            m_Meshes[0]->GetIndexCount(), 1, 0, 0, 0);
+            // マテリアルをバインド
+            if (materialID < m_Materials.size()) {
+                // [b2] MaterialConstants (マテリアル単位)
+                m_pCmdList->SetGraphicsRootConstantBufferView(
+                    2, m_Materials[materialID]->GetConstantBufferGPUAddress());
+
+                // [t0-t4] PBR Textures
+                m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
+                m_pCmdList->SetGraphicsRootDescriptorTable(
+                    3, m_Materials[materialID]->GetSrvTableBaseGPUHandle());
+            }
+
+            // 頂点バッファ・インデックスバッファの設定
+            m_pCmdList->IASetVertexBuffers(0, 1, &mesh->GetVertexBufferView());
+            m_pCmdList->IASetIndexBuffer(&mesh->GetIndexBufferView());
+
+            // 描画コマンドの発行
+            m_pCmdList->DrawIndexedInstanced(mesh->GetIndexCount(), 1, 0, 0, 0);
+        }
     }
 }
 
@@ -372,8 +397,8 @@ bool Engine::InitApp() {
     {
         // ファイルの検索
         std::filesystem::path path;
-        if (!AssetPath().GetAssetPath(L"model/BlueSphere.glb", path)) {
-            OutputDebugStringW(L"Error: model/BlueSphere.glb not found.\n");
+        if (!AssetPath().GetAssetPath(L"model/TextureSphere.glb", path)) {
+            OutputDebugStringW(L"Error: model/TextureSphere.glb not found.\n");
             return false;
         }
 

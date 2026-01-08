@@ -32,7 +32,8 @@ bool ShaderResourceTexture::InitFromImage(ID3D12Device* pDevice,
         const DirectX::TexMetadata& srcMeta = srcImage.GetMetadata();
 
         auto hr = DirectX::GenerateMipMaps(srcImage.GetImages(),
-            srcImage.GetImageCount(), srcMeta, DirectX::TEX_FILTER_DEFAULT, 0,
+            srcImage.GetImageCount(), srcMeta,
+            DirectX::TEX_FILTER_DEFAULT | DirectX::TEX_FILTER_WRAP, 0,
             mipChain);
         if (FAILED(hr)) {
             mipChain = std::move(srcImage);
