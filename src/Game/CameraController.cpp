@@ -24,9 +24,9 @@ void CameraController::Update() {
     }
 
     DirectX::XMFLOAT3 pos = m_pCamera->GetPosition();
+    DirectX::XMFLOAT3 rot = m_pCamera->GetRotation();
 
     // 回転処理（Q/E）
-    DirectX::XMFLOAT3 rot = {};
     if (m_pInputSystem->IsKeyDown('Q')) {
         rot.y -= m_rotateSpeed;
     }
