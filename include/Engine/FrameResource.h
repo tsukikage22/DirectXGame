@@ -7,6 +7,7 @@
 
 #include "Engine/ComPtr.h"
 #include "Engine/DescriptorPool.h"
+#include "Engine/LightingConstantsGPU.h"
 #include "Engine/SceneConstantsGPU.h"
 #include "Engine/TransformGPU.h"
 
@@ -38,33 +39,36 @@ public:
     //=======================================
     // アクセサ
     //=======================================
+
     /// @brief コマンドアロケータの取得
-    /// @return
     ID3D12CommandAllocator* GetCommandAllocator() const {
         return m_pCmdAllocator.Get();
     }
 
     /// @brief TransformGPUの取得
-    /// @return
     std::vector<std::unique_ptr<TransformGPU>>& GetTransforms() {
         return m_pTransforms;
     }
 
     /// @brief SceneConstantsGPUの取得
-    /// @return
     SceneConstantsGPU& GetSceneConstants() { return m_sceneConstants; }
 
+    /// @brief LightingConstantsGPUの取得
+    LightingConstantsGPU& GetLightingConstants() { return m_lightingConstants; }
+
     /// @brief フェンス値の取得
-    /// @return
     UINT64 GetFenceValue() const { return m_fenceValue; }
 
 private:
     engine::ComPtr<ID3D12CommandAllocator>
         m_pCmdAllocator;  // コマンドアロケータ
     std::vector<std::unique_ptr<TransformGPU>>
-        m_pTransforms;                   // 各オブジェクトのワールド行列
-    SceneConstantsGPU m_sceneConstants;  // シーン定数
-    UINT64 m_fenceValue = 0;             // フェンス値
+        m_pTransforms;  // 各オブジェクトのワールド行列
+
+    SceneConstantsGPU m_sceneConstants;        // シーン定数
+    LightingConstantsGPU m_lightingConstants;  // ライティング定数
+
+    UINT64 m_fenceValue = 0;  // フェンス値
     // このフレームを作成した時点のフェンス値を持つことで，
     // 再利用の判断や寿命の管理に使用できる
 

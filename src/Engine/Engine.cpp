@@ -122,6 +122,12 @@ void Engine::Render() {
         m_pCmdList->SetGraphicsRootConstantBufferView(1,
             m_FrameResources[m_FrameIndex].GetTransforms()[0]->GetGPUAddress());
 
+        // [b3] LightingConstants (共通)
+        m_pCmdList->SetGraphicsRootConstantBufferView(
+            3, m_FrameResources[m_FrameIndex]
+                   .GetLightingConstants()
+                   .GetGPUAddress());
+
         // PrimitiveTopologyの指定
         m_pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -139,7 +145,7 @@ void Engine::Render() {
                 // [t0-t4] PBR Textures
                 m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
                 m_pCmdList->SetGraphicsRootDescriptorTable(
-                    3, m_Materials[materialID]->GetSrvTableBaseGPUHandle());
+                    4, m_Materials[materialID]->GetSrvTableBaseGPUHandle());
             }
 
             // 頂点バッファ・インデックスバッファの設定
@@ -481,6 +487,7 @@ bool Engine::InitApp() {
         // [b0] SceneConstants (Root CBV)
         // [b1] TransformConstants (Root CBV)
         // [b2] Material Constants (Root CBV)
+        // [b3] Lighting Constants (Root CBV)
         // [t0-t4] PBR Textures (Descriptor Table SRV)
         // baseColor, metallic-roughness, normal, emissive, occlusion
         // [s0] Default Sampler (Static Sampler)
@@ -492,6 +499,7 @@ bool Engine::InitApp() {
             .AddCBV(1, 0, D3D12_SHADER_VISIBILITY_VERTEX,
                 D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
             .AddCBV(2, 0, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddStaticSampler(0);
 
@@ -512,7 +520,7 @@ bool Engine::InitApp() {
 
         // シェーダのパスを取得
         if (!assetPath.GetAssetPath(L"TestVS.cso", vsPath) ||
-            !assetPath.GetAssetPath(L"TestPS.cso", psPath)) {
+            !assetPath.GetAssetPath(L"LambertPS.cso", psPath)) {
             return false;
         }
 
