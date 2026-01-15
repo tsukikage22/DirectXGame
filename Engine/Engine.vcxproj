@@ -173,6 +173,7 @@
     <ClInclude Include="..\include\Engine\IndexBuffer.h" />
     <ClInclude Include="..\include\Engine\GraphicsPipelineBuilder.h" />
     <ClInclude Include="..\include\Engine\InputSystem.h" />
+    <ClInclude Include="..\include\Engine\LightingConstantsGPU.h" />
     <ClInclude Include="..\include\Engine\MaterialGPU.h" />
     <ClInclude Include="..\include\Engine\MaterialSrvTable.h" />
     <ClInclude Include="..\include\Engine\Model.h" />
@@ -206,6 +207,7 @@
     <ClCompile Include="..\src\Engine\GPUBuffer.cpp" />
     <ClCompile Include="..\src\Engine\GraphicsPipelineBuilder.cpp" />
     <ClCompile Include="..\src\Engine\InputSystem.cpp" />
+    <ClCompile Include="..\src\Engine\LightingConstantsGPU.cpp" />
     <ClCompile Include="..\src\Engine\MaterialGPU.cpp" />
     <ClCompile Include="..\src\Engine\MaterialSrvTable.cpp" />
     <ClCompile Include="..\src\Engine\MeshGPU.cpp" />
@@ -220,6 +222,12 @@
     <ClCompile Include="..\src\Engine\TransformGPU.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="..\assets\shader\LambertPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+    </FxCompile>
     <FxCompile Include="..\assets\shader\TestPS.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>

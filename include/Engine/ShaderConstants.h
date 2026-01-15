@@ -19,11 +19,21 @@ struct SceneConstants {
 };
 static_assert(sizeof(SceneConstants) % 16 == 0, "Must be 16-byte aligned");
 
-/// @brief ライティング計算用の定数（フレーム毎更新）
-struct LightingConstants {
+struct DirectionalLight {
     DirectX::XMFLOAT3 lightDirection;  // 方向
     float lightIntensity;              // 強度
     DirectX::XMFLOAT4 lightColor;      // 色
+};
+static_assert(sizeof(DirectionalLight) % 16 == 0, "Must be 16-byte aligned");
+
+/// @brief ライティング計算用の定数（フレーム毎更新）
+struct LightingConstants {
+    // ambient light
+    DirectX::XMFLOAT3 ambientColor;  // 環境光の色
+    float ambientIntensity;          // 環境光の強度
+
+    // directional light
+    DirectionalLight directionalLight;
 };
 static_assert(sizeof(LightingConstants) % 16 == 0, "Must be 16-byte aligned");
 
