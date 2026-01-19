@@ -15,9 +15,10 @@ struct VSInput{
 //===========================================
 // ピクセルシェーダーへ渡すデータ
 struct VSOutput{
-    float4 position : SV_POSITION;  // 変換後頂点座標
+    float4 position : SV_POSITION;   // 変換後頂点座標
     float3 worldNormal : TEXCOORD0;  // ワールド座標系の法線
     float2 texCoord : TEXCOORD1;     // テクスチャ座標
+    float3 worldPos : TEXCOORD2;     // ワールド座標系の頂点位置
 };
 
 //===========================================
@@ -43,6 +44,7 @@ VSOutput main(VSInput input) {
     // 1. ローカル座標 -> ワールド座標変換
     float4 worldPos = mul(float4(input.position, 1.0f), world);
     output.worldNormal = mul(float4(input.normal, 0.0f), worldInv).xyz;
+    output.worldPos = worldPos.xyz;
 
     // 2. ワールド座標 -> ビュー座標変換
     float4 viewPos = mul(worldPos, view);
