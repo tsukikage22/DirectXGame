@@ -7,10 +7,12 @@ static const float F_PI = 3.14159265359f;
 // VS Output structure
 //==============================================================
 struct VSOutput {
-    float4 position : SV_POSITION;  // 変換後頂点座標
-    float3 worldNormal : TEXCOORD0;  // ワールド座標系の法線
-    float2 texCoord : TEXCOORD1;     // テクスチャ座標
-    float3 worldPos : TEXCOORD2;     // ワールド座標系の頂点位置
+    float4 position : SV_POSITION;      // 変換後頂点座標
+    float3 worldNormal : TEXCOORD0;     // ワールド座標系の法線
+    float2 texCoord : TEXCOORD1;        // テクスチャ座標
+    float3 worldPos : TEXCOORD2;        // ワールド座標系の頂点位置
+    float3 worldTangent : TEXCOORD3;    // 接線ベクトル
+    float3 worldBinormal: TEXCOORD4;  // 従法線ベクトル
 };
 
 //==============================================================
@@ -89,6 +91,7 @@ PSOutput main(VSOutput input) : SV_TARGET {
     // テクスチャサンプリング
     float4 baseColorTex = baseColorTexture.Sample(smp, input.texCoord);
     float4 metallicRoughnessTex = metallicRoughnessTexture.Sample(smp, input.texCoord);
+    float4 normalTex = normalTexture.Sample(smp, input.texCoord);
 
     // テクスチャと定数からPBRパラメータを計算
     float4 baseColor = baseColorTex * baseColorFactor;
@@ -100,11 +103,6 @@ PSOutput main(VSOutput input) : SV_TARGET {
     float3 specColor = lerp(0.04, baseColor.rgb, metallic);
     float specPower = lerp(2048, 2, roughness*roughness);
 
-
-
-    // ワールド法線正規化
-    float3 normal = normalize(input.worldNormal);
-
     // 視線ベクトルの計算
     float3 viewDir = normalize(cameraPos - input.worldPos);
 
@@ -112,7 +110,31 @@ PSOutput main(VSOutput input) : SV_TARGET {
     float3 lightDir = normalize(-directionalLight.lightDirection);
 
     //==============================================
-    // ランバート反射モデルによる拡散反射光計算
+    // 法線ベクトルの計算
+    //==============================================
+    // 法線マップの値を[-1, 1]の範囲に変換
+    float3 tangentSpaceNormal = normalTex.xyz * 2.0f - 1.0f;
+
+    // デバッグ用： 法線マップにScaleをかけて強調
+    tangentSpaceNormal.xy *= 2.0f;
+    tangentSpaceNormal = normalize(tangentSpaceNormal);
+    
+
+    // TBN行列の作成
+    // 接空間からワールド空間への変換を行う行列
+    float3 N = normalize(input.worldNormal);
+    float3 T = normalize(input.worldTangent);
+    T = normalize(T - dot(T, N) * N); // 正規直交化
+    float3 B = normalize(input.worldBinormal);
+    B = normalize(cross(N, T)); // 正規直交化
+    float3x3 TBN = float3x3(T, B, N);
+
+    // 法線ベクトルをワールド空間へ変換
+    float3 normal = normalize(mul(tangentSpaceNormal, TBN));
+
+
+    //==============================================
+    // 拡散反射の計算（Lambertモデル）
     //==============================================
     // 反射率の計算
     // 法線と光源ベクトルの内積（コサイン項）
@@ -130,7 +152,7 @@ PSOutput main(VSOutput input) : SV_TARGET {
     float3 ambient= ambientColor * ambientIntensity * diffuseColor;
 
     //==============================================
-    // 鏡面反射の計算
+    // 鏡面反射の計算（Blinn-Phongモデル）
     //==============================================
     float3 specular = float3(0.0f, 0.0f, 0.0f);
 
@@ -144,7 +166,8 @@ PSOutput main(VSOutput input) : SV_TARGET {
         float specularIntensity = pow(specAngle, specPower);
 
         // 鏡面反射の色計算
-        specular = specColor * directionalLight.lightColor.rgb * directionalLight.lightIntensity * specularIntensity;
+        specular = specColor * directionalLight.lightColor.rgb 
+            * directionalLight.lightIntensity * specularIntensity;
     }
 
 

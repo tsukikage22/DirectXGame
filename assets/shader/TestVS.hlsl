@@ -15,10 +15,12 @@ struct VSInput{
 //===========================================
 // ピクセルシェーダーへ渡すデータ
 struct VSOutput{
-    float4 position : SV_POSITION;   // 変換後頂点座標
-    float3 worldNormal : TEXCOORD0;  // ワールド座標系の法線
-    float2 texCoord : TEXCOORD1;     // テクスチャ座標
-    float3 worldPos : TEXCOORD2;     // ワールド座標系の頂点位置
+    float4 position : SV_POSITION;      // 変換後頂点座標
+    float3 worldNormal : TEXCOORD0;     // ワールド座標系の法線
+    float2 texCoord : TEXCOORD1;        // テクスチャ座標
+    float3 worldPos : TEXCOORD2;        // ワールド座標系の頂点位置
+    float3 worldTangent : TEXCOORD3;    // 接線ベクトル
+    float3 worldBinormal: TEXCOORD4;  // 従法線ベクトル
 };
 
 //===========================================
@@ -43,7 +45,6 @@ VSOutput main(VSInput input) {
 
     // 1. ローカル座標 -> ワールド座標変換
     float4 worldPos = mul(float4(input.position, 1.0f), world);
-    output.worldNormal = mul(float4(input.normal, 0.0f), worldInv).xyz;
     output.worldPos = worldPos.xyz;
 
     // 2. ワールド座標 -> ビュー座標変換
@@ -54,6 +55,18 @@ VSOutput main(VSInput input) {
 
     // UV座標の受け渡し
     output.texCoord = input.texCoord;
+
+    // 法線のワールド座標系への変換
+    float3 worldNormal = mul(input.normal, (float3x3)worldInv);
+    output.worldNormal = normalize(worldNormal);
+
+    // 接線ベクトルのワールド座標系への変換
+    float3 worldTangent = mul(input.tangent, (float3x3)worldInv);
+    output.worldTangent = normalize(worldTangent);
+
+    // 従法線ベクトルのワールド座標系への変換
+    float3 worldBinormal = cross(worldNormal, worldTangent);
+    output.worldBinormal = normalize(worldBinormal);
 
     return output;
 }

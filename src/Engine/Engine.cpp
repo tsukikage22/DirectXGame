@@ -404,7 +404,7 @@ bool Engine::InitApp() {
         // ファイルの検索
         std::filesystem::path path;
         if (!AssetPath().GetAssetPath(
-                L"model/TextureSphere_metallic.glb", path)) {
+                L"model/TextureSphere_normal.glb", path)) {
             OutputDebugStringW(L"Error: model not found.\n");
             return false;
         }
