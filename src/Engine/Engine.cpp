@@ -403,8 +403,7 @@ bool Engine::InitApp() {
     {
         // ファイルの検索
         std::filesystem::path path;
-        if (!AssetPath().GetAssetPath(
-                L"model/TextureSphere_normal.glb", path)) {
+        if (!AssetPath().GetAssetPath(L"model/TextureSphere.glb", path)) {
             OutputDebugStringW(L"Error: model not found.\n");
             return false;
         }
@@ -521,7 +520,7 @@ bool Engine::InitApp() {
 
         // シェーダのパスを取得
         if (!assetPath.GetAssetPath(L"TestVS.cso", vsPath) ||
-            !assetPath.GetAssetPath(L"LambertPS.cso", psPath)) {
+            !assetPath.GetAssetPath(L"Cook-TorrancePBR_PS.cso", psPath)) {
             return false;
         }
 

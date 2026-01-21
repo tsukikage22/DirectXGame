@@ -220,5 +220,8 @@
     <FxCompile Include="..\assets\shader\LambertPS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
+    <FxCompile Include="..\assets\shader\Cook-TorrancePBR_PS.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
