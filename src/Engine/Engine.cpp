@@ -1,4 +1,4 @@
-﻿//////////////////////////////////////////
+//////////////////////////////////////////
 /// @file Engine.cpp
 /// @brief
 //////////////////////////////////////////
@@ -64,7 +64,7 @@ void Engine::BeginFrame() {
     // 4. レンダーターゲットとビューポートの設定・クリア
     // レンダーターゲットの設定
     uint32_t RTVIndex = m_ColorTarget[m_FrameIndex].GetRTVIndex();
-    uint32_t DSVIndex = m_pDepthTarget.GetDSVIndex();
+    uint32_t DSVIndex = m_DepthTarget.GetDSVIndex();
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_pPoolRTV->GetCPUHandle(RTVIndex);
     D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_pPoolDSV->GetCPUHandle(DSVIndex);
     m_pCmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
@@ -325,7 +325,7 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
 
     // 深度ステンシルバッファの生成
     {
-        if (!m_pDepthTarget.Init(m_pDevice.Get(), m_pPoolDSV, width, height,
+        if (!m_DepthTarget.Init(m_pDevice.Get(), m_pPoolDSV, width, height,
                 DXGI_FORMAT_D32_FLOAT)) {
             return false;
         }
@@ -362,7 +362,7 @@ void Engine::TermD3D() {
     }
 
     // 深度ステンシルビューの解放
-    m_pDepthTarget.Term();
+    m_DepthTarget.Term();
 
     // ディスクリプタプールの破棄
     delete m_pPoolCBV_SRV_UAV;
@@ -575,4 +575,54 @@ void Engine::TermApp() {
 
     // コマンドリストの解放
     m_pCmdList.Reset();
+}
+
+//=============================================
+// 内部ヘルパー
+//=============================================
+/// @brief HDR対応チェック
+DisplayInfo Engine::GetDisplayInfo() {
+    // 出力情報の初期化
+    DisplayInfo info    = {};
+    info.isHDRSupported = false;
+    info.maxLuminance   = 80.0f;
+    info.minLuminance   = 0.1f;
+
+    // スワップチェーンから現座表示されているOutputを取得
+    ComPtr<IDXGIOutput> output;
+    if (FAILED(m_pDevice.Get(),
+            m_pSwapChain->GetContainingOutput(output.GetAddressOf()))) {
+        return info;
+    };
+    ComPtr<IDXGIOutput6> output6;
+    if (FAILED(m_pDevice.Get(), output.As(&output6))) {
+        return info;
+    }
+
+    // ディスプレイの詳細情報を取得
+    DXGI_OUTPUT_DESC1 desc1;
+    if (FAILED(m_pDevice.Get(), output6->GetDesc1(&desc1))) {
+        return info;
+    }
+
+    // HDR10対応チェック
+    info.isHDRSupported =
+        (desc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+
+    if (info.isHDRSupported) {
+        info.maxLuminance = desc1.MaxLuminance;
+        info.minLuminance = desc1.MinLuminance;
+    }
+
+    return info;
+}
+
+//=============================================
+// イベント関数
+//=============================================
+void Engine::WindowEventAdapter::OnWindowMoved() {
+    // HDR対応チェック
+    DisplayInfo displayInfo = m_pEngine->GetDisplayInfo();
+
+    // フレームレート設定
 }

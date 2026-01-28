@@ -1,4 +1,4 @@
-﻿////////////////////////////////////////
+////////////////////////////////////////
 /// @file Engine.h
 /// @brief
 ////////////////////////////////////////
@@ -8,11 +8,13 @@
 ///////////////////////////////////////////
 // Include
 ///////////////////////////////////////////
+#define NOMINMAX
 #include <Windows.h>
 #include <d3d12.h>
 #include <d3dcompiler.h>
-#include <dxgi1_4.h>
+#include <dxgi1_6.h>
 
+#include <algorithm>
 #include <memory>
 #include <vector>
 
@@ -26,6 +28,7 @@
 #include "Engine/FrameResource.h"
 #include "Engine/GLBImporter.h"
 #include "Engine/GraphicsPipelineBuilder.h"
+#include "Engine/IWindowEventListener.h"
 #include "Engine/IndexBuffer.h"
 #include "Engine/InputSystem.h"
 #include "Engine/MaterialGPU.h"
@@ -52,6 +55,12 @@ enum RootParam {
     CBV_Transform = 1,
     CBV_Material  = 2,
     SRV_Texture   = 3
+};
+
+struct DisplayInfo {
+    bool isHDRSupported;
+    float maxLuminance;
+    float minLuminance;
 };
 
 ////////////////////////////////////////////
@@ -86,14 +95,23 @@ public:
     //==================================================================
     InputSystem& GetInputSystem() { return m_InputSystem; }
 
+    IWindowEventListener& GetWindowEventListener() {
+        return m_WindowEventAdapter;
+    }
+
     Camera& GetCamera() { return m_Camera; }
 
-protected:
+private:
+    //==============================================================
+    // private variables
+    //==============================================================
+
     engine::ComPtr<ID3D12Device> m_pDevice;                // デバイス
     engine::ComPtr<IDXGISwapChain3> m_pSwapChain;          // スワップチェイン
     engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList;  // コマンドリスト
     engine::ComPtr<ID3D12RootSignature> m_pRootSignature;  // ルートシグネチャ
     engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
+    engine::ComPtr<IDXGIFactory6> m_pFactory;    // DXGIファクトリ
 
     uint32_t m_FrameIndex;       // 現在のフレーム番号
     size_t m_maxObjects = 1000;  // 最大オブジェクト数
@@ -104,7 +122,7 @@ protected:
     DescriptorPool* m_pPoolSMP;          // サンプラ用ディスクリプタプール
 
     ColorTarget m_ColorTarget[FrameCount];  // カラーターゲット
-    DepthTarget m_pDepthTarget;             // 深度ステンシル
+    DepthTarget m_DepthTarget;              // 深度ステンシル
     CommandQueue m_CommandQueue;            // コマンドキュー
     D3D12_VIEWPORT m_Viewport;              // ビューポート
     D3D12_RECT m_ScissorRect;               // シザー矩形
@@ -130,4 +148,28 @@ private:
     void TermD3D();
     bool InitApp();
     void TermApp();
+
+    //==============================================================
+    // 内部ヘルパー
+    //==============================================================
+    /// @brief HDR対応チェック
+    DisplayInfo GetDisplayInfo();
+
+    //==============================================================
+    // Inner Class
+    //==============================================================
+
+    /// @brief ウィンドウイベント用の内部クラス
+    class WindowEventAdapter : public IWindowEventListener {
+    public:
+        explicit WindowEventAdapter(Engine* pEngine) : m_pEngine(pEngine) {}
+
+        /// @brief ウィンドウ移動時の処理
+        void OnWindowMoved() override;
+
+    private:
+        Engine* m_pEngine;
+    };
+
+    WindowEventAdapter m_WindowEventAdapter{ this };
 };
