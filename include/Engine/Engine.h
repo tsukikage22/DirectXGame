@@ -1,4 +1,4 @@
-////////////////////////////////////////
+﻿////////////////////////////////////////
 /// @file Engine.h
 /// @brief
 ////////////////////////////////////////
@@ -25,6 +25,7 @@
 #include "Engine/CommandQueue.h"
 #include "Engine/DepthTarget.h"
 #include "Engine/DescriptorPool.h"
+#include "Engine/DisplayConstantsGPU.h"
 #include "Engine/FrameResource.h"
 #include "Engine/GLBImporter.h"
 #include "Engine/GraphicsPipelineBuilder.h"
@@ -58,9 +59,11 @@ enum RootParam {
 };
 
 struct DisplayInfo {
+    HMONITOR hMonitor;
     bool isHDRSupported;
     float maxLuminance;
     float minLuminance;
+    float maxFullFrameLuminance;
 };
 
 ////////////////////////////////////////////
@@ -138,7 +141,11 @@ private:
 
     static constexpr size_t maxObjects = 100;  // 最大オブジェクト数
 
-    InputSystem m_InputSystem;  // 入力システム
+    InputSystem m_InputSystem;                  // 入力システム
+    DisplayInfo m_DisplayInfo;                  // ディスプレイ情報
+    DisplayConstantsGPU m_DisplayConstantsGPU;  // ディスプレイ定数GPU
+
+    HWND m_hWnd;  // ウィンドウハンドル
 
 private:
     /////////////////////////////////////////////////////////////////////////
@@ -155,6 +162,8 @@ private:
     /// @brief HDR対応チェック
     DisplayInfo GetDisplayInfo();
 
+    bool IsMonitorChanged(HWND hWnd);
+
     //==============================================================
     // Inner Class
     //==============================================================
@@ -166,6 +175,8 @@ private:
 
         /// @brief ウィンドウ移動時の処理
         void OnWindowMoved() override;
+
+        void OnDisplayChanged() override;
 
     private:
         Engine* m_pEngine;

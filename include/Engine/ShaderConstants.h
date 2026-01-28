@@ -16,6 +16,8 @@ struct SceneConstants {
     DirectX::XMFLOAT4X4 projection;    // 射影行列
     DirectX::XMFLOAT3 cameraPosition;  // カメラ位置
     float time;                        // ゲーム時間
+    float exposure;                    // 露出調整値
+    float _padding[3];                 // 16バイトアラインメント用
 };
 static_assert(sizeof(SceneConstants) % 16 == 0, "Must be 16-byte aligned");
 
@@ -63,4 +65,16 @@ struct MaterialConstants {
     float occlusion;
 };
 static_assert(sizeof(MaterialConstants) % 16 == 0, "Must be 16-byte aligned");
+
+//================================
+// ポストプロセス・表示用定数
+//================================
+
+/// @brief ディスプレイ情報，ウィンドウ移動時に更新
+struct DisplayConstants {
+    float maxLuminance;           // 最大輝度
+    float minLuminance;           // 最小輝度
+    float paperWhiteNits;         // SDRの白の明るさ
+    float maxFullFrameLuminance;  // 全白時の最大輝度
+};
 }  // namespace shader
