@@ -1,4 +1,4 @@
-//////////////////////////////////////////
+﻿//////////////////////////////////////////
 /// @file Engine.cpp
 /// @brief
 //////////////////////////////////////////
@@ -229,14 +229,15 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
     // スワップチェインの生成
     {
         // DXGIファクトリの生成
-        engine::ComPtr<IDXGIFactory4> pFactory = nullptr;
-        CHECK_HR(m_pDevice.Get(), CreateDXGIFactory1(IID_PPV_ARGS(&pFactory)));
+        m_pFactory.Reset();
+        CHECK_HR(
+            m_pDevice.Get(), CreateDXGIFactory1(IID_PPV_ARGS(&m_pFactory)));
 
         // スワップチェインの設定
         DXGI_SWAP_CHAIN_DESC1 desc = {};
         desc.Width                 = width;
         desc.Height                = height;
-        desc.Format                = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.Format                = DXGI_FORMAT_R16G16B16A16_FLOAT;
         desc.Stereo                = FALSE;
         desc.SampleDesc.Count      = 1;
         desc.SampleDesc.Quality    = 0;
@@ -247,29 +248,11 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         desc.AlphaMode             = DXGI_ALPHA_MODE_IGNORE;
         desc.Flags                 = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
-        /*
-        desc.BufferDesc.Width                   = width;
-        desc.BufferDesc.Height                  = height;
-        desc.BufferDesc.RefreshRate.Numerator   = 60;
-        desc.BufferDesc.RefreshRate.Denominator = 1;
-        desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-        desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
-        desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-        desc.SampleDesc.Count            = 1;
-        desc.SampleDesc.Quality          = 0;
-        desc.BufferUsage                 = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        desc.BufferCount                 = FrameCount;
-        desc.OutputWindow                = hWnd;
-        desc.Windowed                    = TRUE;
-        desc.SwapEffect                  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-        desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-        */
-
         // スワップチェインの生成
         engine::ComPtr<IDXGISwapChain1> pSwapChain;
         CHECK_HR(m_pDevice.Get(),
-            pFactory->CreateSwapChainForHwnd(m_CommandQueue.GetD3DQueue(), hWnd,
-                &desc, nullptr, nullptr, pSwapChain.GetAddressOf()));
+            m_pFactory->CreateSwapChainForHwnd(m_CommandQueue.GetD3DQueue(),
+                hWnd, &desc, nullptr, nullptr, pSwapChain.GetAddressOf()));
 
         // IDXGISwapChain3を取得
         CHECK_HR(m_pDevice.Get(), pSwapChain.As(&m_pSwapChain));
@@ -277,7 +260,9 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         // バックバッファ番号を取得
         m_FrameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
 
-        pFactory.Reset();
+        // カラースペースの設定（scRGB対応）
+        m_pSwapChain->SetColorSpace1(DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
+
         pSwapChain.Reset();
     }
 
@@ -539,7 +524,7 @@ bool Engine::InitApp() {
             .SetVertexShader(vsBlob.Get())
             .SetPixelShader(psBlob.Get())
             .SetInputLayout(StandardVertex::GetInputLayout())
-            .SetRTVFormat(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
+            .SetRTVFormat(DXGI_FORMAT_R16G16B16A16_FLOAT)
             .SetDSVFormat(DXGI_FORMAT_D32_FLOAT);
 
         if (!pipelineBuilder.Build(m_pDevice.Get())) {
