@@ -1,3 +1,4 @@
+
 //==============================================
 // Constant Values
 //==============================================
@@ -123,39 +124,27 @@ float3 SchlickFresnel(float3 f0, float cosTheta){
 }
 
 //--------------------------------------------------------------
-// BeckMann分布関数
-// D(h) = (1/(a^2 * cos^4θ)) * exp( - (tan^2θ)/a^2 )
+// GGXによる法線分布関数 (D項)
+// D(h) = (a^2) / (π * ((N·H)^2 * (a^2 -1) +1)^2 )
 //--------------------------------------------------------------
-float D_Beckmann(float alpha, float cosTheta){
-    // alphaが0にならないようにする
-    alpha = max(alpha, 1e-4f);
-
-    float c2 = cosTheta * cosTheta;
-    float c4 = c2 * c2;
+float D_GGX(float NH, float alpha){
     float a2 = alpha * alpha;
-    float t2 = (1.0f - c2) / c2;
+    float f = (NH * NH) * (a2 - 1.0f) + 1.0f;
 
-    return (1.0f / (a2*c4)) * exp((-1.0f / a2) * t2);
+    return (a2) / (F_PI * f * f);
 }
 
 //--------------------------------------------------------------
-// V-cavityによるシャドウイング・マスキング関数
+// Height-Correlated Smith による減衰幾何項（G項）
 //--------------------------------------------------------------
-float G1_Vcavity(float NH, float NV, float VH){
-    VH = max(VH, 1e-4f);
-    float g = (2.0f * NH * NV) / VH;
-    return min(1.0f, g);
-}
-
-float G2_Vcavity(float NH, float NL, float NV, float VH){
-    // cosine値が0以下の場合は寄与なし
-    if(NV <= 0.0f || NL <= 0.0f){
-        return 0.0f;
-    }
-
-    float gV = G1_Vcavity(NH, NV, VH);
-    float gL = G1_Vcavity(NH, NL, VH);
-    return gV * gL;
+float G2_SmithCorrelated(float NL, float NV, float alpha){
+    float a2 = alpha * alpha;
+    
+    // 可視性関数 V = G / (4 * NL * NV) の形で直接計算する方が効率的
+    float GGXV = NL * sqrt(NV * NV * (1.0f - a2) + a2);
+    float GGXL = NV * sqrt(NL * NL * (1.0f - a2) + a2);
+    
+    return 0.5f / (GGXV + GGXL + 1e-4f);
 }
 
 //--------------------------------------------------------------
@@ -262,24 +251,20 @@ PSOutput main(VSOutput input) : SV_TARGET {
     float3 diffuse = Kd * (1.0f / F_PI);
 
     //==============================================
-    // 環境光の計算
-    //==============================================
-    float3 ambient = ambientColor * ambientIntensity * diffuse;
-
-    //==============================================
     // 鏡面反射の計算
     //==============================================
     float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), baseColor.rgb, metallic);
-    float D = D_Beckmann(roughness*roughness, NH);
-    float G = G2_Vcavity(NH, NL, NV, VH);
-    float3 Fr = SchlickFresnel(F0, NL);
+    float a = roughness * roughness;
+    float D = D_GGX(NH, a);
+    float G = G2_SmithCorrelated(NL, NV, a);
+    float3 Fr = SchlickFresnel(F0, VH);
 
-    float3 specular = (D * G * Fr) / (4.0f * NL * NV + 1e-4f);
+    float3 specular = D * G * Fr;  
 
 
     // 物体の色を反映した最終カラーの計算
     float3 finalColor = directionalLight.lightIntensity * directionalLight.lightColor.rgb 
-        * ( diffuse + specular ) * NL + ambient * ao;
+        * ( diffuse + specular ) * NL;
     finalColor = finalColor * exposure;
 
 

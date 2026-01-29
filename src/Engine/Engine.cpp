@@ -515,7 +515,7 @@ bool Engine::InitApp() {
 
         // シェーダのパスを取得
         if (!assetPath.GetAssetPath(L"TestVS.cso", vsPath) ||
-            !assetPath.GetAssetPath(L"Cook-TorrancePBR_PS.cso", psPath)) {
+            !assetPath.GetAssetPath(L"GGX_PS.cso", psPath)) {
             return false;
         }
 
