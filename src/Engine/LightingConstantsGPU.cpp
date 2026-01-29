@@ -33,7 +33,7 @@ bool LightingConstantsGPU::Init(
     // デフォルト値の設定
     shader::LightingConstants lc       = {};
     lc.directionalLight.lightDirection = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f);
-    lc.directionalLight.lightIntensity = 1.0f;
+    lc.directionalLight.lightIntensity = 2.0f;
     lc.directionalLight.lightColor = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
     lc.ambientColor                = DirectX::XMFLOAT3(0.2f, 0.2f, 0.2f);
     lc.ambientIntensity            = 0.5f;

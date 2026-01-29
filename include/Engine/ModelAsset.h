@@ -18,6 +18,7 @@ struct MeshAsset {
 struct ImageAsset {
     std::vector<uint8_t> imageData;  // GLBの埋め込み画像データ
     std::string format;              // tex->achFormatの文字列，"jpg"や"png"など
+    bool isSRGB = false;             // sRGBとして扱うかどうか
 
     bool IsValid() const { return !imageData.empty(); }
 };
