@@ -128,6 +128,10 @@ void Engine::Render() {
                    .GetLightingConstants()
                    .GetGPUAddress());
 
+        // [b4] DisplayConstants (共通)
+        m_pCmdList->SetGraphicsRootConstantBufferView(
+            4, m_DisplayConstantsGPU.GetGPUAddress());
+
         // PrimitiveTopologyの指定
         m_pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -145,7 +149,7 @@ void Engine::Render() {
                 // [t0-t4] PBR Textures
                 m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
                 m_pCmdList->SetGraphicsRootDescriptorTable(
-                    4, m_Materials[materialID]->GetSrvTableBaseGPUHandle());
+                    5, m_Materials[materialID]->GetSrvTableBaseGPUHandle());
             }
 
             // 頂点バッファ・インデックスバッファの設定
@@ -476,6 +480,7 @@ bool Engine::InitApp() {
         // [b1] TransformConstants (Root CBV)
         // [b2] Material Constants (Root CBV)
         // [b3] Lighting Constants (Root CBV)
+        // [b4] Display Constants (Root CBV)
         // [t0-t4] PBR Textures (Descriptor Table SRV)
         // baseColor, metallic-roughness, normal, emissive, occlusion
         // [s0] Default Sampler (Static Sampler)
@@ -488,6 +493,7 @@ bool Engine::InitApp() {
                 D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
             .AddCBV(2, 0, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddCBV(4, 0, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddStaticSampler(0);
 
@@ -543,8 +549,9 @@ bool Engine::InitApp() {
         shader::DisplayConstants dc = {};
         dc.maxLuminance             = m_DisplayInfo.maxLuminance;
         dc.minLuminance             = m_DisplayInfo.minLuminance;
-        dc.paperWhiteNits           = 80.0f;  // SDRの白
-        dc.maxFullFrameLuminance    = m_DisplayInfo.maxLuminance;
+        dc.paperWhiteNits =
+            m_DisplayInfo.isHDRSupported ? 200.0f : 80.0f;  // SDRの白
+        dc.maxFullFrameLuminance = m_DisplayInfo.maxFullFrameLuminance;
 
         if (!m_DisplayConstantsGPU.Init(
                 m_pDevice.Get(), m_pPoolCBV_SRV_UAV, dc)) {
@@ -597,18 +604,17 @@ DisplayInfo Engine::GetDisplayInfo() {
 
     // スワップチェーンから現座表示されているOutputを取得
     ComPtr<IDXGIOutput> output;
-    if (FAILED(m_pDevice.Get(),
-            m_pSwapChain->GetContainingOutput(output.GetAddressOf()))) {
+    if (FAILED(m_pSwapChain->GetContainingOutput(output.GetAddressOf()))) {
         return info;
     };
     ComPtr<IDXGIOutput6> output6;
-    if (FAILED(m_pDevice.Get(), output.As(&output6))) {
+    if (FAILED(output.As(&output6))) {
         return info;
     }
 
     // ディスプレイの詳細情報を取得
-    DXGI_OUTPUT_DESC1 desc1;
-    if (FAILED(m_pDevice.Get(), output6->GetDesc1(&desc1))) {
+    DXGI_OUTPUT_DESC1 desc1 = {};
+    if (FAILED(output6->GetDesc1(&desc1))) {
         return info;
     }
 
@@ -648,12 +654,12 @@ void Engine::WindowEventAdapter::OnWindowMoved() {
 
         // ディスプレイ定数の更新
         shader::DisplayConstants dc = {};
-        dc.maxLuminance             = m_pEngine->m_DisplayInfo.maxLuminance;
-        dc.minLuminance             = m_pEngine->m_DisplayInfo.minLuminance;
-        dc.paperWhiteNits           = 200.0f;  // SDRの白の明るさ（nits）
-        dc.maxFullFrameLuminance =
-            m_pEngine->m_DisplayInfo.maxFullFrameLuminance;
+        dc.maxLuminance             = displayInfo.maxLuminance;
+        dc.minLuminance             = displayInfo.minLuminance;
+        dc.paperWhiteNits        = displayInfo.isHDRSupported ? 200.0f : 80.0f;
+        dc.maxFullFrameLuminance = displayInfo.maxFullFrameLuminance;
 
+        m_pEngine->m_DisplayInfo = displayInfo;
         m_pEngine->m_DisplayConstantsGPU.Update(dc);
     }
 
@@ -666,10 +672,11 @@ void Engine::WindowEventAdapter::OnDisplayChanged() {
 
     // ディスプレイ定数の更新
     shader::DisplayConstants dc = {};
-    dc.maxLuminance             = m_pEngine->m_DisplayInfo.maxLuminance;
-    dc.minLuminance             = m_pEngine->m_DisplayInfo.minLuminance;
-    dc.paperWhiteNits           = 200.0f;  // SDRの白の明るさ（nits）
-    dc.maxFullFrameLuminance = m_pEngine->m_DisplayInfo.maxFullFrameLuminance;
+    dc.maxLuminance             = displayInfo.maxLuminance;
+    dc.minLuminance             = displayInfo.minLuminance;
+    dc.paperWhiteNits           = displayInfo.isHDRSupported ? 200.0f : 80.0f;
+    dc.maxFullFrameLuminance    = displayInfo.maxFullFrameLuminance;
 
+    m_pEngine->m_DisplayInfo = displayInfo;
     m_pEngine->m_DisplayConstantsGPU.Update(dc);
 }

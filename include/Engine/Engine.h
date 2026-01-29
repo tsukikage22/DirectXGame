@@ -55,7 +55,9 @@ enum RootParam {
     CBV_Scene     = 0,
     CBV_Transform = 1,
     CBV_Material  = 2,
-    SRV_Texture   = 3
+    CBV_Lighting  = 3,
+    CBV_Display   = 4,
+    SRV_Texture   = 5
 };
 
 struct DisplayInfo {
