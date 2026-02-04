@@ -9,7 +9,7 @@ D3D12 の基礎から応用まで、実践的なレンダリングエンジン�
 - **RAII / ComPtr**: スマートポインタによる安全なリソース管理
 - **PSO 事前生成**: Pipeline State Object は初期化時に作成し、実行時は切替のみ
 - **Root Signature 1.1**: 静的データ宣言によるドライバ最適化
-- **PBR マテリアル**: 物理ベースレンダリング対応（開発中）
+- **PBR マテリアル**: 物理ベースレンダリング対応（GGXモデル）
 
 ## 実装機能
 
@@ -89,3 +89,7 @@ DirectXGame/
 - [Assimp](https://github.com/assimp/assimp) - BSD 3-Clause License
 
 各ライブラリのライセンス全文は、それぞれのリポジトリをご確認ください。
+
+## 参考文献
+
+- Direct3D12ゲームグラフィックス実践ガイド
