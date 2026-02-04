@@ -50,6 +50,18 @@ void TextureManager::BuildTexturesFromModelAsset(
         return;
     }
 
+    // マテリアルを操作してsRGBフラグを設定
+    for (const auto& material : modelAsset.materials) {
+        // baseColorとemissiveはsRGBフラグを有効化する
+        if (material.baseColorLocalTextureIndex >= 0) {
+            modelAsset.images[material.baseColorLocalTextureIndex].isSRGB =
+                true;
+        }
+        if (material.emissiveLocalTextureIndex >= 0) {
+            modelAsset.images[material.emissiveLocalTextureIndex].isSRGB = true;
+        }
+    }
+
     // ImageAsset配列からテクスチャを生成
     std::vector<TextureHandle> textureHandles;
     for (const auto& image : modelAsset.images) {

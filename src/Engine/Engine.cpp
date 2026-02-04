@@ -64,7 +64,7 @@ void Engine::BeginFrame() {
     // 4. レンダーターゲットとビューポートの設定・クリア
     // レンダーターゲットの設定
     uint32_t RTVIndex = m_ColorTarget[m_FrameIndex].GetRTVIndex();
-    uint32_t DSVIndex = m_pDepthTarget.GetDSVIndex();
+    uint32_t DSVIndex = m_DepthTarget.GetDSVIndex();
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_pPoolRTV->GetCPUHandle(RTVIndex);
     D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_pPoolDSV->GetCPUHandle(DSVIndex);
     m_pCmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
@@ -97,9 +97,10 @@ void Engine::Update() {
     DirectX::XMStoreFloat4x4(
         &sc.projection, DirectX::XMMatrixTranspose(projMat));
 
-    // カメラ位置・時間の設定
+    // カメラ位置・時間・露出の設定
     sc.cameraPosition = m_Camera.GetPosition();
     sc.time           = static_cast<float>(GetTickCount64()) / 1000.0f;
+    sc.exposure       = 3.0f;
 
     m_FrameResources[m_FrameIndex].GetSceneConstants().Update(sc);
 }
@@ -122,6 +123,16 @@ void Engine::Render() {
         m_pCmdList->SetGraphicsRootConstantBufferView(1,
             m_FrameResources[m_FrameIndex].GetTransforms()[0]->GetGPUAddress());
 
+        // [b3] LightingConstants (共通)
+        m_pCmdList->SetGraphicsRootConstantBufferView(
+            3, m_FrameResources[m_FrameIndex]
+                   .GetLightingConstants()
+                   .GetGPUAddress());
+
+        // [b4] DisplayConstants (共通)
+        m_pCmdList->SetGraphicsRootConstantBufferView(
+            4, m_DisplayConstantsGPU.GetGPUAddress());
+
         // PrimitiveTopologyの指定
         m_pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -139,7 +150,7 @@ void Engine::Render() {
                 // [t0-t4] PBR Textures
                 m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
                 m_pCmdList->SetGraphicsRootDescriptorTable(
-                    3, m_Materials[materialID]->GetSrvTableBaseGPUHandle());
+                    5, m_Materials[materialID]->GetSrvTableBaseGPUHandle());
             }
 
             // 頂点バッファ・インデックスバッファの設定
@@ -212,6 +223,9 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
     // InfoQueueの設定
     dxdebug::SetupInfoQueue(m_pDevice.Get());
 
+    // ウィンドウハンドルの保存
+    m_hWnd = hWnd;
+
     // コマンドキュー・フェンスの生成
     {
         if (!m_CommandQueue.Init(
@@ -223,14 +237,15 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
     // スワップチェインの生成
     {
         // DXGIファクトリの生成
-        engine::ComPtr<IDXGIFactory4> pFactory = nullptr;
-        CHECK_HR(m_pDevice.Get(), CreateDXGIFactory1(IID_PPV_ARGS(&pFactory)));
+        m_pFactory.Reset();
+        CHECK_HR(
+            m_pDevice.Get(), CreateDXGIFactory1(IID_PPV_ARGS(&m_pFactory)));
 
         // スワップチェインの設定
         DXGI_SWAP_CHAIN_DESC1 desc = {};
         desc.Width                 = width;
         desc.Height                = height;
-        desc.Format                = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc.Format                = DXGI_FORMAT_R16G16B16A16_FLOAT;
         desc.Stereo                = FALSE;
         desc.SampleDesc.Count      = 1;
         desc.SampleDesc.Quality    = 0;
@@ -241,29 +256,11 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         desc.AlphaMode             = DXGI_ALPHA_MODE_IGNORE;
         desc.Flags                 = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
-        /*
-        desc.BufferDesc.Width                   = width;
-        desc.BufferDesc.Height                  = height;
-        desc.BufferDesc.RefreshRate.Numerator   = 60;
-        desc.BufferDesc.RefreshRate.Denominator = 1;
-        desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-        desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
-        desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-        desc.SampleDesc.Count            = 1;
-        desc.SampleDesc.Quality          = 0;
-        desc.BufferUsage                 = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        desc.BufferCount                 = FrameCount;
-        desc.OutputWindow                = hWnd;
-        desc.Windowed                    = TRUE;
-        desc.SwapEffect                  = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-        desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-        */
-
         // スワップチェインの生成
         engine::ComPtr<IDXGISwapChain1> pSwapChain;
         CHECK_HR(m_pDevice.Get(),
-            pFactory->CreateSwapChainForHwnd(m_CommandQueue.GetD3DQueue(), hWnd,
-                &desc, nullptr, nullptr, pSwapChain.GetAddressOf()));
+            m_pFactory->CreateSwapChainForHwnd(m_CommandQueue.GetD3DQueue(),
+                hWnd, &desc, nullptr, nullptr, pSwapChain.GetAddressOf()));
 
         // IDXGISwapChain3を取得
         CHECK_HR(m_pDevice.Get(), pSwapChain.As(&m_pSwapChain));
@@ -271,7 +268,9 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         // バックバッファ番号を取得
         m_FrameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
 
-        pFactory.Reset();
+        // カラースペースの設定（scRGB対応）
+        m_pSwapChain->SetColorSpace1(DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
+
         pSwapChain.Reset();
     }
 
@@ -319,7 +318,7 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
 
     // 深度ステンシルバッファの生成
     {
-        if (!m_pDepthTarget.Init(m_pDevice.Get(), m_pPoolDSV, width, height,
+        if (!m_DepthTarget.Init(m_pDevice.Get(), m_pPoolDSV, width, height,
                 DXGI_FORMAT_D32_FLOAT)) {
             return false;
         }
@@ -356,7 +355,7 @@ void Engine::TermD3D() {
     }
 
     // 深度ステンシルビューの解放
-    m_pDepthTarget.Term();
+    m_DepthTarget.Term();
 
     // ディスクリプタプールの破棄
     delete m_pPoolCBV_SRV_UAV;
@@ -398,7 +397,7 @@ bool Engine::InitApp() {
         // ファイルの検索
         std::filesystem::path path;
         if (!AssetPath().GetAssetPath(L"model/TextureSphere.glb", path)) {
-            OutputDebugStringW(L"Error: model/TextureSphere.glb not found.\n");
+            OutputDebugStringW(L"Error: model not found.\n");
             return false;
         }
 
@@ -467,7 +466,7 @@ bool Engine::InitApp() {
         }
     }
 
-    // ルートシグニチャの生成
+    // ルートシグネチャの生成
     {
         RootSignatureBuilder builder;
 
@@ -481,6 +480,8 @@ bool Engine::InitApp() {
         // [b0] SceneConstants (Root CBV)
         // [b1] TransformConstants (Root CBV)
         // [b2] Material Constants (Root CBV)
+        // [b3] Lighting Constants (Root CBV)
+        // [b4] Display Constants (Root CBV)
         // [t0-t4] PBR Textures (Descriptor Table SRV)
         // baseColor, metallic-roughness, normal, emissive, occlusion
         // [s0] Default Sampler (Static Sampler)
@@ -492,6 +493,8 @@ bool Engine::InitApp() {
             .AddCBV(1, 0, D3D12_SHADER_VISIBILITY_VERTEX,
                 D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
             .AddCBV(2, 0, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddCBV(4, 0, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddStaticSampler(0);
 
@@ -512,7 +515,7 @@ bool Engine::InitApp() {
 
         // シェーダのパスを取得
         if (!assetPath.GetAssetPath(L"TestVS.cso", vsPath) ||
-            !assetPath.GetAssetPath(L"TestPS.cso", psPath)) {
+            !assetPath.GetAssetPath(L"GGX_PS.cso", psPath)) {
             return false;
         }
 
@@ -531,7 +534,7 @@ bool Engine::InitApp() {
             .SetVertexShader(vsBlob.Get())
             .SetPixelShader(psBlob.Get())
             .SetInputLayout(StandardVertex::GetInputLayout())
-            .SetRTVFormat(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB)
+            .SetRTVFormat(DXGI_FORMAT_R16G16B16A16_FLOAT)
             .SetDSVFormat(DXGI_FORMAT_D32_FLOAT);
 
         if (!pipelineBuilder.Build(m_pDevice.Get())) {
@@ -541,12 +544,31 @@ bool Engine::InitApp() {
         m_pPSO = pipelineBuilder.Get();
     }
 
+    // ディスプレイ定数の初期化
+    {
+        m_DisplayInfo               = GetDisplayInfo();
+        shader::DisplayConstants dc = {};
+        dc.maxLuminance             = m_DisplayInfo.maxLuminance;
+        dc.minLuminance             = m_DisplayInfo.minLuminance;
+        dc.paperWhiteNits =
+            m_DisplayInfo.isHDRSupported ? 200.0f : 80.0f;  // SDRの白
+        dc.maxFullFrameLuminance = m_DisplayInfo.maxFullFrameLuminance;
+
+        if (!m_DisplayConstantsGPU.Init(
+                m_pDevice.Get(), m_pPoolCBV_SRV_UAV, dc)) {
+            return false;
+        }
+    }
+
     return true;
 }
 
 void Engine::TermApp() {
     // メッシュの解放
     m_Meshes.clear();
+
+    // ディスプレイ定数の破棄
+    m_DisplayConstantsGPU.Term();
 
     // マテリアルの解放
     m_Materials.clear();
@@ -567,4 +589,95 @@ void Engine::TermApp() {
 
     // コマンドリストの解放
     m_pCmdList.Reset();
+}
+
+//=============================================
+// 内部ヘルパー
+//=============================================
+/// @brief HDR対応チェック
+DisplayInfo Engine::GetDisplayInfo() {
+    // 出力情報の初期化
+    DisplayInfo info           = {};
+    info.isHDRSupported        = false;
+    info.maxLuminance          = 80.0f;
+    info.minLuminance          = 0.0f;
+    info.maxFullFrameLuminance = 80.0f;
+
+    // スワップチェーンから現座表示されているOutputを取得
+    ComPtr<IDXGIOutput> output;
+    if (FAILED(m_pSwapChain->GetContainingOutput(output.GetAddressOf()))) {
+        return info;
+    };
+    ComPtr<IDXGIOutput6> output6;
+    if (FAILED(output.As(&output6))) {
+        return info;
+    }
+
+    // ディスプレイの詳細情報を取得
+    DXGI_OUTPUT_DESC1 desc1 = {};
+    if (FAILED(output6->GetDesc1(&desc1))) {
+        return info;
+    }
+
+    info.hMonitor = desc1.Monitor;
+
+    // HDR10対応チェック
+    info.isHDRSupported =
+        (desc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+
+    if (info.isHDRSupported) {
+        info.maxLuminance          = desc1.MaxLuminance;
+        info.minLuminance          = desc1.MinLuminance;
+        info.maxFullFrameLuminance = desc1.MaxFullFrameLuminance;
+    }
+
+    return info;
+}
+
+bool Engine::IsMonitorChanged(HWND hWnd) {
+    // 現在のモニターを取得
+    HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONULL);
+
+    if (m_DisplayInfo.hMonitor != hMonitor) {
+        return true;
+    }
+    return false;
+}
+
+//=============================================
+// イベント関数
+//=============================================
+void Engine::WindowEventAdapter::OnWindowMoved() {
+    // モニター変更チェック
+    if (m_pEngine->IsMonitorChanged(m_pEngine->m_hWnd)) {
+        // ディスプレイ情報取得
+        DisplayInfo displayInfo = m_pEngine->GetDisplayInfo();
+
+        // ディスプレイ定数の更新
+        shader::DisplayConstants dc = {};
+        dc.maxLuminance             = displayInfo.maxLuminance;
+        dc.minLuminance             = displayInfo.minLuminance;
+        dc.paperWhiteNits        = displayInfo.isHDRSupported ? 200.0f : 80.0f;
+        dc.maxFullFrameLuminance = displayInfo.maxFullFrameLuminance;
+
+        m_pEngine->m_DisplayInfo = displayInfo;
+        m_pEngine->m_DisplayConstantsGPU.Update(dc);
+    }
+
+    // フレームレート設定
+}
+
+void Engine::WindowEventAdapter::OnDisplayChanged() {
+    // ディスプレイ情報取得
+    DisplayInfo displayInfo = m_pEngine->GetDisplayInfo();
+
+    // ディスプレイ定数の更新
+    shader::DisplayConstants dc = {};
+    dc.maxLuminance             = displayInfo.maxLuminance;
+    dc.minLuminance             = displayInfo.minLuminance;
+    dc.paperWhiteNits           = displayInfo.isHDRSupported ? 200.0f : 80.0f;
+    dc.maxFullFrameLuminance    = displayInfo.maxFullFrameLuminance;
+
+    m_pEngine->m_DisplayInfo = displayInfo;
+    m_pEngine->m_DisplayConstantsGPU.Update(dc);
 }

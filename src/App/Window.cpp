@@ -1,6 +1,7 @@
 #include "App/Window.h"
 
 #include "Engine/IInputReceiver.h"
+#include "Engine/IWindowEventListener.h"
 
 namespace /* anonymous */ {
 /// @brief ウィンドウプロシージャ
@@ -107,6 +108,15 @@ LRESULT Window::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
 
         case WM_DESTROY: {
             PostQuitMessage(0);
+        } break;
+
+        case WM_WINDOWPOSCHANGED: {
+            if (m_windowEventListener) {
+                m_windowEventListener->OnWindowMoved();
+            }
+        } break;
+
+        case WM_DISPLAYCHANGE: {
         } break;
 
         case WM_KEYDOWN: {

@@ -3,6 +3,7 @@
 #include <Windows.h>
 
 struct IInputReceiver;
+struct IWindowEventListener;
 
 class Window {
 public:
@@ -26,11 +27,17 @@ public:
         m_inputReceiver = receiver;
     }
 
+    void setWindowEventListener(IWindowEventListener* listener) {
+        m_windowEventListener = listener;
+    }
+
 private:
     HINSTANCE m_hInst = nullptr;
     HWND m_hWnd       = nullptr;
 
-    IInputReceiver* m_inputReceiver = nullptr;
+    // イベント受け取り用インターフェース
+    IInputReceiver* m_inputReceiver             = nullptr;
+    IWindowEventListener* m_windowEventListener = nullptr;
 
     bool m_isActive = false;
 };

@@ -24,7 +24,7 @@ bool ColorTarget::Init(ID3D12Device* pDevice, DescriptorPool* pPoolRTV,
     DXGI_SWAP_CHAIN_DESC desc;
     pSwapChain->GetDesc(&desc);
 
-    m_ViewDesc.Format               = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    m_ViewDesc.Format               = DXGI_FORMAT_R16G16B16A16_FLOAT;
     m_ViewDesc.ViewDimension        = D3D12_RTV_DIMENSION_TEXTURE2D;
     m_ViewDesc.Texture2D.MipSlice   = 0;
     m_ViewDesc.Texture2D.PlaneSlice = 0;

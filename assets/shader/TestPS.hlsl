@@ -4,7 +4,8 @@
 //==============================================================
 struct VSOutput {
     float4 position : SV_POSITION;  // 変換後頂点座標
-    float2 texCoord : TEXCOORD;     // テクスチャ座標
+    float3 worldNormal : TEXCOORD0;  // ワールド座標系の法線
+    float2 texCoord : TEXCOORD1;     // テクスチャ座標
 };
 
 //==============================================================
