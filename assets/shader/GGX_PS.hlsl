@@ -2,7 +2,8 @@
 //==============================================
 // Constant Values
 //==============================================
-static const float F_PI = 3.14159265359f;
+static const float F_PI = 3.14159265359f;   // 円周率
+static const float MIN_DIST = 0.01f;        // 光源との最小距離（距離減衰計算用）
 
 //==============================================================
 // VS Output structure
@@ -55,12 +56,14 @@ cbuffer MaterialConstants : register(b2) {
 
 // [b3] ライティング定数
 cbuffer LightingConstants : register(b3) {
-    // ambient light
-    float3 ambientColor;  // 環境光の色
-    float ambientIntensity;          // 環境光の強度
-
-    // directional light
-    DirectionalLight directionalLight;
+    uint lightType;               // 0: 平行光源, 1: 点光源, 2: スポット光源
+    float3 lightPosition;  // 位置（点光源/スポット光源用）
+    float3 lightDirection;  // 方向（平行光源/スポット光源用）
+    float lightIntensity;              // 強度
+    float3 lightColor;      // 色
+    float lightAngleScale;   // スポットライトの角度減衰係数（スポット光源用）
+    float lightAngleOffset;  // スポットライトの角度オフセット（スポット光源用）
+    float lightInvSqrRadius;  // 距離の二乗の逆数（点光源/スポット光源用）
 };
 
 // [b4] ディスプレイ定数
@@ -196,6 +199,75 @@ float3 GT_Tonemap(float3 color){
     return toneMappedMaxCol * color / maxCol;
 }
 
+//--------------------------------------------------------------
+// 距離減衰の計算（点光源用）
+//--------------------------------------------------------------
+float GetDistanceAttenuation(float3 unnormalizedLightVec){
+    float sqrDist = dot(unnormalizedLightVec, unnormalizedLightVec);
+    float attenuation = 1.0f / (max(sqrDist, MIN_DIST * MIN_DIST));
+    return saturate(1.0f - sqrDist* lightInvSqrRadius);
+}
+
+//---------------------------------------------------------------
+// 角度減衰の計算（スポット光源用）
+//---------------------------------------------------------------
+float GetAngleAttenuation(
+    float3 unnormalizedLightVec,    // ライト位置からオブジェクト座標へのベクトル
+    float3 lightDir,                // 正規化済みの照射方向ベクトル
+    float lightAngleScale,          // スポットライトの角度減衰係数
+    float lightAngleOffset          // スポットライトの角度オフセット
+){
+    // 以下の値はCPU側で計算する
+    // lightAngleScale = 1.0f / max(0.001f, cos(innerConeAngle) - cos(outerConeAngle));
+    // lightAngleOffset = -cos(outerConeAngle) * lightAngleScale;
+
+    float cd = dot(lightDir, unnormalizedLightVec);
+    float attenuation = saturate(cd * lightAngleScale + lightAngleOffset);
+    
+    attenuation *= attenuation; // 二乗で滑らかにする
+
+    return attenuation;
+}
+
+//--------------------------------------------------------------
+// 点光源によるライティング計算
+//--------------------------------------------------------------
+float3 EvaluatePointLight
+    (
+        float3 N,           // 法線ベクトル
+        float3 worldPos,    // 頂点のワールド座標
+        float3 lightPos,    // 光源位置
+        float3 lightColor   // 光の色
+    )
+{
+    float3 dif = lightPos - worldPos;   // オブジェクトから光源へのベクトルを計算
+    float3 L = normalize(dif);      // ライトベクトルの正規化
+    float att = GetDistanceAttenuation(dif);    // 距離減衰の計算
+
+    return saturate(dot(N, L)) * lightColor * att / (4.0f * F_PI);
+}
+
+//--------------------------------------------------------------
+// スポット光源によるライティング計算
+//--------------------------------------------------------------
+float3 EvaluateSpotLight(
+    float3 N,               // 法線ベクトル
+    float3 worldPos,        // 頂点のワールド座標
+    float3 lightPos,        // 光源位置
+    float3 lightDir,        // 光源の照射方向
+    float3 lightCol,        // 光の色
+    float lightAngleScale,  // スポットライトの角度減衰係数
+    float lightAngleOffset  // スポットライトの角度オフセット
+){
+    float3 unnormalizedLightVec = lightPos - worldPos;   // オブジェクトから光源へのベクトルを計算
+    float3 L = normalize(unnormalizedLightVec);      // ライトベクトルの正規化
+    float sqrDist = dot(unnormalizedLightVec, unnormalizedLightVec);
+    float att = 1.0f / (max(sqrDist, MIN_DIST * MIN_DIST));    // 距離減衰の計算
+    att *= GetAngleAttenuation(-unnormalizedLightVec, lightDir, lightAngleScale, lightAngleOffset);  // 角度減衰の計算
+    return saturate(dot(N, L)) * lightCol * att / F_PI;
+    
+}
+
 //==============================================================
 // Main function
 //==============================================================
@@ -235,7 +307,7 @@ PSOutput main(VSOutput input) : SV_TARGET {
     //==============================================
     // view, light, halfベクトルの計算
     float3 V = normalize(cameraPos - input.worldPos);
-    float3 L = normalize(-directionalLight.lightDirection);
+    float3 L = normalize(lightPosition - input.worldPos);
     float3 H = normalize(L + V);
 
     // 内積
@@ -263,8 +335,22 @@ PSOutput main(VSOutput input) : SV_TARGET {
 
 
     // 物体の色を反映した最終カラーの計算
-    float3 finalColor = directionalLight.lightIntensity * directionalLight.lightColor.rgb 
-        * ( diffuse + specular ) * NL;
+    float3 BRDF = diffuse + specular;
+
+    // ライティング計算
+    float3 lit = float3(0.0f, 0.0f, 0.0f);
+    if( lightType == 1 ) {
+        // ポイントライト
+        lit = EvaluatePointLight(N, input.worldPos, lightPosition, 
+            lightColor * lightIntensity);
+    } else if( lightType == 2 ) {
+        // スポットライト
+        lit = EvaluateSpotLight(N, input.worldPos, lightPosition, 
+            lightDirection, lightColor * lightIntensity, 
+            lightAngleScale, lightAngleOffset);
+    } 
+
+    float3 finalColor = lit * BRDF;
     finalColor = finalColor * exposure;
 
 

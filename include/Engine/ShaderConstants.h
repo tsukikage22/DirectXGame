@@ -30,12 +30,15 @@ static_assert(sizeof(DirectionalLight) % 16 == 0, "Must be 16-byte aligned");
 
 /// @brief ライティング計算用の定数（フレーム毎更新）
 struct LightingConstants {
-    // ambient light
-    DirectX::XMFLOAT3 ambientColor;  // 環境光の色
-    float ambientIntensity;          // 環境光の強度
-
-    // directional light
-    DirectionalLight directionalLight;
+    uint32_t lightType;               // 0: 平行光源, 1: 点光源, 2: スポット光源
+    DirectX::XMFLOAT3 lightPosition;  // 位置（点光源/スポット光源用）
+    DirectX::XMFLOAT3 lightDirection;  // 方向（平行光源/スポット光源用）
+    float lightIntensity;              // 強度
+    DirectX::XMFLOAT3 lightColor;      // 色
+    float lightAngleScale;   // スポットライトの角度減衰係数（スポット光源用）
+    float lightAngleOffset;  // スポットライトの角度オフセット（スポット光源用）
+    float lightInvSqrRadius;  // 距離の二乗の逆数（点光源/スポット光源用）
+    float _padding[2];        // 16バイトアラインメント用
 };
 static_assert(sizeof(LightingConstants) % 16 == 0, "Must be 16-byte aligned");
 
