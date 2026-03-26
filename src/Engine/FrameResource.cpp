@@ -48,21 +48,18 @@ void FrameResource::Term() {
 }
 
 bool FrameResource::AddTransform(
-    ID3D12Device* pDevice, DescriptorPool* pPoolCBV, size_t count) {
+    ID3D12Device* pDevice, DescriptorPool* pPoolCBV) {
     // メモリ確保
     size_t curSize = m_pTransforms.size();
-    m_pTransforms.reserve(m_pTransforms.size() + count);
+    m_pTransforms.reserve(curSize + 1);
 
     // Transformの初期化と追加
-    for (size_t i = 0; i < count; i++) {
-        auto transform = std::make_unique<TransformGPU>();
-        if (!transform->Init(pDevice, pPoolCBV)) {
-            // 追加分の削除
-            m_pTransforms.resize(curSize);
-            return false;
-        }
-        m_pTransforms.push_back(std::move(transform));
+    auto transform = std::make_unique<TransformGPU>();
+    if (!transform->Init(pDevice, pPoolCBV)) {
+        return false;
     }
+    m_pTransforms.push_back(std::move(transform));
+
     return true;
 }
 

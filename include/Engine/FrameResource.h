@@ -25,8 +25,7 @@ public:
     void Term();
 
     /// @brief Transformを追加
-    bool AddTransform(
-        ID3D12Device* pDevice, DescriptorPool* pPoolCBV, size_t count);
+    bool AddTransform(ID3D12Device* pDevice, DescriptorPool* pPoolCBV);
 
     /// @brief フレーム開始
     /// @param pCmdList

@@ -34,7 +34,9 @@
 #include "Engine/InputSystem.h"
 #include "Engine/MaterialGPU.h"
 #include "Engine/MeshGPU.h"
+#include "Engine/Model.h"
 #include "Engine/RootSignatureBuilder.h"
+#include "Engine/Scene.h"
 #include "Engine/SceneConstantsGPU.h"
 #include "Engine/TextureManager.h"
 #include "Engine/TransformGPU.h"
@@ -134,12 +136,11 @@ private:
 
     FrameResource m_FrameResources[FrameCount];  // フレームリソース
 
-    std::vector<ModelAsset> m_Models;                       // モデルデータ
-    std::vector<std::unique_ptr<MeshGPU>> m_Meshes;         // メッシュデータ
-    std::vector<std::unique_ptr<MaterialGPU>> m_Materials;  // マテリアルデータ
-    UINT m_textureCount = 0;                                // テクスチャ数
-    TextureManager m_TextureManager;  // テクスチャマネージャ
-    Camera m_Camera;                  // カメラ
+    std::vector<ModelAsset> m_ModelAssets;  // モデルデータ
+    UINT m_textureCount = 0;                // テクスチャ数
+    TextureManager m_TextureManager;        // テクスチャマネージャ
+    Camera m_Camera;                        // カメラ
+    Scene m_Scene;                          // シーン
 
     static constexpr size_t maxObjects = 100;  // 最大オブジェクト数
 

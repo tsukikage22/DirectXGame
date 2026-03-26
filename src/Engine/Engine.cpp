@@ -88,6 +88,14 @@ void Engine::Update() {
     // シーン定数の更新
     shader::SceneConstants sc = {};
 
+    // シーン内の全ゲームオブジェクトのtransformを更新
+    for (auto& obj : m_Scene.GetGameObjects()) {
+        obj->GetTransform().CalcWorldMatrix();
+        uint32_t idx = obj->GetIndex();
+        m_FrameResources[m_FrameIndex].GetTransforms()[idx]->Update(
+            obj->GetTransform().CalcWorldMatrix());
+    }
+
     // ビュー行列・射影行列を転置して格納
     DirectX::XMFLOAT4X4 view       = m_Camera.GetViewMatrix();
     DirectX::XMFLOAT4X4 projection = m_Camera.GetProjectionMatrix();
@@ -119,10 +127,6 @@ void Engine::Render() {
         m_pCmdList->SetGraphicsRootConstantBufferView(0,
             m_FrameResources[m_FrameIndex].GetSceneConstants().GetGPUAddress());
 
-        // [b1] TransformConstants (モデル単位)
-        m_pCmdList->SetGraphicsRootConstantBufferView(1,
-            m_FrameResources[m_FrameIndex].GetTransforms()[0]->GetGPUAddress());
-
         // [b3] LightingConstants (共通)
         m_pCmdList->SetGraphicsRootConstantBufferView(
             3, m_FrameResources[m_FrameIndex]
@@ -136,7 +140,45 @@ void Engine::Render() {
         // PrimitiveTopologyの指定
         m_pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        // 全メッシュを描画
+        // 全オブジェクトを描画
+        for (auto& obj : m_Scene.GetGameObjects()) {
+            // [b1] TransformConstants (モデル単位)
+            m_pCmdList->SetGraphicsRootConstantBufferView(
+                1, m_FrameResources[m_FrameIndex]
+                       .GetTransforms()[obj->GetIndex()]
+                       ->GetGPUAddress());
+
+            // 各メッシュを描画
+            const auto& meshes    = obj->GetModel().GetMeshes();
+            const auto& materials = obj->GetModel().GetMaterials();
+            for (auto& mesh : obj->GetModel().GetMeshes()) {
+                // このメッシュが使うマテリアルを取得
+                uint32_t materialID = mesh->GetMaterialID();
+
+                // マテリアルをバインド
+                if (materialID < materials.size()) {
+                    // [b2] MaterialConstants (マテリアル単位)
+                    m_pCmdList->SetGraphicsRootConstantBufferView(2,
+                        materials[materialID]->GetConstantBufferGPUAddress());
+
+                    // [t0-t4] PBR Textures
+                    m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
+                    m_pCmdList->SetGraphicsRootDescriptorTable(
+                        5, materials[materialID]->GetSrvTableBaseGPUHandle());
+                }
+
+                // 頂点バッファ・インデックスバッファの設定
+                m_pCmdList->IASetVertexBuffers(
+                    0, 1, &mesh->GetVertexBufferView());
+                m_pCmdList->IASetIndexBuffer(&mesh->GetIndexBufferView());
+
+                // 描画コマンドの発行
+                m_pCmdList->DrawIndexedInstanced(
+                    mesh->GetIndexCount(), 1, 0, 0, 0);
+            }
+        }
+
+        /*
         for (const auto& mesh : m_Meshes) {
             // このメッシュが使うマテリアルを取得
             uint32_t materialID = mesh->GetMaterialID();
@@ -160,6 +202,7 @@ void Engine::Render() {
             // 描画コマンドの発行
             m_pCmdList->DrawIndexedInstanced(mesh->GetIndexCount(), 1, 0, 0, 0);
         }
+        */
     }
 }
 
@@ -402,20 +445,12 @@ bool Engine::InitApp() {
         }
 
         // GLBの読み込み
-        ModelAsset model;
-        if (!GLBImporter::LoadFromFile(path, model)) {
+        ModelAsset modelAsset;
+        if (!GLBImporter::LoadFromFile(path, modelAsset)) {
             return false;
         }
-        m_Models.push_back(model);
-        m_textureCount = static_cast<UINT>(model.images.size());
-
-        // maxObjectsの数だけTransformの定数バッファを確保
-        for (int i = 0; i < FrameCount; i++) {
-            if (!m_FrameResources[i].AddTransform(
-                    m_pDevice.Get(), m_pPoolCBV_SRV_UAV, m_Models.size())) {
-                return false;
-            }
-        }
+        m_ModelAssets.push_back(modelAsset);
+        m_textureCount = static_cast<UINT>(modelAsset.images.size());
 
         // TextureManagerの初期化
         if (!m_TextureManager.Init(m_pDevice.Get())) {
@@ -432,28 +467,63 @@ bool Engine::InitApp() {
         }
 
         // 全テクスチャの一括生成
-        m_TextureManager.BuildTexturesFromModelAsset(model, batch);
+        m_TextureManager.BuildTexturesFromModelAsset(modelAsset, batch);
 
-        // メッシュをGPUに転送
-        m_Meshes.resize(model.meshes.size());
-        for (size_t i = 0; i < model.meshes.size(); i++) {
-            m_Meshes[i] = std::make_unique<MeshGPU>();
-            if (!m_Meshes[i]->Init(m_pDevice.Get(), batch, model.meshes[i])) {
-                return false;
-            }
+        // モデルのGPUリソース生成とシーンへの追加
+        auto model = std::make_unique<Model>();
+        if (!model->Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV, &m_TextureManager,
+                batch, modelAsset)) {
+            return false;
         }
+        auto pModel = m_Scene.AddModel(std::move(model));
 
-        // マテリアルをGPUに転送
-        m_Materials.resize(model.materials.size());
-        for (size_t i = 0; i < model.materials.size(); i++) {
-            m_Materials[i] = std::make_unique<MaterialGPU>();
-            if (!m_Materials[i]->Init(m_pDevice.Get(),
-                    m_pPoolCBV_SRV_UAV,  // CBV用（定数バッファ）
-                    m_pPoolCBV_SRV_UAV,  // SRV用（テクスチャコピー先）
-                    &m_TextureManager,   // テクスチャソース
-                    model.materials[i])) {
-                return false;
+        // ロードしたモデルをゲームオブジェクトとして追加
+        uint32_t objectIndex = m_Scene.CreateGameObject(pModel);
+
+        // 二つ目のモデルをロードして追加
+        if (!AssetPath().GetAssetPath(L"model/MoonSphere.glb", path)) {
+            OutputDebugStringW(L"Error: model not found.\n");
+            return false;
+        }
+        ModelAsset modelAsset2;
+        if (!GLBImporter::LoadFromFile(path, modelAsset2)) {
+            return false;
+        }
+        m_ModelAssets.push_back(modelAsset2);
+        m_textureCount += static_cast<UINT>(modelAsset2.images.size());
+        m_TextureManager.BuildTexturesFromModelAsset(modelAsset2, batch);
+        auto model2 = std::make_unique<Model>();
+        if (!model2->Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV,
+                &m_TextureManager, batch, modelAsset2)) {
+            return false;
+        }
+        auto pModel2          = m_Scene.AddModel(std::move(model2));
+        uint32_t objectIndex2 = m_Scene.CreateGameObject(pModel2);
+
+        // 座標設定
+        DirectX::XMFLOAT3 pos1 = { -1.0f, 0.0f, 0.0f };
+        DirectX::XMFLOAT3 pos2 = { 1.0f, 0.0f, 0.0f };
+        m_Scene.GetGameObjects()[objectIndex]->GetTransform().SetPosition(pos1);
+        m_Scene.GetGameObjects()[objectIndex2]->GetTransform().SetPosition(
+            pos2);
+
+        // ゲームオブジェクトのTransformを確保・初期化
+        // TODO:
+        //      この部分はゲームオブジェクトの追加・削除に応じて実行する必要がある
+        //      そのため，Sceneに追加したほうが良い気がする
+        for (int i = 0; i < FrameCount; i++) {
+            /*
+            if (objectIndex >= m_FrameResources[i].GetTransforms().size()) {
+                if (!m_FrameResources[i].AddTransform(
+                        m_pDevice.Get(), m_pPoolCBV_SRV_UAV)) {
+                    return false;
+                }
             }
+            */
+            m_FrameResources[i].AddTransform(
+                m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
+            m_FrameResources[i].AddTransform(
+                m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
         }
 
         // 転送完了を待機
@@ -461,9 +531,7 @@ bool Engine::InitApp() {
         future.wait();
 
         // アップロードヒープの破棄
-        for (auto& mesh : m_Meshes) {
-            mesh->DiscardUpload();
-        }
+        m_Scene.DiscardModelUploads();
     }
 
     // ルートシグネチャの生成
@@ -564,14 +632,11 @@ bool Engine::InitApp() {
 }
 
 void Engine::TermApp() {
-    // メッシュの解放
-    m_Meshes.clear();
-
     // ディスプレイ定数の破棄
     m_DisplayConstantsGPU.Term();
 
-    // マテリアルの解放
-    m_Materials.clear();
+    // シーンの破棄
+    m_Scene.Term();
 
     // テクスチャプールの解放
     m_TextureManager.Term();

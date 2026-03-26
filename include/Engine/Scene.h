@@ -1,22 +1,41 @@
 #pragma once
 
+#include <memory>
+#include <stack>
+#include <vector>
+
 #include "Engine/GameObject.h"
+#include "Engine/Model.h"
+#include "Engine/TransformGPU.h"
 
 class Scene {
 public:
     Scene();
     ~Scene();
 
-    GameObject& CreateGameObject(Model* pModel);
+    void Term();
 
-    void RemoveGameObject(GameObject* pObj);
+    /// @brief シーンにモデルを追加する
+    Model* AddModel(std::unique_ptr<Model> pModel);
 
-    void Update();
+    /// @brief モデルのアップロードヒープ破棄
+    void DiscardModelUploads();
 
+    /// @brief シーン内にゲームオブジェクトを作成する
+    uint32_t CreateGameObject(Model* pModel);
+
+    /// @brief ゲームオブジェクトを削除する
+    void RemoveGameObject(uint32_t index);
+
+    /// @brief ゲームオブジェクト配列の取得
     const std::vector<std::unique_ptr<GameObject>>& GetGameObjects() const {
         return m_gameObjects;
     }
 
 private:
     std::vector<std::unique_ptr<GameObject>> m_gameObjects;
+    std::vector<std::unique_ptr<Model>> m_models;
+
+    uint32_t m_nextObjectIndex = 0;    // 次に割り当てるオブジェクトインデックス
+    std::stack<uint32_t> m_freeSlots;  // transformGPUのフリーリスト
 };
