@@ -1,5 +1,7 @@
 #include "Game/Game.h"
 
+#include <DirectXMath.h>
+
 #include "Engine/Engine.h"
 #include "Game/CameraController.h"
 
@@ -17,11 +19,24 @@ void Game::Init(Engine* pEngine) {
     // カメラコントローラの初期化
     m_pCameraController->Init(
         &m_pEngine->GetCamera(), &m_pEngine->GetInputSystem());
+
+    // ゲームオブジェクトの取得
+    auto& scene = m_pEngine->GetScene();
+    if (!scene.GetGameObjects().empty()) {
+        m_pObject = scene.GetGameObject(0);
+    }
 }
 
 void Game::Tick() {
     // カメラ操作の更新
     if (m_pCameraController) {
         m_pCameraController->Update();
+    }
+
+    // ゲームオブジェクトの更新
+    if (m_pObject) {
+        DirectX::XMFLOAT3 rot = m_pObject->GetTransform().GetRotation();
+        rot.y += 0.1f;  // 毎フレーム少しずつ回転
+        m_pObject->GetTransform().SetRotation(rot);
     }
 }

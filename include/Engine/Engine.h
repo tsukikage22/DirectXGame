@@ -109,6 +109,8 @@ public:
 
     Camera& GetCamera() { return m_Camera; }
 
+    Scene& GetScene() { return m_Scene; }
+
 private:
     //==============================================================
     // private variables

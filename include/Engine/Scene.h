@@ -27,6 +27,9 @@ public:
     /// @brief ゲームオブジェクトを削除する
     void RemoveGameObject(uint32_t index);
 
+    /// @brief インデックスに対応するゲームオブジェクトを取得
+    GameObject* GetGameObject(uint32_t index);
+
     /// @brief ゲームオブジェクト配列の取得
     const std::vector<std::unique_ptr<GameObject>>& GetGameObjects() const {
         return m_gameObjects;

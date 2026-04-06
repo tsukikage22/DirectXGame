@@ -5,6 +5,7 @@
 // 前方宣言
 class Engine;
 class CameraController;
+class GameObject;
 
 class Game {
 public:
@@ -23,4 +24,6 @@ public:
 private:
     Engine* m_pEngine;
     std::unique_ptr<CameraController> m_pCameraController;
+
+    GameObject* m_pObject;
 };

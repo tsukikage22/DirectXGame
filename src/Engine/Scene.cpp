@@ -54,6 +54,18 @@ void Scene::RemoveGameObject(uint32_t index) {
     }
 }
 
+GameObject* Scene::GetGameObject(uint32_t index) {
+    auto it = std::find_if(m_gameObjects.begin(), m_gameObjects.end(),
+        [index](const std::unique_ptr<GameObject>& obj) {
+            return obj->GetIndex() == index;
+        });
+
+    if (it != m_gameObjects.end()) {
+        return it->get();
+    }
+    return nullptr;
+}
+
 void Scene::Term() {
     // モデルの破棄
     for (auto& model : m_models) {
