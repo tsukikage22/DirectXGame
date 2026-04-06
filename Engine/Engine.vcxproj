@@ -181,6 +181,7 @@
     <ClInclude Include="..\include\Engine\Model.h" />
     <ClInclude Include="..\include\Engine\ModelAsset.h" />
     <ClInclude Include="..\include\Engine\MeshGPU.h" />
+    <ClInclude Include="..\include\Engine\ModelLoader.h" />
     <ClInclude Include="..\include\Engine\RootSignatureBuilder.h" />
     <ClInclude Include="..\include\Engine\Scene.h" />
     <ClInclude Include="..\include\Engine\SceneConstantsGPU.h" />
@@ -215,6 +216,7 @@
     <ClCompile Include="..\src\Engine\MaterialSrvTable.cpp" />
     <ClCompile Include="..\src\Engine\MeshGPU.cpp" />
     <ClCompile Include="..\src\Engine\Model.cpp" />
+    <ClCompile Include="..\src\Engine\ModelLoader.cpp" />
     <ClCompile Include="..\src\Engine\RootSignatureBuilder.cpp" />
     <ClCompile Include="..\src\Engine\Scene.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>

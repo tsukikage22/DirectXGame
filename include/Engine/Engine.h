@@ -35,6 +35,7 @@
 #include "Engine/MaterialGPU.h"
 #include "Engine/MeshGPU.h"
 #include "Engine/Model.h"
+#include "Engine/ModelLoader.h"
 #include "Engine/RootSignatureBuilder.h"
 #include "Engine/Scene.h"
 #include "Engine/SceneConstantsGPU.h"
@@ -162,9 +163,13 @@ private:
     //==============================================================
     // 内部ヘルパー
     //==============================================================
+    /// @brief SceneへのGameObject追加とGPUリソースの割り当て
+    uint32_t AddGameObject(Model* pModel);
+
     /// @brief HDR対応チェック
     DisplayInfo GetDisplayInfo();
 
+    /// @brief モニター変更チェック
     bool IsMonitorChanged(HWND hWnd);
 
     //==============================================================

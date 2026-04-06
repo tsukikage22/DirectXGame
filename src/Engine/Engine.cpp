@@ -177,32 +177,6 @@ void Engine::Render() {
                     mesh->GetIndexCount(), 1, 0, 0, 0);
             }
         }
-
-        /*
-        for (const auto& mesh : m_Meshes) {
-            // このメッシュが使うマテリアルを取得
-            uint32_t materialID = mesh->GetMaterialID();
-
-            // マテリアルをバインド
-            if (materialID < m_Materials.size()) {
-                // [b2] MaterialConstants (マテリアル単位)
-                m_pCmdList->SetGraphicsRootConstantBufferView(
-                    2, m_Materials[materialID]->GetConstantBufferGPUAddress());
-
-                // [t0-t4] PBR Textures
-                m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
-                m_pCmdList->SetGraphicsRootDescriptorTable(
-                    5, m_Materials[materialID]->GetSrvTableBaseGPUHandle());
-            }
-
-            // 頂点バッファ・インデックスバッファの設定
-            m_pCmdList->IASetVertexBuffers(0, 1, &mesh->GetVertexBufferView());
-            m_pCmdList->IASetIndexBuffer(&mesh->GetIndexBufferView());
-
-            // 描画コマンドの発行
-            m_pCmdList->DrawIndexedInstanced(mesh->GetIndexCount(), 1, 0, 0, 0);
-        }
-        */
     }
 }
 
@@ -438,19 +412,15 @@ bool Engine::InitApp() {
     // 3Dモデルのロード
     {
         // ファイルの検索
-        std::filesystem::path path;
-        if (!AssetPath().GetAssetPath(L"model/TextureSphere.glb", path)) {
+        std::filesystem::path earthPath, moonPath;
+        if (!AssetPath().GetAssetPath(L"model/TextureSphere.glb", earthPath)) {
             OutputDebugStringW(L"Error: model not found.\n");
             return false;
         }
-
-        // GLBの読み込み
-        ModelAsset modelAsset;
-        if (!GLBImporter::LoadFromFile(path, modelAsset)) {
+        if (!AssetPath().GetAssetPath(L"model/MoonSphere.glb", moonPath)) {
+            OutputDebugStringW(L"Error: model not found.\n");
             return false;
         }
-        m_ModelAssets.push_back(modelAsset);
-        m_textureCount = static_cast<UINT>(modelAsset.images.size());
 
         // TextureManagerの初期化
         if (!m_TextureManager.Init(m_pDevice.Get())) {
@@ -466,39 +436,22 @@ bool Engine::InitApp() {
             return false;
         }
 
-        // 全テクスチャの一括生成
-        m_TextureManager.BuildTexturesFromModelAsset(modelAsset, batch);
+        // モデルのロード
+        ModelLoader loader;
+        if (!loader.Init(
+                m_pDevice.Get(), m_pPoolCBV_SRV_UAV, &m_TextureManager)) {
+            return false;
+        }
+        auto earth = loader.LoadModel(earthPath, batch);
+        auto moon  = loader.LoadModel(moonPath, batch);
 
-        // モデルのGPUリソース生成とシーンへの追加
-        auto model = std::make_unique<Model>();
-        if (!model->Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV, &m_TextureManager,
-                batch, modelAsset)) {
-            return false;
-        }
-        auto pModel = m_Scene.AddModel(std::move(model));
+        // モデルをシーンに追加
+        auto pEarth = m_Scene.AddModel(std::move(earth));
+        auto pMoon  = m_Scene.AddModel(std::move(moon));
 
-        // ロードしたモデルをゲームオブジェクトとして追加
-        uint32_t objectIndex = m_Scene.CreateGameObject(pModel);
-
-        // 二つ目のモデルをロードして追加
-        if (!AssetPath().GetAssetPath(L"model/MoonSphere.glb", path)) {
-            OutputDebugStringW(L"Error: model not found.\n");
-            return false;
-        }
-        ModelAsset modelAsset2;
-        if (!GLBImporter::LoadFromFile(path, modelAsset2)) {
-            return false;
-        }
-        m_ModelAssets.push_back(modelAsset2);
-        m_textureCount += static_cast<UINT>(modelAsset2.images.size());
-        m_TextureManager.BuildTexturesFromModelAsset(modelAsset2, batch);
-        auto model2 = std::make_unique<Model>();
-        if (!model2->Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV,
-                &m_TextureManager, batch, modelAsset2)) {
-            return false;
-        }
-        auto pModel2          = m_Scene.AddModel(std::move(model2));
-        uint32_t objectIndex2 = m_Scene.CreateGameObject(pModel2);
+        // ゲームオブジェクトをシーンに追加
+        uint32_t objectIndex  = AddGameObject(pEarth);
+        uint32_t objectIndex2 = AddGameObject(pMoon);
 
         // 座標設定
         DirectX::XMFLOAT3 pos1 = { -1.0f, 0.0f, 0.0f };
@@ -506,25 +459,6 @@ bool Engine::InitApp() {
         m_Scene.GetGameObjects()[objectIndex]->GetTransform().SetPosition(pos1);
         m_Scene.GetGameObjects()[objectIndex2]->GetTransform().SetPosition(
             pos2);
-
-        // ゲームオブジェクトのTransformを確保・初期化
-        // TODO:
-        //      この部分はゲームオブジェクトの追加・削除に応じて実行する必要がある
-        //      そのため，Sceneに追加したほうが良い気がする
-        for (int i = 0; i < FrameCount; i++) {
-            /*
-            if (objectIndex >= m_FrameResources[i].GetTransforms().size()) {
-                if (!m_FrameResources[i].AddTransform(
-                        m_pDevice.Get(), m_pPoolCBV_SRV_UAV)) {
-                    return false;
-                }
-            }
-            */
-            m_FrameResources[i].AddTransform(
-                m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
-            m_FrameResources[i].AddTransform(
-                m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
-        }
 
         // 転送完了を待機
         auto future = batch.End(m_CommandQueue.GetD3DQueue());
@@ -659,6 +593,20 @@ void Engine::TermApp() {
 //=============================================
 // 内部ヘルパー
 //=============================================
+/// @brief SceneへのGameObject追加とGPUリソースの割り当て
+/// @return 追加したGameObjectのインデックス
+uint32_t Engine::AddGameObject(Model* pModel) {
+    // シーンにゲームオブジェクトを追加
+    uint32_t objectIndex = m_Scene.CreateGameObject(pModel);
+
+    // ゲームオブジェクトのTransformを確保・初期化
+    for (int i = 0; i < FrameCount; i++) {
+        m_FrameResources[i].AddTransform(m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
+    }
+
+    return objectIndex;
+}
+
 /// @brief HDR対応チェック
 DisplayInfo Engine::GetDisplayInfo() {
     // 出力情報の初期化
