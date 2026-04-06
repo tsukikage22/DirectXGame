@@ -4,8 +4,8 @@
 
 #include <memory>
 
-#include "Engine/Camera.h"
-#include "Engine/InputSystem.h"
+#include "Engine/Scene/Camera.h"
+#include "Engine/Input/InputSystem.h"
 
 class CameraController {
 public:

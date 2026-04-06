@@ -1,7 +1,7 @@
 #include "App/Window.h"
 
-#include "Engine/IInputReceiver.h"
-#include "Engine/IWindowEventListener.h"
+#include "Engine/Input/IInputReceiver.h"
+#include "Engine/Input/IWindowEventListener.h"
 
 namespace /* anonymous */ {
 /// @brief ウィンドウプロシージャ

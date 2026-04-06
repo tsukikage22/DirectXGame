@@ -23,7 +23,8 @@ void Game::Init(Engine* pEngine) {
     // ゲームオブジェクトの取得
     auto& scene = m_pEngine->GetScene();
     if (!scene.GetGameObjects().empty()) {
-        m_pObject = scene.GetGameObject(0);
+        m_pObject1 = scene.GetGameObject(0);
+        m_pObject2 = scene.GetGameObject(1);
     }
 }
 
@@ -34,9 +35,14 @@ void Game::Tick() {
     }
 
     // ゲームオブジェクトの更新
-    if (m_pObject) {
-        DirectX::XMFLOAT3 rot = m_pObject->GetTransform().GetRotation();
+    if (m_pObject1) {
+        DirectX::XMFLOAT3 rot = m_pObject1->GetTransform().GetRotation();
         rot.y += 0.1f;  // 毎フレーム少しずつ回転
-        m_pObject->GetTransform().SetRotation(rot);
+        m_pObject1->GetTransform().SetRotation(rot);
+    }
+    if (m_pObject2) {
+        DirectX::XMFLOAT3 rot = m_pObject2->GetTransform().GetRotation();
+        rot.y -= 0.1f;  // 毎フレーム少しずつ回転
+        m_pObject2->GetTransform().SetRotation(rot);
     }
 }

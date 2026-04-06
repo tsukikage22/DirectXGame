@@ -1,4 +1,4 @@
-﻿////////////////////////////////////////
+////////////////////////////////////////
 /// @file Engine.h
 /// @brief
 ////////////////////////////////////////
@@ -18,31 +18,31 @@
 #include <memory>
 #include <vector>
 
-#include "Engine/AssetPath.h"
-#include "Engine/Camera.h"
-#include "Engine/ColorTarget.h"
-#include "Engine/ComPtr.h"
-#include "Engine/CommandQueue.h"
-#include "Engine/DepthTarget.h"
-#include "Engine/DescriptorPool.h"
-#include "Engine/DisplayConstantsGPU.h"
-#include "Engine/FrameResource.h"
-#include "Engine/GLBImporter.h"
-#include "Engine/GraphicsPipelineBuilder.h"
-#include "Engine/IWindowEventListener.h"
-#include "Engine/IndexBuffer.h"
-#include "Engine/InputSystem.h"
-#include "Engine/MaterialGPU.h"
-#include "Engine/MeshGPU.h"
-#include "Engine/Model.h"
-#include "Engine/ModelLoader.h"
-#include "Engine/RootSignatureBuilder.h"
-#include "Engine/Scene.h"
-#include "Engine/SceneConstantsGPU.h"
-#include "Engine/TextureManager.h"
-#include "Engine/TransformGPU.h"
-#include "Engine/VertexBuffer.h"
-#include "Engine/VertexTypes.h"
+#include "Engine/Resource/AssetPath.h"
+#include "Engine/Scene/Camera.h"
+#include "Engine/Graphics/ColorTarget.h"
+#include "Engine/Core/ComPtr.h"
+#include "Engine/Core/CommandQueue.h"
+#include "Engine/Graphics/DepthTarget.h"
+#include "Engine/Core/DescriptorPool.h"
+#include "Engine/Shader/DisplayConstantsGPU.h"
+#include "Engine/Core/FrameResource.h"
+#include "Engine/Resource/GLBImporter.h"
+#include "Engine/Graphics/GraphicsPipelineBuilder.h"
+#include "Engine/Input/IWindowEventListener.h"
+#include "Engine/Graphics/IndexBuffer.h"
+#include "Engine/Input/InputSystem.h"
+#include "Engine/Model/MaterialGPU.h"
+#include "Engine/Model/MeshGPU.h"
+#include "Engine/Model/Model.h"
+#include "Engine/Resource/ModelLoader.h"
+#include "Engine/Graphics/RootSignatureBuilder.h"
+#include "Engine/Scene/Scene.h"
+#include "Engine/Shader/SceneConstantsGPU.h"
+#include "Engine/Resource/TextureManager.h"
+#include "Engine/Shader/TransformGPU.h"
+#include "Engine/Graphics/VertexBuffer.h"
+#include "Engine/Model/VertexTypes.h"
 
 ///////////////////////////////////////////
 // Linker

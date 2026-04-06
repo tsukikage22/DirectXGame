@@ -25,5 +25,6 @@ private:
     Engine* m_pEngine;
     std::unique_ptr<CameraController> m_pCameraController;
 
-    GameObject* m_pObject;
+    GameObject* m_pObject1;  // シーン内のゲームオブジェクトへのポインタ
+    GameObject* m_pObject2;  // シーン内のゲームオブジェクトへのポインタ
 };

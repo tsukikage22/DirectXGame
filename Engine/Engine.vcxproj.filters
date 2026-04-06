@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="ソース ファイル">
@@ -9,220 +9,263 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
+
+    <Filter Include="ヘッダー ファイル\Core">
+      <UniqueIdentifier>{a1b2c3d4-0001-0001-0001-000000000001}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Graphics">
+      <UniqueIdentifier>{a1b2c3d4-0001-0001-0001-000000000002}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Resource">
+      <UniqueIdentifier>{a1b2c3d4-0001-0001-0001-000000000003}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Model">
+      <UniqueIdentifier>{a1b2c3d4-0001-0001-0001-000000000004}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Shader">
+      <UniqueIdentifier>{a1b2c3d4-0001-0001-0001-000000000005}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Scene">
+      <UniqueIdentifier>{a1b2c3d4-0001-0001-0001-000000000006}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Input">
+      <UniqueIdentifier>{a1b2c3d4-0001-0001-0001-000000000007}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Core">
+      <UniqueIdentifier>{a1b2c3d4-0002-0001-0001-000000000001}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Graphics">
+      <UniqueIdentifier>{a1b2c3d4-0002-0001-0001-000000000002}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Resource">
+      <UniqueIdentifier>{a1b2c3d4-0002-0001-0001-000000000003}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Model">
+      <UniqueIdentifier>{a1b2c3d4-0002-0001-0001-000000000004}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Shader">
+      <UniqueIdentifier>{a1b2c3d4-0002-0001-0001-000000000005}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Scene">
+      <UniqueIdentifier>{a1b2c3d4-0002-0001-0001-000000000006}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Input">
+      <UniqueIdentifier>{a1b2c3d4-0002-0001-0001-000000000007}</UniqueIdentifier>
+    </Filter>
     <Filter Include="リソース ファイル">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\Engine\DescriptorPool.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Core\DescriptorPool.h">
+      <Filter>ヘッダー ファイル\Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\ComPtr.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Core\ComPtr.h">
+      <Filter>ヘッダー ファイル\Core</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Engine\Engine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\ColorTarget.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Graphics\ColorTarget.h">
+      <Filter>ヘッダー ファイル\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\ConstantBuffer.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Graphics\ConstantBuffer.h">
+      <Filter>ヘッダー ファイル\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\DepthTarget.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Graphics\DepthTarget.h">
+      <Filter>ヘッダー ファイル\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\CommandQueue.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Core\CommandQueue.h">
+      <Filter>ヘッダー ファイル\Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\GPUBuffer.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Graphics\GPUBuffer.h">
+      <Filter>ヘッダー ファイル\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\IndexBuffer.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Graphics\IndexBuffer.h">
+      <Filter>ヘッダー ファイル\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\VertexBuffer.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Graphics\VertexBuffer.h">
+      <Filter>ヘッダー ファイル\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\GraphicsPipelineBuilder.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Graphics\GraphicsPipelineBuilder.h">
+      <Filter>ヘッダー ファイル\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\RootSignatureBuilder.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Graphics\RootSignatureBuilder.h">
+      <Filter>ヘッダー ファイル\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\AssetPath.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Resource\AssetPath.h">
+      <Filter>ヘッダー ファイル\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\MaterialGPU.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Model\MaterialGPU.h">
+      <Filter>ヘッダー ファイル\Model</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\VertexTypes.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Model\VertexTypes.h">
+      <Filter>ヘッダー ファイル\Model</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\ShaderConstants.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Shader\ShaderConstants.h">
+      <Filter>ヘッダー ファイル\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\ModelAsset.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Model\ModelAsset.h">
+      <Filter>ヘッダー ファイル\Model</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\MeshGPU.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Model\MeshGPU.h">
+      <Filter>ヘッダー ファイル\Model</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\GLBImporter.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Resource\GLBImporter.h">
+      <Filter>ヘッダー ファイル\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\TextureManager.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Resource\TextureManager.h">
+      <Filter>ヘッダー ファイル\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\TextureResource.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Resource\TextureResource.h">
+      <Filter>ヘッダー ファイル\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\ShaderResourceTexture.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Resource\ShaderResourceTexture.h">
+      <Filter>ヘッダー ファイル\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\Camera.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Scene\Camera.h">
+      <Filter>ヘッダー ファイル\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\Fence.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Core\Fence.h">
+      <Filter>ヘッダー ファイル\Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\FrameResource.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Core\FrameResource.h">
+      <Filter>ヘッダー ファイル\Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\GameObject.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Scene\GameObject.h">
+      <Filter>ヘッダー ファイル\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\Model.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Model\Model.h">
+      <Filter>ヘッダー ファイル\Model</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\Scene.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Scene\Scene.h">
+      <Filter>ヘッダー ファイル\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\SceneConstantsGPU.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Shader\SceneConstantsGPU.h">
+      <Filter>ヘッダー ファイル\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\Transform.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Scene\Transform.h">
+      <Filter>ヘッダー ファイル\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\TransformGPU.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Shader\TransformGPU.h">
+      <Filter>ヘッダー ファイル\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\DxDebug.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Core\DxDebug.h">
+      <Filter>ヘッダー ファイル\Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\MaterialSrvTable.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Model\MaterialSrvTable.h">
+      <Filter>ヘッダー ファイル\Model</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\IInputReceiver.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Input\IInputReceiver.h">
+      <Filter>ヘッダー ファイル\Input</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\InputSystem.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Input\InputSystem.h">
+      <Filter>ヘッダー ファイル\Input</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\LightingConstantsGPU.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Shader\LightingConstantsGPU.h">
+      <Filter>ヘッダー ファイル\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\DisplayConstantsGPU.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Shader\DisplayConstantsGPU.h">
+      <Filter>ヘッダー ファイル\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\IWindowEventListener.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Input\IWindowEventListener.h">
+      <Filter>ヘッダー ファイル\Input</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\ModelLoader.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="..\include\Engine\Resource\ModelLoader.h">
+      <Filter>ヘッダー ファイル\Resource</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\Engine\Engine.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\DescriptorPool.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Core\DescriptorPool.cpp">
+      <Filter>ソース ファイル\Core</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\ColorTarget.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Graphics\ColorTarget.cpp">
+      <Filter>ソース ファイル\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\DepthTarget.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Graphics\DepthTarget.cpp">
+      <Filter>ソース ファイル\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\CommandQueue.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Core\CommandQueue.cpp">
+      <Filter>ソース ファイル\Core</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\ConstantBuffer.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Graphics\ConstantBuffer.cpp">
+      <Filter>ソース ファイル\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\GPUBuffer.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Graphics\GPUBuffer.cpp">
+      <Filter>ソース ファイル\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\RootSignatureBuilder.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Graphics\RootSignatureBuilder.cpp">
+      <Filter>ソース ファイル\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\AssetPath.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Resource\AssetPath.cpp">
+      <Filter>ソース ファイル\Resource</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\MeshGPU.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Model\MeshGPU.cpp">
+      <Filter>ソース ファイル\Model</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\GLBImporter.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Resource\GLBImporter.cpp">
+      <Filter>ソース ファイル\Resource</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\MaterialGPU.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Model\MaterialGPU.cpp">
+      <Filter>ソース ファイル\Model</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\TextureManager.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Resource\TextureManager.cpp">
+      <Filter>ソース ファイル\Resource</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\TextureResource.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Resource\TextureResource.cpp">
+      <Filter>ソース ファイル\Resource</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\ShaderResourceTexture.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Resource\ShaderResourceTexture.cpp">
+      <Filter>ソース ファイル\Resource</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\Camera.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Scene\Camera.cpp">
+      <Filter>ソース ファイル\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\Fence.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Core\Fence.cpp">
+      <Filter>ソース ファイル\Core</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\FrameResource.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Core\FrameResource.cpp">
+      <Filter>ソース ファイル\Core</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\GameObject.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Scene\GameObject.cpp">
+      <Filter>ソース ファイル\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\GraphicsPipelineBuilder.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Graphics\GraphicsPipelineBuilder.cpp">
+      <Filter>ソース ファイル\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\Model.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Model\Model.cpp">
+      <Filter>ソース ファイル\Model</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\Scene.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Scene\Scene.cpp">
+      <Filter>ソース ファイル\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\SceneConstantsGPU.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Shader\SceneConstantsGPU.cpp">
+      <Filter>ソース ファイル\Shader</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\Transform.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Scene\Transform.cpp">
+      <Filter>ソース ファイル\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\TransformGPU.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Shader\TransformGPU.cpp">
+      <Filter>ソース ファイル\Shader</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\MaterialSrvTable.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Model\MaterialSrvTable.cpp">
+      <Filter>ソース ファイル\Model</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\InputSystem.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Input\InputSystem.cpp">
+      <Filter>ソース ファイル\Input</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\LightingConstantsGPU.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Shader\LightingConstantsGPU.cpp">
+      <Filter>ソース ファイル\Shader</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\DisplayConstantsGPU.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Shader\DisplayConstantsGPU.cpp">
+      <Filter>ソース ファイル\Shader</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\ModelLoader.cpp">
-      <Filter>ソース ファイル</Filter>
+    <ClCompile Include="..\src\Engine\Resource\ModelLoader.cpp">
+      <Filter>ソース ファイル\Resource</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

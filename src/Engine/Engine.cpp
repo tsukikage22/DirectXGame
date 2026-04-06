@@ -8,7 +8,7 @@
 ///////////////////////////////////////////
 #include "Engine/Engine.h"
 
-#include "Engine/DxDebug.h"
+#include "Engine/Core/DxDebug.h"
 
 ////////////////////////////////////////////
 // Engine class
@@ -443,15 +443,15 @@ bool Engine::InitApp() {
             return false;
         }
         auto earth = loader.LoadModel(earthPath, batch);
-        auto moon  = loader.LoadModel(moonPath, batch);
+        // auto moon  = loader.LoadModel(moonPath, batch);
 
         // モデルをシーンに追加
         auto pEarth = m_Scene.AddModel(std::move(earth));
-        auto pMoon  = m_Scene.AddModel(std::move(moon));
+        // auto pMoon  = m_Scene.AddModel(std::move(moon));
 
         // ゲームオブジェクトをシーンに追加
         uint32_t objectIndex  = AddGameObject(pEarth);
-        uint32_t objectIndex2 = AddGameObject(pMoon);
+        uint32_t objectIndex2 = AddGameObject(pEarth);
 
         // 座標設定
         DirectX::XMFLOAT3 pos1 = { -1.0f, 0.0f, 0.0f };
