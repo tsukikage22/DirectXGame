@@ -1,4 +1,4 @@
-////////////////////////////////////////
+﻿////////////////////////////////////////
 /// @file Engine.h
 /// @brief
 ////////////////////////////////////////
@@ -18,31 +18,31 @@
 #include <memory>
 #include <vector>
 
-#include "Engine/Resource/AssetPath.h"
-#include "Engine/Scene/Camera.h"
-#include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Core/ComPtr.h"
 #include "Engine/Core/CommandQueue.h"
-#include "Engine/Graphics/DepthTarget.h"
 #include "Engine/Core/DescriptorPool.h"
-#include "Engine/Shader/DisplayConstantsGPU.h"
 #include "Engine/Core/FrameResource.h"
-#include "Engine/Resource/GLBImporter.h"
+#include "Engine/Graphics/ColorTarget.h"
+#include "Engine/Graphics/DepthTarget.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
-#include "Engine/Input/IWindowEventListener.h"
 #include "Engine/Graphics/IndexBuffer.h"
+#include "Engine/Graphics/RootSignatureBuilder.h"
+#include "Engine/Graphics/VertexBuffer.h"
+#include "Engine/Input/IWindowEventListener.h"
 #include "Engine/Input/InputSystem.h"
 #include "Engine/Model/MaterialGPU.h"
 #include "Engine/Model/MeshGPU.h"
 #include "Engine/Model/Model.h"
-#include "Engine/Resource/ModelLoader.h"
-#include "Engine/Graphics/RootSignatureBuilder.h"
-#include "Engine/Scene/Scene.h"
-#include "Engine/Shader/SceneConstantsGPU.h"
-#include "Engine/Resource/TextureManager.h"
-#include "Engine/Shader/TransformGPU.h"
-#include "Engine/Graphics/VertexBuffer.h"
 #include "Engine/Model/VertexTypes.h"
+#include "Engine/Resource/AssetPath.h"
+#include "Engine/Resource/GLBImporter.h"
+#include "Engine/Resource/ModelLoader.h"
+#include "Engine/Resource/TextureManager.h"
+#include "Engine/Scene/Camera.h"
+#include "Engine/Scene/Scene.h"
+#include "Engine/Shader/DisplayConstantsGPU.h"
+#include "Engine/Shader/SceneConstantsGPU.h"
+#include "Engine/Shader/TransformGPU.h"
 
 ///////////////////////////////////////////
 // Linker
@@ -150,6 +150,9 @@ private:
     InputSystem m_InputSystem;                  // 入力システム
     DisplayInfo m_DisplayInfo;                  // ディスプレイ情報
     DisplayConstantsGPU m_DisplayConstantsGPU;  // ディスプレイ定数GPU
+
+    HANDLE m_frameLatencyWaitableObject =
+        nullptr;  // フレームレイテンシ待機オブジェクト
 
     HWND m_hWnd;  // ウィンドウハンドル
 

@@ -41,17 +41,20 @@ void Engine::Shutdown() {
 
 // フェンス待機・コマンドリスト/アロケータのリセット
 void Engine::BeginFrame() {
-    // 1. フェンス同期
+    // 1. DXGIフレームペーシング
+    WaitForSingleObjectEx(m_frameLatencyWaitableObject, 1000, TRUE);
+
+    // 2. フェンス同期
     uint64_t fenceValue = m_FrameResources[m_FrameIndex].GetFenceValue();
     // 初回フレーム（fencevalue == 0）の場合は待機をスキップ
     if (fenceValue != 0) {
         m_CommandQueue.Wait(fenceValue, INFINITE);
     }
 
-    // 2. コマンドリスト/アロケータのリセット
+    // 3. コマンドリスト/アロケータのリセット
     m_FrameResources[m_FrameIndex].BeginFrame(m_pCmdList.Get());
 
-    // 3. リソースバリア(Present -> RenderTarget)の設定
+    // 4. リソースバリア(Present -> RenderTarget)の設定
     D3D12_RESOURCE_BARRIER barrier = {};
     barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -61,7 +64,7 @@ void Engine::BeginFrame() {
     barrier.Transition.StateAfter  = D3D12_RESOURCE_STATE_RENDER_TARGET;
     m_pCmdList->ResourceBarrier(1, &barrier);
 
-    // 4. レンダーターゲットとビューポートの設定・クリア
+    // 5. レンダーターゲットとビューポートの設定・クリア
     // レンダーターゲットの設定
     uint32_t RTVIndex = m_ColorTarget[m_FrameIndex].GetRTVIndex();
     uint32_t DSVIndex = m_DepthTarget.GetDSVIndex();
@@ -168,9 +171,10 @@ void Engine::Render() {
                 }
 
                 // 頂点バッファ・インデックスバッファの設定
-                m_pCmdList->IASetVertexBuffers(
-                    0, 1, &mesh->GetVertexBufferView());
-                m_pCmdList->IASetIndexBuffer(&mesh->GetIndexBufferView());
+                auto vbv = mesh->GetVertexBufferView();
+                auto ibv = mesh->GetIndexBufferView();
+                m_pCmdList->IASetVertexBuffers(0, 1, &vbv);
+                m_pCmdList->IASetIndexBuffer(&ibv);
 
                 // 描画コマンドの発行
                 m_pCmdList->DrawIndexedInstanced(
@@ -271,7 +275,7 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         desc.Scaling               = DXGI_SCALING_STRETCH;
         desc.SwapEffect            = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         desc.AlphaMode             = DXGI_ALPHA_MODE_IGNORE;
-        desc.Flags                 = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+        desc.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
         // スワップチェインの生成
         engine::ComPtr<IDXGISwapChain1> pSwapChain;
@@ -287,6 +291,11 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
 
         // カラースペースの設定（scRGB対応）
         m_pSwapChain->SetColorSpace1(DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
+
+        // フレームレイテンシ待機オブジェクトの取得
+        m_pSwapChain->SetMaximumFrameLatency(FrameCount);
+        m_frameLatencyWaitableObject =
+            m_pSwapChain->GetFrameLatencyWaitableObject();
 
         pSwapChain.Reset();
     }
@@ -491,7 +500,7 @@ bool Engine::InitApp() {
             .SetFlags(
                 D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)
             .AddCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL,
-                D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC)
+                D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
             .AddCBV(1, 0, D3D12_SHADER_VISIBILITY_VERTEX,
                 D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
             .AddCBV(2, 0, D3D12_SHADER_VISIBILITY_PIXEL)

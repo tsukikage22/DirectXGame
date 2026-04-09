@@ -38,11 +38,11 @@ bool Window::Create(int width, int height, const wchar_t* title) {
     // ウィンドウクラスの設定
     WNDCLASSEX wc    = {};
     wc.cbSize        = sizeof(WNDCLASSEX);
-    wc.style         = CS_HREDRAW | CS_VREDRAW;
+    wc.style         = 0;
     wc.lpfnWndProc   = WndProc;
     wc.hIcon         = LoadIcon(nullptr, IDI_APPLICATION);
     wc.hCursor       = LoadCursor(nullptr, IDC_ARROW);
-    wc.hbrBackground = GetSysColorBrush(COLOR_BACKGROUND);
+    wc.hbrBackground = nullptr;  // GetSysColorBrush(COLOR_BACKGROUND);
     wc.hInstance     = m_hInst;
     wc.lpszMenuName  = nullptr;
     wc.lpszClassName = ClassName;
@@ -132,6 +132,18 @@ LRESULT Window::HandleMessage(
                 m_inputReceiver->OnKeyUp(static_cast<uint32_t>(wParam));
             }
         } break;
+
+        case WM_ERASEBKGND: {
+            // 背景の消去を行わない（ちらつき防止）
+            return 1;
+        } break;
+
+        case WM_PAINT: {
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hWnd, &ps);
+            EndPaint(hWnd, &ps);
+            return 0;
+        }
 
         default: {
             return DefWindowProc(hWnd, msg, wParam, lParam);

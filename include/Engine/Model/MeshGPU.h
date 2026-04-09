@@ -9,8 +9,8 @@
 #include <memory>
 
 #include "Engine/Graphics/IndexBuffer.h"
-#include "Engine/Model/ModelAsset.h"
 #include "Engine/Graphics/VertexBuffer.h"
+#include "Engine/Model/ModelAsset.h"
 
 class MeshGPU {
 public:
@@ -35,13 +35,13 @@ public:
     //==============================================================
     /// @brief 頂点バッファビューのgetter
     /// @return 頂点バッファビュー
-    const D3D12_VERTEX_BUFFER_VIEW& GetVertexBufferView() const {
+    const D3D12_VERTEX_BUFFER_VIEW GetVertexBufferView() const {
         return m_pVB->GetView();
     }
 
     /// @brief インデックスバッファビューのgetter
     /// @return インデックスバッファビュー
-    const D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView() const {
+    const D3D12_INDEX_BUFFER_VIEW GetIndexBufferView() const {
         return m_pIB->GetView();
     }
 
