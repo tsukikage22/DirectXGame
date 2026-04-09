@@ -18,7 +18,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     }
 
     if (instance) {
-        return instance->HandleMessage(msg, wParam, lParam);
+        return instance->HandleMessage(hWnd, msg, wParam, lParam);
     }
 
     return DefWindowProc(hWnd, msg, wParam, lParam);
@@ -40,9 +40,10 @@ bool Window::Create(int width, int height, const wchar_t* title) {
     wc.cbSize        = sizeof(WNDCLASSEX);
     wc.style         = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc   = WndProc;
-    wc.hIcon         = LoadIcon(m_hInst, IDI_APPLICATION);
-    wc.hCursor       = LoadCursor(m_hInst, IDC_ARROW);
+    wc.hIcon         = LoadIcon(nullptr, IDI_APPLICATION);
+    wc.hCursor       = LoadCursor(nullptr, IDC_ARROW);
     wc.hbrBackground = GetSysColorBrush(COLOR_BACKGROUND);
+    wc.hInstance     = m_hInst;
     wc.lpszMenuName  = nullptr;
     wc.lpszClassName = ClassName;
 
@@ -100,7 +101,8 @@ bool Window::ProcessMessages() {
     return true;
 }
 
-LRESULT Window::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
+LRESULT Window::HandleMessage(
+    HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
         case WM_ACTIVATE: {
             m_isActive = (wParam != WA_INACTIVE);
@@ -132,7 +134,7 @@ LRESULT Window::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam) {
         } break;
 
         default: {
-            return DefWindowProc(m_hWnd, msg, wParam, lParam);
+            return DefWindowProc(hWnd, msg, wParam, lParam);
         } break;
     }
 

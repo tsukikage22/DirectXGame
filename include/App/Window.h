@@ -17,7 +17,7 @@ public:
     bool ProcessMessages();
 
     // メッセージの処理
-    LRESULT HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam);
+    LRESULT HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
     bool IsActive() const { return m_isActive; }
 
