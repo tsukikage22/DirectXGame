@@ -19,7 +19,7 @@ public:
     void Term();
 
     // 更新
-    void Tick();
+    void Tick(float deltaTime);
 
 private:
     Engine* m_pEngine;

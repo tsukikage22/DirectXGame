@@ -3,8 +3,8 @@
 CameraController::CameraController()
     : m_pCamera(nullptr),
       m_pInputSystem(nullptr),
-      m_moveSpeed(0.1f),
-      m_rotateSpeed(0.01f) {}
+      m_moveSpeed(1.0f),
+      m_rotateSpeed(1.0f) {}
 
 CameraController::~CameraController() {}
 
@@ -18,7 +18,7 @@ void CameraController::Term() {
     m_pInputSystem = nullptr;
 }
 
-void CameraController::Update() {
+void CameraController::Update(float deltaTime) {
     if (!m_pCamera || !m_pInputSystem) {
         return;
     }
@@ -28,10 +28,10 @@ void CameraController::Update() {
 
     // 回転処理（Q/E）
     if (m_pInputSystem->IsKeyDown('Q')) {
-        rot.y -= m_rotateSpeed;
+        rot.y -= m_rotateSpeed * deltaTime;
     }
     if (m_pInputSystem->IsKeyDown('E')) {
-        rot.y += m_rotateSpeed;
+        rot.y += m_rotateSpeed * deltaTime;
     }
     m_pCamera->SetRotation(rot);
 
@@ -39,16 +39,16 @@ void CameraController::Update() {
     float moveZ = 0.0f;
     float moveX = 0.0f;
     if (m_pInputSystem->IsKeyDown('W')) {
-        moveZ += m_moveSpeed;
+        moveZ += m_moveSpeed * deltaTime;
     }
     if (m_pInputSystem->IsKeyDown('S')) {
-        moveZ -= m_moveSpeed;
+        moveZ -= m_moveSpeed * deltaTime;
     }
     if (m_pInputSystem->IsKeyDown('A')) {
-        moveX -= m_moveSpeed;
+        moveX -= m_moveSpeed * deltaTime;
     }
     if (m_pInputSystem->IsKeyDown('D')) {
-        moveX += m_moveSpeed;
+        moveX += m_moveSpeed * deltaTime;
     }
 
     // 簡易的に加算（回転と連動しない）

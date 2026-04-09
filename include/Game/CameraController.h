@@ -4,8 +4,8 @@
 
 #include <memory>
 
-#include "Engine/Scene/Camera.h"
 #include "Engine/Input/InputSystem.h"
+#include "Engine/Scene/Camera.h"
 
 class CameraController {
 public:
@@ -19,7 +19,7 @@ public:
     void Term();
 
     // 更新
-    void Update();
+    void Update(float deltaTime);
 
 private:
     Camera* m_pCamera;

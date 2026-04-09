@@ -28,21 +28,21 @@ void Game::Init(Engine* pEngine) {
     }
 }
 
-void Game::Tick() {
+void Game::Tick(float deltaTime) {
     // カメラ操作の更新
     if (m_pCameraController) {
-        m_pCameraController->Update();
+        m_pCameraController->Update(deltaTime);
     }
 
     // ゲームオブジェクトの更新
     if (m_pObject1) {
         DirectX::XMFLOAT3 rot = m_pObject1->GetTransform().GetRotation();
-        rot.y += 0.1f;  // 毎フレーム少しずつ回転
+        rot.y += 2.0f * deltaTime;  // 毎フレーム少しずつ回転
         m_pObject1->GetTransform().SetRotation(rot);
     }
     if (m_pObject2) {
         DirectX::XMFLOAT3 rot = m_pObject2->GetTransform().GetRotation();
-        rot.y -= 0.1f;  // 毎フレーム少しずつ回転
+        rot.y -= 2.0f * deltaTime;  // 毎フレーム少しずつ回転
         m_pObject2->GetTransform().SetRotation(rot);
     }
 }
