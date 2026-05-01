@@ -180,7 +180,7 @@ bool GLBImporter::ParseMaterial(
     aiString name;
     if (srcMaterial->Get(AI_MATKEY_NAME, name) == AI_SUCCESS) {
         outMaterial.name =
-            std::wstring(name.C_Str(), name.C_Str() + strlen(name.C_Str()));
+            std::wstring(name.C_Str(), name.C_Str() + name.length);
     }
 
     // baseColor
