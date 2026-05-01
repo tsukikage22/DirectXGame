@@ -140,6 +140,10 @@
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>User32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>if not exist "$(OutDir)assets\model" mkdir "$(OutDir)assets\model"
+xcopy /E /I /Y /D "$(SolutionDir)assets\model" "$(OutDir)assets\model"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -161,6 +165,10 @@
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>User32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>if not exist "$(OutDir)assets\model" mkdir "$(OutDir)assets\model"
+xcopy /E /I /Y /D "$(SolutionDir)assets\model" "$(OutDir)assets\model"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\App\Application.cpp" />
