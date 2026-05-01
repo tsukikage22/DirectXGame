@@ -32,10 +32,10 @@ bool LightingConstantsGPU::Init(
 
     // デフォルト値の設定
     shader::LightingConstants lc = {};
-    lc.lightType                 = 1;                      // ポイントライト
-    lc.lightPosition             = { 0.0f, 1.0f, -2.0f };  // 位置
-    lc.lightIntensity            = 100.0f;                 // 強さ
-    lc.lightColor                = { 1.0f, 1.0f, 1.0f };   // 色
+    lc.lightType                 = 0;           // ディレクショナルライト
+    lc.lightForward   = { 0.0f, -1.0f, 0.0f };  // ライトの向き（下向き）
+    lc.lightIntensity = 5.0f;                   // 強さ
+    lc.lightColor     = { 1.0f, 1.0f, 1.0f };   // 色
 
     lc.lightAngleScale =  // 角度減衰係数
         1.0f /

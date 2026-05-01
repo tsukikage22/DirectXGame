@@ -58,7 +58,7 @@ cbuffer MaterialConstants : register(b2) {
 cbuffer LightingConstants : register(b3) {
     uint lightType;               // 0: 平行光源, 1: 点光源, 2: スポット光源
     float3 lightPosition;  // 位置（点光源/スポット光源用）
-    float3 lightDirection;  // 方向（平行光源/スポット光源用）
+    float3 lightForward;  // 方向（平行光源/スポット光源用）
     float lightIntensity;              // 強度
     float3 lightColor;      // 色
     float lightAngleScale;   // スポットライトの角度減衰係数（スポット光源用）
@@ -305,9 +305,20 @@ PSOutput main(VSOutput input) : SV_TARGET {
     //==============================================
     // 反射計算の準備
     //==============================================
-    // view, light, halfベクトルの計算
+    // viewベクトルの計算
     float3 V = normalize(cameraPos - input.worldPos);
-    float3 L = normalize(lightPosition - input.worldPos);
+
+    // ライトベクトルの計算
+    float3 L;
+    if( lightType == 0 ) {
+        // ディレクショナルライト
+        L = -lightForward;   
+    } else {
+        // ポイントライトまたはスポットライト
+        L = normalize(lightPosition - input.worldPos);
+    }
+
+    // ハーフベクトルの計算
     float3 H = normalize(L + V);
 
     // 内積
@@ -339,14 +350,17 @@ PSOutput main(VSOutput input) : SV_TARGET {
 
     // ライティング計算
     float3 lit = float3(0.0f, 0.0f, 0.0f);
-    if( lightType == 1 ) {
+    if( lightType == 0 ) {
+        // ディレクショナルライト
+        lit = NL * lightColor * lightIntensity;
+    } else if( lightType == 1 ) {
         // ポイントライト
         lit = EvaluatePointLight(N, input.worldPos, lightPosition, 
             lightColor * lightIntensity);
     } else if( lightType == 2 ) {
         // スポットライト
         lit = EvaluateSpotLight(N, input.worldPos, lightPosition, 
-            lightDirection, lightColor * lightIntensity, 
+            lightForward, lightColor * lightIntensity, 
             lightAngleScale, lightAngleOffset);
     } 
 
