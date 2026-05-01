@@ -545,8 +545,8 @@ bool Engine::InitApp() {
         AssetPath assetPath;
 
         // シェーダのパスを取得
-        if (!assetPath.GetAssetPath(L"TestVS.cso", vsPath) ||
-            !assetPath.GetAssetPath(L"GGX_PS.cso", psPath)) {
+        if (!assetPath.GetAssetPath(L"shader/TestVS.cso", vsPath) ||
+            !assetPath.GetAssetPath(L"shader/GGX_PS.cso", psPath)) {
             MessageBoxW(
                 nullptr, L"Failed to find shader files.", L"Error", MB_OK);
             return false;
