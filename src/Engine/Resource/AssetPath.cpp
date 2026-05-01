@@ -9,7 +9,7 @@ void AssetPath::InitSearchPaths() {
     auto path = std::filesystem::path(exePath).parent_path();
 
     // 実行ファイルのパスを検索パスに追加
-    AddSearchPath(path);
+    AddSearchPath(path / "assets");
 
     // 実行ファイルの親ディレクトリを検索パスに追加
     AddSearchPath(path.parent_path());

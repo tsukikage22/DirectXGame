@@ -18,12 +18,16 @@
 bool Engine::Initialize(HWND hWnd, uint32_t width, uint32_t height) {
     // D3D初期化
     if (!InitD3D(hWnd, width, height)) {
+        MessageBoxW(
+            nullptr, L"Failed to initialize Direct3D 12.", L"Error", MB_OK);
         return false;
     }
 
     // アプリケーション固有の初期化
     if (!InitApp()) {
         TermD3D();
+        MessageBoxW(
+            nullptr, L"Failed to initialize application.", L"Error", MB_OK);
         return false;
     }
 
@@ -424,15 +428,21 @@ bool Engine::InitApp() {
         std::filesystem::path earthPath, moonPath;
         if (!AssetPath().GetAssetPath(L"model/TextureSphere.glb", earthPath)) {
             OutputDebugStringW(L"Error: model not found.\n");
+            MessageBoxW(nullptr, L"Failed to find TextureSphere file.",
+                L"Error", MB_OK);
             return false;
         }
         if (!AssetPath().GetAssetPath(L"model/MoonSphere.glb", moonPath)) {
             OutputDebugStringW(L"Error: model not found.\n");
+            MessageBoxW(
+                nullptr, L"Failed to find MoonSphere file.", L"Error", MB_OK);
             return false;
         }
 
         // TextureManagerの初期化
         if (!m_TextureManager.Init(m_pDevice.Get())) {
+            MessageBoxW(nullptr, L"Failed to initialize TextureManager.",
+                L"Error", MB_OK);
             return false;
         }
 
@@ -442,6 +452,8 @@ bool Engine::InitApp() {
 
         // デフォルトテクスチャの生成
         if (!m_TextureManager.CreateDefaultTextures(batch)) {
+            MessageBoxW(nullptr, L"Failed to create default textures.",
+                L"Error", MB_OK);
             return false;
         }
 
@@ -449,9 +461,15 @@ bool Engine::InitApp() {
         ModelLoader loader;
         if (!loader.Init(
                 m_pDevice.Get(), m_pPoolCBV_SRV_UAV, &m_TextureManager)) {
+            MessageBoxW(
+                nullptr, L"Failed to initialize ModelLoader.", L"Error", MB_OK);
             return false;
         }
         auto earth = loader.LoadModel(earthPath, batch);
+        if (!earth) {
+            MessageBoxW(nullptr, L"Failed to load model.", L"Error", MB_OK);
+            return false;
+        }
         // auto moon  = loader.LoadModel(moonPath, batch);
 
         // モデルをシーンに追加
@@ -511,6 +529,8 @@ bool Engine::InitApp() {
 
         bool result = builder.Build(m_pDevice.Get());
         if (!result) {
+            MessageBoxW(
+                nullptr, L"Failed to build root signature.", L"Error", MB_OK);
             return false;
         }
 
@@ -527,6 +547,8 @@ bool Engine::InitApp() {
         // シェーダのパスを取得
         if (!assetPath.GetAssetPath(L"TestVS.cso", vsPath) ||
             !assetPath.GetAssetPath(L"GGX_PS.cso", psPath)) {
+            MessageBoxW(
+                nullptr, L"Failed to find shader files.", L"Error", MB_OK);
             return false;
         }
 
@@ -549,6 +571,8 @@ bool Engine::InitApp() {
             .SetDSVFormat(DXGI_FORMAT_D32_FLOAT);
 
         if (!pipelineBuilder.Build(m_pDevice.Get())) {
+            MessageBoxW(nullptr, L"Failed to build graphics pipeline state.",
+                L"Error", MB_OK);
             return false;
         }
 
@@ -567,6 +591,8 @@ bool Engine::InitApp() {
 
         if (!m_DisplayConstantsGPU.Init(
                 m_pDevice.Get(), m_pPoolCBV_SRV_UAV, dc)) {
+            MessageBoxW(nullptr, L"Failed to initialize display constants.",
+                L"Error", MB_OK);
             return false;
         }
     }
