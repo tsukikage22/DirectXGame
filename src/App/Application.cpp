@@ -51,22 +51,31 @@ void Application::MainLoop() {
     // 実行中フラグを立てる
     m_isRunning = true;
 
+    // 時間の初期化
+    m_lastFrameTime = std::chrono::high_resolution_clock::now();
+
     // メインループ
     while (m_isRunning) {
-        // 1. 入力処理のフレーム開始
+        // 1. 経過時間の計測
+        auto now = std::chrono::high_resolution_clock::now();
+        m_deltaTime =
+            std::chrono::duration<float>(now - m_lastFrameTime).count();
+        m_lastFrameTime = now;
+
+        // 2. 入力処理のフレーム開始
         m_Engine.GetInputSystem().BeginFrame();
 
-        // 2.メッセージポンプ
+        // 3. メッセージポンプ
         // OSからのメッセージを処理する
         if (!m_Window.ProcessMessages()) {
             m_isRunning = false;
             break;
         }
 
-        // 3. ゲームロジックの更新
-        m_Game.Tick();
+        // 4. ゲームロジックの更新
+        m_Game.Tick(m_deltaTime);
 
-        // 4. 描画処理
+        // 5. 描画処理
         // フレーム開始
         m_Engine.BeginFrame();
 

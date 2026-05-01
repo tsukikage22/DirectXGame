@@ -18,28 +18,31 @@
 #include <memory>
 #include <vector>
 
-#include "Engine/AssetPath.h"
-#include "Engine/Camera.h"
-#include "Engine/ColorTarget.h"
-#include "Engine/ComPtr.h"
-#include "Engine/CommandQueue.h"
-#include "Engine/DepthTarget.h"
-#include "Engine/DescriptorPool.h"
-#include "Engine/DisplayConstantsGPU.h"
-#include "Engine/FrameResource.h"
-#include "Engine/GLBImporter.h"
-#include "Engine/GraphicsPipelineBuilder.h"
-#include "Engine/IWindowEventListener.h"
-#include "Engine/IndexBuffer.h"
-#include "Engine/InputSystem.h"
-#include "Engine/MaterialGPU.h"
-#include "Engine/MeshGPU.h"
-#include "Engine/RootSignatureBuilder.h"
-#include "Engine/SceneConstantsGPU.h"
-#include "Engine/TextureManager.h"
-#include "Engine/TransformGPU.h"
-#include "Engine/VertexBuffer.h"
-#include "Engine/VertexTypes.h"
+#include "Engine/Core/ComPtr.h"
+#include "Engine/Core/CommandQueue.h"
+#include "Engine/Core/DescriptorPool.h"
+#include "Engine/Core/FrameResource.h"
+#include "Engine/Graphics/ColorTarget.h"
+#include "Engine/Graphics/DepthTarget.h"
+#include "Engine/Graphics/GraphicsPipelineBuilder.h"
+#include "Engine/Graphics/IndexBuffer.h"
+#include "Engine/Graphics/RootSignatureBuilder.h"
+#include "Engine/Graphics/VertexBuffer.h"
+#include "Engine/Input/IWindowEventListener.h"
+#include "Engine/Input/InputSystem.h"
+#include "Engine/Model/MaterialGPU.h"
+#include "Engine/Model/MeshGPU.h"
+#include "Engine/Model/Model.h"
+#include "Engine/Model/VertexTypes.h"
+#include "Engine/Resource/AssetPath.h"
+#include "Engine/Resource/GLBImporter.h"
+#include "Engine/Resource/ModelLoader.h"
+#include "Engine/Resource/TextureManager.h"
+#include "Engine/Scene/Camera.h"
+#include "Engine/Scene/Scene.h"
+#include "Engine/Shader/DisplayConstantsGPU.h"
+#include "Engine/Shader/SceneConstantsGPU.h"
+#include "Engine/Shader/TransformGPU.h"
 
 ///////////////////////////////////////////
 // Linker
@@ -106,6 +109,8 @@ public:
 
     Camera& GetCamera() { return m_Camera; }
 
+    Scene& GetScene() { return m_Scene; }
+
 private:
     //==============================================================
     // private variables
@@ -134,18 +139,20 @@ private:
 
     FrameResource m_FrameResources[FrameCount];  // フレームリソース
 
-    std::vector<ModelAsset> m_Models;                       // モデルデータ
-    std::vector<std::unique_ptr<MeshGPU>> m_Meshes;         // メッシュデータ
-    std::vector<std::unique_ptr<MaterialGPU>> m_Materials;  // マテリアルデータ
-    UINT m_textureCount = 0;                                // テクスチャ数
-    TextureManager m_TextureManager;  // テクスチャマネージャ
-    Camera m_Camera;                  // カメラ
+    std::vector<ModelAsset> m_ModelAssets;  // モデルデータ
+    UINT m_textureCount = 0;                // テクスチャ数
+    TextureManager m_TextureManager;        // テクスチャマネージャ
+    Camera m_Camera;                        // カメラ
+    Scene m_Scene;                          // シーン
 
     static constexpr size_t maxObjects = 100;  // 最大オブジェクト数
 
     InputSystem m_InputSystem;                  // 入力システム
     DisplayInfo m_DisplayInfo;                  // ディスプレイ情報
     DisplayConstantsGPU m_DisplayConstantsGPU;  // ディスプレイ定数GPU
+
+    HANDLE m_frameLatencyWaitableObject =
+        nullptr;  // フレームレイテンシ待機オブジェクト
 
     HWND m_hWnd;  // ウィンドウハンドル
 
@@ -161,9 +168,13 @@ private:
     //==============================================================
     // 内部ヘルパー
     //==============================================================
+    /// @brief SceneへのGameObject追加とGPUリソースの割り当て
+    uint32_t AddGameObject(Model* pModel);
+
     /// @brief HDR対応チェック
     DisplayInfo GetDisplayInfo();
 
+    /// @brief モニター変更チェック
     bool IsMonitorChanged(HWND hWnd);
 
     //==============================================================

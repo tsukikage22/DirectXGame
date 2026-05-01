@@ -5,6 +5,7 @@
 // 前方宣言
 class Engine;
 class CameraController;
+class GameObject;
 
 class Game {
 public:
@@ -18,9 +19,12 @@ public:
     void Term();
 
     // 更新
-    void Tick();
+    void Tick(float deltaTime);
 
 private:
     Engine* m_pEngine;
     std::unique_ptr<CameraController> m_pCameraController;
+
+    GameObject* m_pObject1;  // シーン内のゲームオブジェクトへのポインタ
+    GameObject* m_pObject2;  // シーン内のゲームオブジェクトへのポインタ
 };

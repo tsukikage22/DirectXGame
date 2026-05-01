@@ -61,7 +61,7 @@ VSOutput main(VSInput input) {
     output.worldNormal = normalize(worldNormal);
 
     // 接線ベクトルのワールド座標系への変換
-    float3 worldTangent = mul(input.tangent, (float3x3)worldInv);
+    float3 worldTangent = mul(input.tangent, (float3x3)world);
     output.worldTangent = normalize(worldTangent);
 
     // 従法線ベクトルのワールド座標系への変換

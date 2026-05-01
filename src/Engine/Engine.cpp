@@ -8,7 +8,7 @@
 ///////////////////////////////////////////
 #include "Engine/Engine.h"
 
-#include "Engine/DxDebug.h"
+#include "Engine/Core/DxDebug.h"
 
 ////////////////////////////////////////////
 // Engine class
@@ -18,12 +18,16 @@
 bool Engine::Initialize(HWND hWnd, uint32_t width, uint32_t height) {
     // D3D初期化
     if (!InitD3D(hWnd, width, height)) {
+        MessageBoxW(
+            nullptr, L"Failed to initialize Direct3D 12.", L"Error", MB_OK);
         return false;
     }
 
     // アプリケーション固有の初期化
     if (!InitApp()) {
         TermD3D();
+        MessageBoxW(
+            nullptr, L"Failed to initialize application.", L"Error", MB_OK);
         return false;
     }
 
@@ -41,17 +45,20 @@ void Engine::Shutdown() {
 
 // フェンス待機・コマンドリスト/アロケータのリセット
 void Engine::BeginFrame() {
-    // 1. フェンス同期
+    // 1. DXGIフレームペーシング
+    WaitForSingleObjectEx(m_frameLatencyWaitableObject, 1000, TRUE);
+
+    // 2. フェンス同期
     uint64_t fenceValue = m_FrameResources[m_FrameIndex].GetFenceValue();
     // 初回フレーム（fencevalue == 0）の場合は待機をスキップ
     if (fenceValue != 0) {
         m_CommandQueue.Wait(fenceValue, INFINITE);
     }
 
-    // 2. コマンドリスト/アロケータのリセット
+    // 3. コマンドリスト/アロケータのリセット
     m_FrameResources[m_FrameIndex].BeginFrame(m_pCmdList.Get());
 
-    // 3. リソースバリア(Present -> RenderTarget)の設定
+    // 4. リソースバリア(Present -> RenderTarget)の設定
     D3D12_RESOURCE_BARRIER barrier = {};
     barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -61,7 +68,7 @@ void Engine::BeginFrame() {
     barrier.Transition.StateAfter  = D3D12_RESOURCE_STATE_RENDER_TARGET;
     m_pCmdList->ResourceBarrier(1, &barrier);
 
-    // 4. レンダーターゲットとビューポートの設定・クリア
+    // 5. レンダーターゲットとビューポートの設定・クリア
     // レンダーターゲットの設定
     uint32_t RTVIndex = m_ColorTarget[m_FrameIndex].GetRTVIndex();
     uint32_t DSVIndex = m_DepthTarget.GetDSVIndex();
@@ -87,6 +94,14 @@ void Engine::Update() {
     // 定数バッファの中身(行列やマテリアル情報)の更新
     // シーン定数の更新
     shader::SceneConstants sc = {};
+
+    // シーン内の全ゲームオブジェクトのtransformを更新
+    for (auto& obj : m_Scene.GetGameObjects()) {
+        obj->GetTransform().CalcWorldMatrix();
+        uint32_t idx = obj->GetIndex();
+        m_FrameResources[m_FrameIndex].GetTransforms()[idx]->Update(
+            obj->GetTransform().CalcWorldMatrix());
+    }
 
     // ビュー行列・射影行列を転置して格納
     DirectX::XMFLOAT4X4 view       = m_Camera.GetViewMatrix();
@@ -119,10 +134,6 @@ void Engine::Render() {
         m_pCmdList->SetGraphicsRootConstantBufferView(0,
             m_FrameResources[m_FrameIndex].GetSceneConstants().GetGPUAddress());
 
-        // [b1] TransformConstants (モデル単位)
-        m_pCmdList->SetGraphicsRootConstantBufferView(1,
-            m_FrameResources[m_FrameIndex].GetTransforms()[0]->GetGPUAddress());
-
         // [b3] LightingConstants (共通)
         m_pCmdList->SetGraphicsRootConstantBufferView(
             3, m_FrameResources[m_FrameIndex]
@@ -136,29 +147,43 @@ void Engine::Render() {
         // PrimitiveTopologyの指定
         m_pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        // 全メッシュを描画
-        for (const auto& mesh : m_Meshes) {
-            // このメッシュが使うマテリアルを取得
-            uint32_t materialID = mesh->GetMaterialID();
+        // 全オブジェクトを描画
+        for (auto& obj : m_Scene.GetGameObjects()) {
+            // [b1] TransformConstants (モデル単位)
+            m_pCmdList->SetGraphicsRootConstantBufferView(
+                1, m_FrameResources[m_FrameIndex]
+                       .GetTransforms()[obj->GetIndex()]
+                       ->GetGPUAddress());
 
-            // マテリアルをバインド
-            if (materialID < m_Materials.size()) {
-                // [b2] MaterialConstants (マテリアル単位)
-                m_pCmdList->SetGraphicsRootConstantBufferView(
-                    2, m_Materials[materialID]->GetConstantBufferGPUAddress());
+            // 各メッシュを描画
+            const auto& meshes    = obj->GetModel().GetMeshes();
+            const auto& materials = obj->GetModel().GetMaterials();
+            for (auto& mesh : obj->GetModel().GetMeshes()) {
+                // このメッシュが使うマテリアルを取得
+                uint32_t materialID = mesh->GetMaterialID();
 
-                // [t0-t4] PBR Textures
-                m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
-                m_pCmdList->SetGraphicsRootDescriptorTable(
-                    5, m_Materials[materialID]->GetSrvTableBaseGPUHandle());
+                // マテリアルをバインド
+                if (materialID < materials.size()) {
+                    // [b2] MaterialConstants (マテリアル単位)
+                    m_pCmdList->SetGraphicsRootConstantBufferView(2,
+                        materials[materialID]->GetConstantBufferGPUAddress());
+
+                    // [t0-t4] PBR Textures
+                    m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
+                    m_pCmdList->SetGraphicsRootDescriptorTable(
+                        5, materials[materialID]->GetSrvTableBaseGPUHandle());
+                }
+
+                // 頂点バッファ・インデックスバッファの設定
+                auto vbv = mesh->GetVertexBufferView();
+                auto ibv = mesh->GetIndexBufferView();
+                m_pCmdList->IASetVertexBuffers(0, 1, &vbv);
+                m_pCmdList->IASetIndexBuffer(&ibv);
+
+                // 描画コマンドの発行
+                m_pCmdList->DrawIndexedInstanced(
+                    mesh->GetIndexCount(), 1, 0, 0, 0);
             }
-
-            // 頂点バッファ・インデックスバッファの設定
-            m_pCmdList->IASetVertexBuffers(0, 1, &mesh->GetVertexBufferView());
-            m_pCmdList->IASetIndexBuffer(&mesh->GetIndexBufferView());
-
-            // 描画コマンドの発行
-            m_pCmdList->DrawIndexedInstanced(mesh->GetIndexCount(), 1, 0, 0, 0);
         }
     }
 }
@@ -254,7 +279,7 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         desc.Scaling               = DXGI_SCALING_STRETCH;
         desc.SwapEffect            = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         desc.AlphaMode             = DXGI_ALPHA_MODE_IGNORE;
-        desc.Flags                 = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+        desc.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
         // スワップチェインの生成
         engine::ComPtr<IDXGISwapChain1> pSwapChain;
@@ -270,6 +295,11 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
 
         // カラースペースの設定（scRGB対応）
         m_pSwapChain->SetColorSpace1(DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
+
+        // フレームレイテンシ待機オブジェクトの取得
+        m_pSwapChain->SetMaximumFrameLatency(FrameCount);
+        m_frameLatencyWaitableObject =
+            m_pSwapChain->GetFrameLatencyWaitableObject();
 
         pSwapChain.Reset();
     }
@@ -395,30 +425,24 @@ bool Engine::InitApp() {
     // 3Dモデルのロード
     {
         // ファイルの検索
-        std::filesystem::path path;
-        if (!AssetPath().GetAssetPath(L"model/TextureSphere.glb", path)) {
+        std::filesystem::path earthPath, moonPath;
+        if (!AssetPath().GetAssetPath(L"model/TextureSphere.glb", earthPath)) {
             OutputDebugStringW(L"Error: model not found.\n");
+            MessageBoxW(nullptr, L"Failed to find TextureSphere file.",
+                L"Error", MB_OK);
             return false;
         }
-
-        // GLBの読み込み
-        ModelAsset model;
-        if (!GLBImporter::LoadFromFile(path, model)) {
+        if (!AssetPath().GetAssetPath(L"model/MoonSphere.glb", moonPath)) {
+            OutputDebugStringW(L"Error: model not found.\n");
+            MessageBoxW(
+                nullptr, L"Failed to find MoonSphere file.", L"Error", MB_OK);
             return false;
-        }
-        m_Models.push_back(model);
-        m_textureCount = static_cast<UINT>(model.images.size());
-
-        // maxObjectsの数だけTransformの定数バッファを確保
-        for (int i = 0; i < FrameCount; i++) {
-            if (!m_FrameResources[i].AddTransform(
-                    m_pDevice.Get(), m_pPoolCBV_SRV_UAV, m_Models.size())) {
-                return false;
-            }
         }
 
         // TextureManagerの初期化
         if (!m_TextureManager.Init(m_pDevice.Get())) {
+            MessageBoxW(nullptr, L"Failed to initialize TextureManager.",
+                L"Error", MB_OK);
             return false;
         }
 
@@ -428,42 +452,47 @@ bool Engine::InitApp() {
 
         // デフォルトテクスチャの生成
         if (!m_TextureManager.CreateDefaultTextures(batch)) {
+            MessageBoxW(nullptr, L"Failed to create default textures.",
+                L"Error", MB_OK);
             return false;
         }
 
-        // 全テクスチャの一括生成
-        m_TextureManager.BuildTexturesFromModelAsset(model, batch);
-
-        // メッシュをGPUに転送
-        m_Meshes.resize(model.meshes.size());
-        for (size_t i = 0; i < model.meshes.size(); i++) {
-            m_Meshes[i] = std::make_unique<MeshGPU>();
-            if (!m_Meshes[i]->Init(m_pDevice.Get(), batch, model.meshes[i])) {
-                return false;
-            }
+        // モデルのロード
+        ModelLoader loader;
+        if (!loader.Init(
+                m_pDevice.Get(), m_pPoolCBV_SRV_UAV, &m_TextureManager)) {
+            MessageBoxW(
+                nullptr, L"Failed to initialize ModelLoader.", L"Error", MB_OK);
+            return false;
         }
-
-        // マテリアルをGPUに転送
-        m_Materials.resize(model.materials.size());
-        for (size_t i = 0; i < model.materials.size(); i++) {
-            m_Materials[i] = std::make_unique<MaterialGPU>();
-            if (!m_Materials[i]->Init(m_pDevice.Get(),
-                    m_pPoolCBV_SRV_UAV,  // CBV用（定数バッファ）
-                    m_pPoolCBV_SRV_UAV,  // SRV用（テクスチャコピー先）
-                    &m_TextureManager,   // テクスチャソース
-                    model.materials[i])) {
-                return false;
-            }
+        auto earth = loader.LoadModel(earthPath, batch);
+        if (!earth) {
+            MessageBoxW(nullptr, L"Failed to load model.", L"Error", MB_OK);
+            return false;
         }
+        // auto moon  = loader.LoadModel(moonPath, batch);
+
+        // モデルをシーンに追加
+        auto pEarth = m_Scene.AddModel(std::move(earth));
+        // auto pMoon  = m_Scene.AddModel(std::move(moon));
+
+        // ゲームオブジェクトをシーンに追加
+        uint32_t objectIndex  = AddGameObject(pEarth);
+        uint32_t objectIndex2 = AddGameObject(pEarth);
+
+        // 座標設定
+        DirectX::XMFLOAT3 pos1 = { -1.0f, 0.0f, 0.0f };
+        DirectX::XMFLOAT3 pos2 = { 1.0f, 0.0f, 0.0f };
+        m_Scene.GetGameObjects()[objectIndex]->GetTransform().SetPosition(pos1);
+        m_Scene.GetGameObjects()[objectIndex2]->GetTransform().SetPosition(
+            pos2);
 
         // 転送完了を待機
         auto future = batch.End(m_CommandQueue.GetD3DQueue());
         future.wait();
 
         // アップロードヒープの破棄
-        for (auto& mesh : m_Meshes) {
-            mesh->DiscardUpload();
-        }
+        m_Scene.DiscardModelUploads();
     }
 
     // ルートシグネチャの生成
@@ -489,7 +518,7 @@ bool Engine::InitApp() {
             .SetFlags(
                 D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)
             .AddCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL,
-                D3D12_ROOT_DESCRIPTOR_FLAG_DATA_STATIC)
+                D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
             .AddCBV(1, 0, D3D12_SHADER_VISIBILITY_VERTEX,
                 D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
             .AddCBV(2, 0, D3D12_SHADER_VISIBILITY_PIXEL)
@@ -500,6 +529,8 @@ bool Engine::InitApp() {
 
         bool result = builder.Build(m_pDevice.Get());
         if (!result) {
+            MessageBoxW(
+                nullptr, L"Failed to build root signature.", L"Error", MB_OK);
             return false;
         }
 
@@ -516,6 +547,8 @@ bool Engine::InitApp() {
         // シェーダのパスを取得
         if (!assetPath.GetAssetPath(L"TestVS.cso", vsPath) ||
             !assetPath.GetAssetPath(L"GGX_PS.cso", psPath)) {
+            MessageBoxW(
+                nullptr, L"Failed to find shader files.", L"Error", MB_OK);
             return false;
         }
 
@@ -538,6 +571,8 @@ bool Engine::InitApp() {
             .SetDSVFormat(DXGI_FORMAT_D32_FLOAT);
 
         if (!pipelineBuilder.Build(m_pDevice.Get())) {
+            MessageBoxW(nullptr, L"Failed to build graphics pipeline state.",
+                L"Error", MB_OK);
             return false;
         }
 
@@ -556,6 +591,8 @@ bool Engine::InitApp() {
 
         if (!m_DisplayConstantsGPU.Init(
                 m_pDevice.Get(), m_pPoolCBV_SRV_UAV, dc)) {
+            MessageBoxW(nullptr, L"Failed to initialize display constants.",
+                L"Error", MB_OK);
             return false;
         }
     }
@@ -564,14 +601,11 @@ bool Engine::InitApp() {
 }
 
 void Engine::TermApp() {
-    // メッシュの解放
-    m_Meshes.clear();
-
     // ディスプレイ定数の破棄
     m_DisplayConstantsGPU.Term();
 
-    // マテリアルの解放
-    m_Materials.clear();
+    // シーンの破棄
+    m_Scene.Term();
 
     // テクスチャプールの解放
     m_TextureManager.Term();
@@ -594,6 +628,20 @@ void Engine::TermApp() {
 //=============================================
 // 内部ヘルパー
 //=============================================
+/// @brief SceneへのGameObject追加とGPUリソースの割り当て
+/// @return 追加したGameObjectのインデックス
+uint32_t Engine::AddGameObject(Model* pModel) {
+    // シーンにゲームオブジェクトを追加
+    uint32_t objectIndex = m_Scene.CreateGameObject(pModel);
+
+    // ゲームオブジェクトのTransformを確保・初期化
+    for (int i = 0; i < FrameCount; i++) {
+        m_FrameResources[i].AddTransform(m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
+    }
+
+    return objectIndex;
+}
+
 /// @brief HDR対応チェック
 DisplayInfo Engine::GetDisplayInfo() {
     // 出力情報の初期化
