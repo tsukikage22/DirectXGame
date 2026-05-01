@@ -136,7 +136,7 @@ LRESULT Window::HandleMessage(
         case WM_ERASEBKGND: {
             // 背景の消去を行わない（ちらつき防止）
             return 1;
-        } break;
+        }
 
         case WM_PAINT: {
             PAINTSTRUCT ps;
@@ -147,7 +147,7 @@ LRESULT Window::HandleMessage(
 
         default: {
             return DefWindowProc(hWnd, msg, wParam, lParam);
-        } break;
+        }
     }
 
     return 0;
