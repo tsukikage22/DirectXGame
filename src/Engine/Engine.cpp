@@ -517,13 +517,13 @@ bool Engine::InitApp() {
         builder
             .SetFlags(
                 D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)
-            .AddCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL,
+            .AddCBV(RootParam::CBV_Scene, 0, D3D12_SHADER_VISIBILITY_ALL,
                 D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
-            .AddCBV(1, 0, D3D12_SHADER_VISIBILITY_VERTEX,
+            .AddCBV(RootParam::CBV_Transform, 0, D3D12_SHADER_VISIBILITY_VERTEX,
                 D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
-            .AddCBV(2, 0, D3D12_SHADER_VISIBILITY_PIXEL)
-            .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_PIXEL)
-            .AddCBV(4, 0, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddCBV(RootParam::CBV_Material, 0, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddCBV(RootParam::CBV_Lighting, 0, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddCBV(RootParam::CBV_Display, 0, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddStaticSampler(0);
 
