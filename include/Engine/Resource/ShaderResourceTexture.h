@@ -46,14 +46,14 @@ public:
     /// @brief デフォルトSRVのインデックス
     SrvIndex GetDefaultSrvIndex() const;
 
-    const TextureResource* GetTextureResource() const { return &m_Texture; }
+    const TextureResource* GetTextureResource() const { return &m_texture; }
 
     D3D12_GPU_DESCRIPTOR_HANDLE GetDefaultSrvGpu() const;
 
     D3D12_CPU_DESCRIPTOR_HANDLE GetDefaultSrvCpu() const;
 
 private:
-    TextureResource m_Texture;     // テクスチャリソース
+    TextureResource m_texture;     // テクスチャリソース
     DescriptorPool* m_pPoolSRV;    // SRV用ディスクリプタプール
     std::vector<SrvIndex> m_srvs;  // SRVインデックス
 
