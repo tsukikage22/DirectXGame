@@ -366,6 +366,8 @@ FodyWeavers.xsd
 .vscode/
 *.code-workspace
 AGENTS.md
+CLAUDE.md
+.claude/
 .github/
 
 #Ignore vscode AI rules
