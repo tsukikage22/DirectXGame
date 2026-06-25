@@ -1,14 +1,14 @@
-#pragma once
+﻿#pragma once
 
 #include <d3d12.h>
+#include <directxtk12/ResourceUploadBatch.h>
 
 #include <filesystem>
 #include <vector>
 
-#include "Core/ComPtr.h"
-#include "Core/DescriptorPool.h"
-#include "Resource/TextureResource.h"
-#include "ResourceUploadBatch.h"
+#include "Engine/Core/ComPtr.h"
+#include "Engine/Core/DescriptorPool.h"
+#include "Engine/Resource/TextureResource.h"
 
 //-----------------------------------------------
 // Light Source Structure

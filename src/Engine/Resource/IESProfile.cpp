@@ -1,10 +1,10 @@
-#include "IESProfile.h"
+﻿#include "Engine/Resource/IESProfile.h"
 
 #include <DirectXMath.h>
 
 #include <fstream>
 
-#include "DxDebug.h"
+#include "Engine/Core/DxDebug.h"
 
 namespace {
 
@@ -260,8 +260,8 @@ std::vector<float> BuildPixels(
     std::vector<float> pixels(w * h, 0.0f);  // テクセル
 
     // カンデラ値の補間と正規化に使うための値の計算
-    auto invW   = 1.0f / float(w - 1);
-    auto invH   = 1.0f / float(h - 1);
+    auto invW   = 1.0f / float(w);
+    auto invH   = 1.0f / float(h);
     auto invAve = 1.0f / profileData.aveCandela;
 
     // profileDataに格納された水平角の最大値

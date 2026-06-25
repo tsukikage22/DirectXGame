@@ -30,8 +30,8 @@ static_assert(sizeof(DirectionalLight) % 16 == 0, "Must be 16-byte aligned");
 
 /// @brief ライティング計算用の定数（フレーム毎更新）
 struct LightingConstants {
-    uint32_t lightType;  // 0: ディレクショナルライト, 1: ポイントライト, 2:
-                         // スポットライト
+    uint32_t lightType;  // 0: ディレクショナルライト, 1: ポイントライト, 
+                         // 2: スポットライト, 3: フォトメトリックライト
     DirectX::XMFLOAT3 lightPosition;  // 位置（ポイントライト/スポットライト用）
     DirectX::XMFLOAT3
         lightForward;      // 方向（ディレクショナルライト/スポットライト用）
