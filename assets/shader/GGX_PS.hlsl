@@ -2,68 +2,71 @@
 //==============================================
 // Constant Values
 //==============================================
-static const float F_PI = 3.14159265359f;   // 円周率
-static const float MIN_DIST = 0.01f;        // 光源との最小距離（距離減衰計算用）
+static const float F_PI = 3.14159265359f; // 円周率
+static const float MIN_DIST = 0.01f;      // 光源との最小距離（距離減衰計算用）
 
 //==============================================================
 // VS Output structure
 //==============================================================
-struct VSOutput {
-    float4 position : SV_POSITION;      // 変換後頂点座標
-    float3 worldNormal : TEXCOORD0;     // ワールド座標系の法線
-    float2 texCoord : TEXCOORD1;        // テクスチャ座標
-    float3 worldPos : TEXCOORD2;        // ワールド座標系の頂点位置
-    float3 worldTangent : TEXCOORD3;    // 接線ベクトル
-    float3 worldBinormal: TEXCOORD4;    // 従法線ベクトル
+struct VSOutput
+{
+    float4 position : SV_POSITION;    // 変換後頂点座標
+    float3 worldNormal : TEXCOORD0;   // ワールド座標系の法線
+    float2 texCoord : TEXCOORD1;      // テクスチャ座標
+    float3 worldPos : TEXCOORD2;      // ワールド座標系の頂点位置
+    float3 worldTangent : TEXCOORD3;  // 接線ベクトル
+    float3 worldBinormal : TEXCOORD4; // 従法線ベクトル
 };
 
 //==============================================================
 // PS Output structure
 //==============================================================
-struct PSOutput {
-    float4 color : SV_TARGET;       // 出力カラー
+struct PSOutput
+{
+    float4 color : SV_TARGET; // 出力カラー
 };
 
 //==============================================================
 // Light structure
 //==============================================================
-struct DirectionalLight {
-    float3 lightDirection;  // 方向
-    float  lightIntensity;  // 強度
-    float4 lightColor;      // 色
+struct DirectionalLight
+{
+    float3 lightDirection; // 方向
+    float lightIntensity;  // 強度
+    float4 lightColor;     // 色
 };
 
 //==============================================================
 // Constants buffer
 //==============================================================
 // [b0] シーン定数（View, Projection行列）
-cbuffer SceneConstants: register(b0) {
-    float4x4 view;      // ビュー行列
-    float4x4 proj;      // プロジェクション行列
-    float3 cameraPos;   // カメラ位置（ワールド座標系）
-    float time;        // 経過時間（秒）
-    float exposure;    // 露出
+cbuffer SceneConstants : register(b0) {
+    float4x4 view;    // ビュー行列
+    float4x4 proj;    // プロジェクション行列
+    float3 cameraPos; // カメラ位置（ワールド座標系）
+    float time;       // 経過時間（秒）
+    float exposure;   // 露出
 };
 
 // [b2] マテリアル定数
 cbuffer MaterialConstants : register(b2) {
-    float4 baseColorFactor;    // ベースカラー
-    float  metallicFactor;
-    float  roughnessFactor;
+    float4 baseColorFactor; // ベースカラー
+    float metallicFactor;
+    float roughnessFactor;
     float3 emissiveFactor;
-    float  occlusionFactor;
+    float occlusionFactor;
 };
 
 // [b3] ライティング定数
 cbuffer LightingConstants : register(b3) {
-    uint lightType;               // 0: 平行光源, 1: 点光源, 2: スポット光源
-    float3 lightPosition;  // 位置（点光源/スポット光源用）
-    float3 lightForward;  // 方向（平行光源/スポット光源用）
-    float lightIntensity;              // 強度
-    float3 lightColor;      // 色
+    uint lightType;          // 0: 平行光源, 1: 点光源, 2: スポット光源
+    float3 lightPosition;    // 位置（点光源/スポット光源用）
+    float3 lightForward;     // 方向（平行光源/スポット光源用）
+    float lightIntensity;    // 強度
+    float3 lightColor;       // 色
     float lightAngleScale;   // スポットライトの角度減衰係数（スポット光源用）
     float lightAngleOffset;  // スポットライトの角度オフセット（スポット光源用）
-    float lightInvSqrRadius;  // 距離の二乗の逆数（点光源/スポット光源用）
+    float lightInvSqrRadius; // 距離の二乗の逆数（点光源/スポット光源用）
 };
 
 // [b4] ディスプレイ定数
@@ -74,6 +77,9 @@ cbuffer DisplayConstants : register(b4) {
     float maxFullFrameLuminance;
 };
 
+//==============================================================
+// Textures and Samplers
+//==============================================================
 // [t0] ベースカラーテクスチャ
 Texture2D<float4> baseColorTexture : register(t0);
 
@@ -92,6 +98,11 @@ Texture2D<float4> occlusionTexture : register(t4);
 // [s0] サンプラー
 SamplerState smp : register(s0);
 
+// [t0, space1] IESプロファイルテクスチャ
+Texture2D<float4> IESMap : register(t0, space1);
+
+// [s1] IESプロファイル用サンプラー
+SamplerState IESSmp : register(s1);
 
 //==============================================================
 // Helper Functions
@@ -100,7 +111,7 @@ SamplerState smp : register(s0);
 //--------------------------------------------------------------
 // TBN行列の作成
 //--------------------------------------------------------------
-float3x3 CreateTBN(float3 normal, float3 tangent, float3 binormal){
+float3x3 CreateTBN(float3 normal, float3 tangent, float3 binormal) {
     // 正規直交化
     float3 N = normalize(normal);
     float3 T = normalize(tangent);
@@ -114,7 +125,7 @@ float3x3 CreateTBN(float3 normal, float3 tangent, float3 binormal){
 //--------------------------------------------------------------
 // 5乗の計算
 //--------------------------------------------------------------
-float pow5(float x){
+float pow5(float x) {
     float x2 = x * x;
     return x2 * x2 * x;
 }
@@ -122,15 +133,15 @@ float pow5(float x){
 //--------------------------------------------------------------
 // Schlickによるフレネル項の近似式
 //--------------------------------------------------------------
-float3 SchlickFresnel(float3 f0, float cosTheta){
-    return f0+ (1.0f - f0) * pow5((1.0f - cosTheta));
+float3 SchlickFresnel(float3 f0, float cosTheta) {
+    return f0 + (1.0f - f0) * pow5((1.0f - cosTheta));
 }
 
 //--------------------------------------------------------------
 // GGXによる法線分布関数 (D項)
 // D(h) = (a^2) / (π * ((N·H)^2 * (a^2 -1) +1)^2 )
 //--------------------------------------------------------------
-float D_GGX(float NH, float alpha){
+float D_GGX(float NH, float alpha) {
     float a2 = alpha * alpha;
     float f = (NH * NH) * (a2 - 1.0f) + 1.0f;
 
@@ -140,42 +151,43 @@ float D_GGX(float NH, float alpha){
 //--------------------------------------------------------------
 // Height-Correlated Smith による減衰幾何項（G項）
 //--------------------------------------------------------------
-float G2_SmithCorrelated(float NL, float NV, float alpha){
+float G2_SmithCorrelated(float NL, float NV, float alpha) {
     float a2 = alpha * alpha;
-    
+
     // 可視性関数 V = G / (4 * NL * NV) の形で直接計算する方が効率的
     float GGXV = NL * sqrt(NV * NV * (1.0f - a2) + a2);
     float GGXL = NV * sqrt(NL * NL * (1.0f - a2) + a2);
-    
+
     return 0.5f / (GGXV + GGXL + 1e-4f);
 }
 
 //--------------------------------------------------------------
 // GTトーンマップ
 //--------------------------------------------------------------
-float3 GT_Tonemap(float3 color){
+float3 GT_Tonemap(float3 color) {
     // Max-RGBによる色相シフト防止
     // 色の最大値を代表値として取得し，
     // それにトーンマッピングを適用して他の色はそれとの比率で計算する
     float maxCol = max(max(color.r, color.g), color.b);
-    if(maxCol <= 1e-6f){
+    if (maxCol <= 1e-6f)
+    {
         return color;
     }
 
     float k = maxLuminance / paperWhiteNits;
 
     // パラメータ定義
-    float P = k;        // 最大輝度
-    float a = 1.0f;     // コントラスト
-    float m = 0.22f;    // 線形区間の開始点
-    float l = 0.4f;     // 線形区間の長さ
-    float c = 1.33f;    // Toeの曲率
-    float b = 0.0f;     // 黒浮き補正
+    float P = k;     // 最大輝度
+    float a = 1.0f;  // コントラスト
+    float m = 0.22f; // 線形区間の開始点
+    float l = 0.4f;  // 線形区間の長さ
+    float c = 1.33f; // Toeの曲率
+    float b = 0.0f;  // 黒浮き補正
 
     // 係数計算
-    float l0 = ((P-m) * l) / a;
+    float l0 = ((P - m) * l) / a;
     float S0 = m + l0;
-    float S1 = m + a *l0;
+    float S1 = m + a * l0;
     float C2 = (a * P) / (P - S1);
     float CP = -C2 / P;
 
@@ -202,47 +214,67 @@ float3 GT_Tonemap(float3 color){
 //--------------------------------------------------------------
 // 距離減衰の計算（ポイントライト用）
 //--------------------------------------------------------------
-float GetDistanceAttenuation(float3 unnormalizedLightVec){
+float GetDistanceAttenuation(float3 unnormalizedLightVec) {
     float sqrDist = dot(unnormalizedLightVec, unnormalizedLightVec);
     float attenuation = 1.0f / (max(sqrDist, MIN_DIST * MIN_DIST));
-    return saturate(1.0f - sqrDist* lightInvSqrRadius);
+    return saturate(1.0f - sqrDist * lightInvSqrRadius);
 }
 
 //---------------------------------------------------------------
 // 角度減衰の計算（スポットライト用）
 //---------------------------------------------------------------
 float GetAngleAttenuation(
-    float3 unnormalizedLightVec,    // ライト位置からオブジェクト座標へのベクトル
-    float3 lightDir,                // 正規化済みの照射方向ベクトル
-    float lightAngleScale,          // スポットライトの角度減衰係数
-    float lightAngleOffset          // スポットライトの角度オフセット
-){
+    float3 unnormalizedLightVec, // ライト位置からオブジェクト座標へのベクトル
+    float3 lightDir,             // 正規化済みの照射方向ベクトル
+    float lightAngleScale,       // スポットライトの角度減衰係数
+    float lightAngleOffset       // スポットライトの角度オフセット
+) {
     // 以下の値はCPU側で計算する
-    // lightAngleScale = 1.0f / max(0.001f, cos(innerConeAngle) - cos(outerConeAngle));
-    // lightAngleOffset = -cos(outerConeAngle) * lightAngleScale;
+    // lightAngleScale = 1.0f / max(0.001f, cos(innerConeAngle) -
+    // cos(outerConeAngle)); lightAngleOffset = -cos(outerConeAngle) *
+    // lightAngleScale;
 
     float cd = dot(lightDir, unnormalizedLightVec);
     float attenuation = saturate(cd * lightAngleScale + lightAngleOffset);
-    
+
     attenuation *= attenuation; // 二乗で滑らかにする
 
     return attenuation;
 }
 
 //--------------------------------------------------------------
+// IESプロファイルによる角度減衰の計算（フォトメトリックライト用）
+//--------------------------------------------------------------
+float GetIESProfileAttenuation(
+    float3 lightDir,        // ワールド座標から光源へのベクトル
+    float3 lightForward     // 正規化したライトベクトル
+) {
+    // IESプロファイルテクスチャのUV座標を計算
+    // U座標は光源の照射方向と面からライトへの角度の正規化
+    float thetaCoord = dot(-lightDir, lightForward) * 0.5f + 0.5f; // [0,1]に正規化
+
+    // V座標は，xy平面上の方位角を計算し，0～1に正規化
+    float tangentAngle = atan2(lightDir.y, lightDir.x);
+    float phiCoord = (tangentAngle / F_PI) * 0.5f + 0.5f; // [0,1]に正規化
+
+    float2 texCoord = float2(thetaCoord, phiCoord);
+
+    // IESプロファイルテクスチャから正規化された光度をサンプリング
+    return IESMap.SampleLevel(IESSmp, texCoord, 0).r;
+}
+
+//--------------------------------------------------------------
 // ポイントライトの計算
 //--------------------------------------------------------------
-float3 EvaluatePointLight
-    (
-        float3 N,           // 法線ベクトル
-        float3 worldPos,    // 頂点のワールド座標
-        float3 lightPos,    // 光源位置
-        float3 lightColor   // 光の色
-    )
-{
-    float3 dif = lightPos - worldPos;   // オブジェクトから光源へのベクトルを計算
-    float3 L = normalize(dif);      // ライトベクトルの正規化
-    float att = GetDistanceAttenuation(dif);    // 距離減衰の計算
+float3 EvaluatePointLight(
+    float3 N,         // 法線ベクトル
+    float3 worldPos,  // 頂点のワールド座標
+    float3 lightPos,  // ライト位置
+    float3 lightColor // ライトの色
+) {
+    float3 dif = lightPos - worldPos;        // オブジェクトから光源へのベクトルを計算
+    float3 L = normalize(dif);               // ライトベクトルの正規化
+    float att = GetDistanceAttenuation(dif); // 距離減衰の計算
 
     return saturate(dot(N, L)) * lightColor * att / (4.0f * F_PI);
 }
@@ -251,27 +283,48 @@ float3 EvaluatePointLight
 // スポットライトの計算
 //--------------------------------------------------------------
 float3 EvaluateSpotLight(
-    float3 N,               // 法線ベクトル
-    float3 worldPos,        // 頂点のワールド座標
-    float3 lightPos,        // 光源位置
-    float3 lightDir,        // 光源の照射方向
-    float3 lightCol,        // 光の色
-    float lightAngleScale,  // スポットライトの角度減衰係数
-    float lightAngleOffset  // スポットライトの角度オフセット
-){
-    float3 unnormalizedLightVec = lightPos - worldPos;   // オブジェクトから光源へのベクトルを計算
-    float3 L = normalize(unnormalizedLightVec);      // ライトベクトルの正規化
+    float3 N,              // 法線ベクトル
+    float3 worldPos,       // 頂点のワールド座標
+    float3 lightPos,       // ライト位置
+    float3 lightForward,       // ライトの照射方向
+    float3 lightCol,       // ライトの色
+    float lightAngleScale, // スポットライトの角度減衰係数
+    float lightAngleOffset // スポットライトの角度オフセット
+) {
+    float3 unnormalizedLightVec = lightPos - worldPos; // オブジェクトから光源へのベクトルを計算
+    float3 L = normalize(unnormalizedLightVec);        // ライトベクトルの正規化
     float sqrDist = dot(unnormalizedLightVec, unnormalizedLightVec);
-    float att = 1.0f / (max(sqrDist, MIN_DIST * MIN_DIST));    // 距離減衰の計算
-    att *= GetAngleAttenuation(-unnormalizedLightVec, lightDir, lightAngleScale, lightAngleOffset);  // 角度減衰の計算
+    float att = 1.0f / (max(sqrDist, MIN_DIST * MIN_DIST)); // 距離減衰の計算
+    att *= GetAngleAttenuation(-unnormalizedLightVec, lightForward, lightAngleScale,
+                               lightAngleOffset); // 角度減衰の計算
     return saturate(dot(N, L)) * lightCol * att / F_PI;
-    
+}
+
+//--------------------------------------------------------------
+// フォトメトリックライトの計算
+//--------------------------------------------------------------
+float3 EvaluatePhotometricLight(
+    float3 N,              // 法線ベクトル
+    float3 worldPos,       // 頂点のワールド座標
+    float3 lightPos,       // ライト位置
+    float3 lightForward,       // ライトの照射方向
+    float3 lightCol,       // ライトの色
+    float lightAngleScale, // ライトの角度減衰係数
+    float lightAngleOffset // ライトの角度オフセット
+) {
+    float3 unnormalizedLightVec = lightPos - worldPos;
+    float3 L = normalize(unnormalizedLightVec);
+    float att = 1.0f;
+    att *= GetIESProfileAttenuation(L, lightForward);
+
+    return saturate(dot(N, L)) * lightCol * att / (4.0f * F_PI);
 }
 
 //==============================================================
 // Main function
 //==============================================================
-PSOutput main(VSOutput input) : SV_TARGET {
+PSOutput main(VSOutput input) : SV_TARGET
+{
     PSOutput output;
 
     //==============================================
@@ -310,10 +363,13 @@ PSOutput main(VSOutput input) : SV_TARGET {
 
     // ライトベクトルの計算
     float3 L;
-    if( lightType == 0 ) {
+    if (lightType == 0)
+    {
         // ディレクショナルライト
-        L = -lightForward;   
-    } else {
+        L = -lightForward;
+    }
+    else
+    {
         // ポイントライトまたはスポットライト
         L = normalize(lightPosition - input.worldPos);
     }
@@ -330,7 +386,7 @@ PSOutput main(VSOutput input) : SV_TARGET {
     //==============================================
     // 拡散反射の計算（正規化Lambertモデル）
     //==============================================
-    float3 Kd = baseColor.rgb * (1.0f - metallic);  // 拡散反射率
+    float3 Kd = baseColor.rgb * (1.0f - metallic); // 拡散反射率
     float3 diffuse = Kd * (1.0f / F_PI);
 
     //==============================================
@@ -342,31 +398,37 @@ PSOutput main(VSOutput input) : SV_TARGET {
     float G = G2_SmithCorrelated(NL, NV, a);
     float3 Fr = SchlickFresnel(F0, VH);
 
-    float3 specular = D * G * Fr;  
-
+    float3 specular = D * G * Fr;
 
     // 物体の色を反映した最終カラーの計算
     float3 BRDF = diffuse + specular;
 
     // ライティング計算
     float3 lit = float3(0.0f, 0.0f, 0.0f);
-    if( lightType == 0 ) {
+    if (lightType == 0)
+    {
         // ディレクショナルライト
         lit = NL * lightColor * lightIntensity;
-    } else if( lightType == 1 ) {
+    }
+    else if (lightType == 1)
+    {
         // ポイントライト
-        lit = EvaluatePointLight(N, input.worldPos, lightPosition, 
-            lightColor * lightIntensity);
-    } else if( lightType == 2 ) {
+        lit = EvaluatePointLight(N, input.worldPos, lightPosition, lightColor * lightIntensity);
+    }
+    else if (lightType == 2)
+    {
         // スポットライト
-        lit = EvaluateSpotLight(N, input.worldPos, lightPosition, 
-            lightForward, lightColor * lightIntensity, 
-            lightAngleScale, lightAngleOffset);
-    } 
+        lit = EvaluateSpotLight(N, input.worldPos, lightPosition, lightForward,
+                                lightColor * lightIntensity, lightAngleScale, lightAngleOffset);
+    }
+    else if (lightType == 3) {
+        // フォトメトリックライト
+        lit = EvaluatePhotometricLight(N, input.worldPos, lightPosition, lightForward,
+                                       lightColor * lightIntensity, lightAngleScale, lightAngleOffset);
+    }
 
     float3 finalColor = lit * BRDF;
     finalColor = finalColor * exposure;
-
 
     // トーンマップの適用
     float3 toneMapped = GT_Tonemap(finalColor);
