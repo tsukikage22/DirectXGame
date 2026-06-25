@@ -3,6 +3,9 @@
 
 #pragma once
 
+#ifndef LIGHTING_HLSLI
+#define LIGHTING_HLSLI
+
 #include "Common.hlsli"
 
 //--------------------------------------------------------------
@@ -101,8 +104,8 @@ float3 EvaluatePhotometricLight(
     float3 N,              // 法線ベクトル
     float3 worldPos,       // 頂点のワールド座標
     float3 lightPos,       // ライト位置
-    float3 lightForward,       // ライトの照射方向
-    float3 lightCol,       // ライトの色
+    float3 lightForward,   // ライトの照射方向
+    float3 lightCol        // ライトの色
 ) {
     float3 unnormalizedLightVec = lightPos - worldPos;
     float3 L = normalize(unnormalizedLightVec);
@@ -111,3 +114,5 @@ float3 EvaluatePhotometricLight(
 
     return saturate(dot(N, L)) * lightCol * att / (4.0f * F_PI);
 }
+
+#endif // LIGHTING_HLSLI

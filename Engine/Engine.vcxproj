@@ -289,6 +289,12 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\assets\shader\BRDF.hlsli" />
+    <None Include="..\assets\shader\Common.hlsli" />
+    <None Include="..\assets\shader\Lighting.hlsli" />
+    <None Include="..\assets\shader\Tonemap.hlsli" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

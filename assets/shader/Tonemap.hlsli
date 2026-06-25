@@ -3,6 +3,9 @@
 
 #pragma once
 
+#ifndef TONEMAP_HLSLI
+#define TONEMAP_HLSLI
+
 #include "Common.hlsli"
 
 //--------------------------------------------------------------
@@ -54,3 +57,5 @@ float3 GT_Tonemap(float3 color) {
     // 色の再構成
     return toneMappedMaxCol * color / maxCol;
 }
+
+#endif // TONEMAP_HLSLI

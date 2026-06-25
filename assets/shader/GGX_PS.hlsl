@@ -131,7 +131,7 @@ PSOutput main(VSOutput input) : SV_TARGET
     else if (lightType == 3) {
         // フォトメトリックライト
         lit = EvaluatePhotometricLight(N, input.worldPos, lightPosition, lightForward,
-                                       lightColor * lightIntensity, lightAngleScale, lightAngleOffset);
+                                       lightColor * lightIntensity);
     }
 
     float3 finalColor = lit * BRDF;

@@ -3,6 +3,9 @@
 
 #pragma once
 
+#ifndef COMMON_HLSLI
+#define COMMON_HLSLI
+
 //==============================================
 // Constant Values
 //==============================================
@@ -107,3 +110,5 @@ Texture2D<float4> IESMap : register(t0, space1);
 
 // [s1] IESプロファイル用サンプラー
 SamplerState IESSmp : register(s1);
+
+#endif // COMMON_HLSLI

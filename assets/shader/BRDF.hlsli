@@ -3,6 +3,9 @@
 
 #pragma once
 
+#ifndef BRDF_HLSLI
+#define BRDF_HLSLI
+
 #include "Common.hlsli"
 
 //--------------------------------------------------------------
@@ -43,3 +46,5 @@ float G2_SmithCorrelated(float NL, float NV, float alpha) {
 
     return 0.5f / (GGXV + GGXL + 1e-4f);
 }
+
+#endif // BRDF_HLSLI
