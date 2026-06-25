@@ -10,8 +10,9 @@
 //--------------------------------------------------------------
 float GetDistanceAttenuation(float3 unnormalizedLightVec) {
     float sqrDist = dot(unnormalizedLightVec, unnormalizedLightVec);
-    float attenuation = 1.0f / (max(sqrDist, MIN_DIST * MIN_DIST));
-    return saturate(1.0f - sqrDist * lightInvSqrRadius);
+    float invSqr = 1.0f / (max(sqrDist, MIN_DIST * MIN_DIST));
+    float window = saturate(1.0f - sqrDist * lightInvSqrRadius);
+    return invSqr * window * window; // 二乗で滑らかにする
 }
 
 //---------------------------------------------------------------
