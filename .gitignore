@@ -378,3 +378,6 @@ vcpkg_installed/
 
 #Ignore 3D Model files
 assets/model
+
+#Ignore ies files
+assets/ies
