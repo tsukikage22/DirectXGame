@@ -22,7 +22,7 @@ struct VSOutput
     float2 texCoord : TEXCOORD1;      // テクスチャ座標
     float3 worldPos : TEXCOORD2;      // ワールド座標系の頂点位置
     float3 worldTangent : TEXCOORD3;  // 接線ベクトル
-    float3 worldBinormal : TEXCOORD4; // 従法線ベクトル
+    float handedness : TEXCOORD4;     // 接線空間の右手系/左手系の判定
 };
 
 //==============================================================

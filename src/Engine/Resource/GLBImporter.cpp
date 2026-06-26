@@ -130,8 +130,17 @@ bool GLBImporter::ParseMesh(const aiMesh* srcMesh, MeshAsset& outMesh) {
             vertex.tangent.x = srcMesh->mTangents[i].x;
             vertex.tangent.y = srcMesh->mTangents[i].y;
             vertex.tangent.z = srcMesh->mTangents[i].z;
+
+            // 接線ベクトルのw成分にhandednessを格納する
+            // (N×T)·Bの符号を求める
+            const aiVector3D& normal    = srcMesh->mNormals[i];
+            const aiVector3D& tangent   = srcMesh->mTangents[i];
+            const aiVector3D& bitangent = srcMesh->mBitangents[i];
+            float w                     = (normal ^ tangent) * bitangent;
+            vertex.tangent.w            = (w < 0.0f) ? -1.0f : 1.0f;
+
         } else {
-            vertex.tangent = { 0.0f, 0.0f, 0.0f };
+            vertex.tangent = { 0.0f, 0.0f, 0.0f, 1.0f };
         }
 
         // UV座標

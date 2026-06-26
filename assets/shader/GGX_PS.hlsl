@@ -15,13 +15,12 @@
 //--------------------------------------------------------------
 // TBN行列の作成
 //--------------------------------------------------------------
-float3x3 CreateTBN(float3 normal, float3 tangent, float3 binormal) {
+float3x3 CreateTBN(float3 normal, float3 tangent, float handedness) {
     // 正規直交化
     float3 N = normalize(normal);
     float3 T = normalize(tangent);
     T = normalize(T - dot(T, N) * N);
-    float3 B = normalize(binormal);
-    B = normalize(cross(N, T));
+    float3 B = cross(N, T) * handedness;
 
     return float3x3(T, B, N);
 }
@@ -56,7 +55,7 @@ PSOutput main(VSOutput input) : SV_TARGET
 
     // TBN行列の作成
     // 接空間からワールド空間への変換を行う行列
-    float3x3 TBN = CreateTBN(input.worldNormal, input.worldTangent, input.worldBinormal);
+    float3x3 TBN = CreateTBN(input.worldNormal, input.worldTangent, input.handedness);
 
     // 法線ベクトルをワールド空間へ変換
     float3 N = normalize(mul(tangentSpaceNormal, TBN));
