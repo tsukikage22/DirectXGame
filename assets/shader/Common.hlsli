@@ -22,7 +22,7 @@ struct VSOutput
     float2 texCoord : TEXCOORD1;      // テクスチャ座標
     float3 worldPos : TEXCOORD2;      // ワールド座標系の頂点位置
     float3 worldTangent : TEXCOORD3;  // 接線ベクトル
-    float handedness : TEXCOORD4;     // 接線空間の右手系/左手系の判定
+    nointerpolation float handedness : TEXCOORD4;     // 接線空間の右手系/左手系の判定
 };
 
 //==============================================================
@@ -31,16 +31,6 @@ struct VSOutput
 struct PSOutput
 {
     float4 color : SV_TARGET; // 出力カラー
-};
-
-//==============================================================
-// Light structure
-//==============================================================
-struct DirectionalLight
-{
-    float3 lightDirection; // 方向
-    float lightIntensity;  // 強度
-    float4 lightColor;     // 色
 };
 
 //==============================================================
@@ -69,7 +59,8 @@ cbuffer LightingConstants : register(b3) {
     uint lightType;          // 0: 平行光源, 1: 点光源, 2: スポット光源
     float3 lightPosition;    // 位置（点光源/スポット光源用）
     float3 lightForward;     // 方向（平行光源/スポット光源用）
-    float lightIntensity;    // 強度
+    float luminousFlux;      // 光束 [lm]（平行光源以外）
+    float illuminance;       // 照度 [lx]（平行光源用）
     float3 lightColor;       // 色
     float lightAngleScale;   // スポットライトの角度減衰係数（スポット光源用）
     float lightAngleOffset;  // スポットライトの角度オフセット（スポット光源用）

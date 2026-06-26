@@ -74,6 +74,8 @@ float3 EvaluatePointLight(
     float3 L = normalize(dif);               // ライトベクトルの正規化
     float att = GetDistanceAttenuation(dif); // 距離減衰の計算
 
+    // 全立体角 4π[sr] で割って光束から光度に変換する
+    // I[cd] = Φ[lm] / Ω[sr]
     return saturate(dot(N, L)) * lightColor * att / (4.0f * F_PI);
 }
 
@@ -94,6 +96,8 @@ float3 EvaluateSpotLight(
     float att = GetDistanceAttenuation(unnormalizedLightVec);
     att *= GetAngleAttenuation(-L, lightForward, angleScale,
                                angleOffset); // 角度減衰の計算
+
+    // コーン角を使わずにπで割る近似で光束を光度に変換する
     return saturate(dot(N, L)) * lightCol * att / F_PI;
 }
 

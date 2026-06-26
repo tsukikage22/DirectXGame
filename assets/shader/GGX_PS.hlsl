@@ -113,23 +113,23 @@ PSOutput main(VSOutput input) : SV_TARGET
     if (lightType == 0)
     {
         // ディレクショナルライト
-        lit = NL * lightColor * lightIntensity;
+        lit = NL * lightColor * illuminance;
     }
     else if (lightType == 1)
     {
         // ポイントライト
-        lit = EvaluatePointLight(N, input.worldPos, lightPosition, lightColor * lightIntensity);
+        lit = EvaluatePointLight(N, input.worldPos, lightPosition, lightColor * luminousFlux);
     }
     else if (lightType == 2)
     {
         // スポットライト
         lit = EvaluateSpotLight(N, input.worldPos, lightPosition, lightForward,
-                                lightColor * lightIntensity, lightAngleScale, lightAngleOffset);
+                                lightColor * luminousFlux, lightAngleScale, lightAngleOffset);
     }
     else if (lightType == 3) {
         // フォトメトリックライト
         lit = EvaluatePhotometricLight(N, input.worldPos, lightPosition, lightForward,
-                                       lightColor * lightIntensity);
+                                       lightColor * luminousFlux);
     }
 
     float3 finalColor = lit * BRDF;
