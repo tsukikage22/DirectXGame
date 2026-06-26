@@ -32,18 +32,23 @@ bool LightingConstantsGPU::Init(
 
     // デフォルト値の設定
     shader::LightingConstants lc = {};
-    lc.lightType                 = 1;                      // ポイントライト
-    lc.lightPosition             = { 0.0f, 1.0f, -2.0f };  // 位置
-    lc.lightIntensity            = 100.0f;                 // 強さ
-    lc.lightColor                = { 1.0f, 1.0f, 1.0f };   // 色
+    lc.lightType                 = 3;             // フォトメトリックライト
+    lc.lightPosition = { 0.0f, 2.25f, -0.625f };  // ライトの位置（上方）
+
+    auto forward = DirectX::XMVector3Normalize(
+        DirectX::XMVectorSet(0.0f, -1.0f, 0.285f, 0.0f));
+    DirectX::XMStoreFloat3(&lc.lightForward, forward);  // ライトの方向（下方）
+
+    lc.luminousFlux = 100.0f;                // 光束
+    lc.lightColor   = { 1.0f, 1.0f, 1.0f };  // 色
 
     lc.lightAngleScale =  // 角度減衰係数
         1.0f /
-        DirectX::XMMax(0.001f, cosf(DirectX::XMConvertToRadians(15.0f)) -
-                                   cosf(DirectX::XMConvertToRadians(20.0f)));
+        DirectX::XMMax(1e-6f, cosf(DirectX::XMConvertToRadians(15.0f)) -
+                                  cosf(DirectX::XMConvertToRadians(45.0f)));
 
     lc.lightAngleOffset =  // 角度オフセット
-        -cosf(DirectX::XMConvertToRadians(20.0f)) * lc.lightAngleScale;
+        -cosf(DirectX::XMConvertToRadians(45.0f)) * lc.lightAngleScale;
 
     return Init(pDevice, pPoolCBV, lc);
 }

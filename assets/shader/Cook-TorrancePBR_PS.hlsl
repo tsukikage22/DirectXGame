@@ -272,7 +272,7 @@ PSOutput main(VSOutput input) : SV_TARGET {
     float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), baseColor.rgb, metallic);
     float D = D_Beckmann(roughness*roughness, NH);
     float G = G2_Vcavity(NH, NL, NV, VH);
-    float3 Fr = SchlickFresnel(F0, NL);
+    float3 Fr = SchlickFresnel(F0, VH);
 
     float3 specular = (D * G * Fr) / (4.0f * NL * NV + 1e-4f);
 

@@ -129,20 +129,25 @@ void Engine::Render() {
     // 描画処理
     {
         ID3D12DescriptorHeap* ppHeaps = { m_pPoolCBV_SRV_UAV->GetHeap() };
+        m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
 
         // [b0] SceneConstants (共通)
-        m_pCmdList->SetGraphicsRootConstantBufferView(0,
+        m_pCmdList->SetGraphicsRootConstantBufferView(RootParam::CBV_Scene,
             m_FrameResources[m_FrameIndex].GetSceneConstants().GetGPUAddress());
 
         // [b3] LightingConstants (共通)
         m_pCmdList->SetGraphicsRootConstantBufferView(
-            3, m_FrameResources[m_FrameIndex]
-                   .GetLightingConstants()
-                   .GetGPUAddress());
+            RootParam::CBV_Lighting, m_FrameResources[m_FrameIndex]
+                                         .GetLightingConstants()
+                                         .GetGPUAddress());
 
         // [b4] DisplayConstants (共通)
         m_pCmdList->SetGraphicsRootConstantBufferView(
-            4, m_DisplayConstantsGPU.GetGPUAddress());
+            RootParam::CBV_Display, m_DisplayConstantsGPU.GetGPUAddress());
+
+        // [t0, space1] IESプロファイルテクスチャ (共通)
+        m_pCmdList->SetGraphicsRootDescriptorTable(
+            RootParam::SRV_IESProfile, m_IESProfile.GetSrvGpuHandle());
 
         // PrimitiveTopologyの指定
         m_pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -151,9 +156,9 @@ void Engine::Render() {
         for (auto& obj : m_Scene.GetGameObjects()) {
             // [b1] TransformConstants (モデル単位)
             m_pCmdList->SetGraphicsRootConstantBufferView(
-                1, m_FrameResources[m_FrameIndex]
-                       .GetTransforms()[obj->GetIndex()]
-                       ->GetGPUAddress());
+                RootParam::CBV_Transform, m_FrameResources[m_FrameIndex]
+                                              .GetTransforms()[obj->GetIndex()]
+                                              ->GetGPUAddress());
 
             // 各メッシュを描画
             const auto& meshes    = obj->GetModel().GetMeshes();
@@ -165,13 +170,14 @@ void Engine::Render() {
                 // マテリアルをバインド
                 if (materialID < materials.size()) {
                     // [b2] MaterialConstants (マテリアル単位)
-                    m_pCmdList->SetGraphicsRootConstantBufferView(2,
+                    m_pCmdList->SetGraphicsRootConstantBufferView(
+                        RootParam::CBV_Material,
                         materials[materialID]->GetConstantBufferGPUAddress());
 
                     // [t0-t4] PBR Textures
-                    m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
                     m_pCmdList->SetGraphicsRootDescriptorTable(
-                        5, materials[materialID]->GetSrvTableBaseGPUHandle());
+                        RootParam::SRV_Texture,
+                        materials[materialID]->GetSrvTableBaseGPUHandle());
                 }
 
                 // 頂点バッファ・インデックスバッファの設定
@@ -457,6 +463,23 @@ bool Engine::InitApp() {
             return false;
         }
 
+        // IESプロファイルのロード
+        // パスの取得
+        std::filesystem::path iesPath;
+        if (!AssetPath().GetAssetPath(L"ies/TopPost.IES", iesPath)) {
+            OutputDebugStringW(L"Error: IES profile not found.\n");
+            MessageBoxW(
+                nullptr, L"Failed to find IES profile file.", L"Error", MB_OK);
+            return false;
+        }
+        // IESProfileの初期化
+        if (!m_IESProfile.Init(
+                m_pDevice.Get(), m_pPoolCBV_SRV_UAV, iesPath, batch)) {
+            MessageBoxW(
+                nullptr, L"Failed to initialize IESProfile.", L"Error", MB_OK);
+            return false;
+        }
+
         // モデルのロード
         ModelLoader loader;
         if (!loader.Init(
@@ -500,10 +523,17 @@ bool Engine::InitApp() {
         RootSignatureBuilder builder;
 
         // SRVのレンジを作成
+        // [t0-t4] PBR Textures (Descriptor Table SRV)
         std::vector<D3D12_DESCRIPTOR_RANGE1> range;
         range.push_back(
             RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                 5, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
+
+        // [t0, space1] IESプロファイルテクスチャ
+        std::vector<D3D12_DESCRIPTOR_RANGE1> iesRange;
+        iesRange.push_back(
+            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                1, 0, 1, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
 
         // ルートシグニチャ構成
         // [b0] SceneConstants (Root CBV)
@@ -513,19 +543,26 @@ bool Engine::InitApp() {
         // [b4] Display Constants (Root CBV)
         // [t0-t4] PBR Textures (Descriptor Table SRV)
         // baseColor, metallic-roughness, normal, emissive, occlusion
+        // [t0, space1] IES Profile Texture(Descriptor Table SRV)
         // [s0] Default Sampler (Static Sampler)
+        // [s1] IES Profile Sampler (Static Sampler)
         builder
             .SetFlags(
                 D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)
-            .AddCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL,
+            .AddCBV(RootParam::CBV_Scene, 0, D3D12_SHADER_VISIBILITY_ALL,
                 D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
-            .AddCBV(1, 0, D3D12_SHADER_VISIBILITY_VERTEX,
+            .AddCBV(RootParam::CBV_Transform, 0, D3D12_SHADER_VISIBILITY_VERTEX,
                 D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
-            .AddCBV(2, 0, D3D12_SHADER_VISIBILITY_PIXEL)
-            .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_PIXEL)
-            .AddCBV(4, 0, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddCBV(RootParam::CBV_Material, 0, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddCBV(RootParam::CBV_Lighting, 0, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddCBV(RootParam::CBV_Display, 0, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL)
-            .AddStaticSampler(0);
+            .AddDescriptorTable(iesRange, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddStaticSampler(0)
+            .AddStaticSampler(1, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // 垂直角は端で止める
+                D3D12_TEXTURE_ADDRESS_MODE_WRAP,   // 水平角は0-360°でループする
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 
         bool result = builder.Build(m_pDevice.Get());
         if (!result) {
@@ -545,8 +582,8 @@ bool Engine::InitApp() {
         AssetPath assetPath;
 
         // シェーダのパスを取得
-        if (!assetPath.GetAssetPath(L"TestVS.cso", vsPath) ||
-            !assetPath.GetAssetPath(L"GGX_PS.cso", psPath)) {
+        if (!assetPath.GetAssetPath(L"shader/TestVS.cso", vsPath) ||
+            !assetPath.GetAssetPath(L"shader/GGX_PS.cso", psPath)) {
             MessageBoxW(
                 nullptr, L"Failed to find shader files.", L"Error", MB_OK);
             return false;

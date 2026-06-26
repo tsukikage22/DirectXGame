@@ -36,6 +36,7 @@
 #include "Engine/Model/VertexTypes.h"
 #include "Engine/Resource/AssetPath.h"
 #include "Engine/Resource/GLBImporter.h"
+#include "Engine/Resource/IESProfile.h"
 #include "Engine/Resource/ModelLoader.h"
 #include "Engine/Resource/TextureManager.h"
 #include "Engine/Scene/Camera.h"
@@ -55,12 +56,13 @@
 #pragma comment(lib, "DirectXTex.lib")
 
 enum RootParam {
-    CBV_Scene     = 0,
-    CBV_Transform = 1,
-    CBV_Material  = 2,
-    CBV_Lighting  = 3,
-    CBV_Display   = 4,
-    SRV_Texture   = 5
+    CBV_Scene      = 0,  // b0
+    CBV_Transform  = 1,  // b1
+    CBV_Material   = 2,  // b2
+    CBV_Lighting   = 3,  // b3
+    CBV_Display    = 4,  // b4
+    SRV_Texture    = 5,  // t0
+    SRV_IESProfile = 6   // t0, space1
 };
 
 struct DisplayInfo {
@@ -144,6 +146,8 @@ private:
     TextureManager m_TextureManager;        // テクスチャマネージャ
     Camera m_Camera;                        // カメラ
     Scene m_Scene;                          // シーン
+
+    IESProfile m_IESProfile;  // IESプロファイル
 
     static constexpr size_t maxObjects = 100;  // 最大オブジェクト数
 

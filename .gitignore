@@ -366,6 +366,8 @@ FodyWeavers.xsd
 .vscode/
 *.code-workspace
 AGENTS.md
+CLAUDE.md
+.claude/
 .github/
 
 #Ignore vscode AI rules
@@ -376,3 +378,6 @@ vcpkg_installed/
 
 #Ignore 3D Model files
 assets/model
+
+#Ignore ies files
+assets/ies

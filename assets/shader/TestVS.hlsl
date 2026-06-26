@@ -5,7 +5,7 @@
 struct VSInput{
     float3 position : POSITION;     // 頂点座標
     float3 normal   : NORMAL;       // 頂点法線
-    float3 tangent  : TANGENT;      // 接線ベクトル
+    float4 tangent  : TANGENT;      // 接線ベクトル
     float2 texCoord : TEXCOORD;     // テクスチャ座標
     float4 color    : COLOR;        // 頂点カラー
 };
@@ -20,7 +20,7 @@ struct VSOutput{
     float2 texCoord : TEXCOORD1;        // テクスチャ座標
     float3 worldPos : TEXCOORD2;        // ワールド座標系の頂点位置
     float3 worldTangent : TEXCOORD3;    // 接線ベクトル
-    float3 worldBinormal: TEXCOORD4;  // 従法線ベクトル
+    nointerpolation float handedness : TEXCOORD4;        // 接線空間の右手系/左手系の判定
 };
 
 //===========================================
@@ -61,12 +61,11 @@ VSOutput main(VSInput input) {
     output.worldNormal = normalize(worldNormal);
 
     // 接線ベクトルのワールド座標系への変換
-    float3 worldTangent = mul(input.tangent, (float3x3)world);
+    float3 worldTangent = mul(input.tangent.xyz, (float3x3)world);
     output.worldTangent = normalize(worldTangent);
 
-    // 従法線ベクトルのワールド座標系への変換
-    float3 worldBinormal = cross(worldNormal, worldTangent);
-    output.worldBinormal = normalize(worldBinormal);
+    // 接線空間の右手系/左手系の判定
+    output.handedness = input.tangent.w;
 
     return output;
 }
