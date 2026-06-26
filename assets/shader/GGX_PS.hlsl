@@ -26,7 +26,6 @@ float3x3 CreateTBN(float3 normal, float3 tangent, float3 binormal) {
     return float3x3(T, B, N);
 }
 
-
 //==============================================================
 // Main function
 //==============================================================

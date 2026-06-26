@@ -22,8 +22,8 @@ float GetDistanceAttenuation(float3 unnormalizedLightVec) {
 // 角度減衰の計算
 //---------------------------------------------------------------
 float GetAngleAttenuation(
-    float3 unnormalizedLightVec, // ライト位置からオブジェクト座標へのベクトル
-    float3 lightDir,             // 正規化済みの照射方向ベクトル
+    float3 lightDir,             // ライト位置からオブジェクト座標へのベクトル
+    float3 lightForward,         // 正規化済みの照射方向ベクトル
     float lightAngleScale,       // スポットライトの角度減衰係数
     float lightAngleOffset       // スポットライトの角度オフセット
 ) {
@@ -32,7 +32,7 @@ float GetAngleAttenuation(
     // cos(outerConeAngle)); lightAngleOffset = -cos(outerConeAngle) *
     // lightAngleScale;
 
-    float cd = dot(lightDir, unnormalizedLightVec);
+    float cd = dot(lightForward, lightDir);
     float attenuation = saturate(cd * lightAngleScale + lightAngleOffset);
 
     attenuation *= attenuation; // 二乗で滑らかにする
@@ -92,7 +92,7 @@ float3 EvaluateSpotLight(
     float3 unnormalizedLightVec = lightPos - worldPos; // オブジェクトから光源へのベクトルを計算
     float3 L = normalize(unnormalizedLightVec);        // ライトベクトルの正規化
     float att = GetDistanceAttenuation(unnormalizedLightVec);
-    att *= GetAngleAttenuation(-unnormalizedLightVec, lightForward, angleScale,
+    att *= GetAngleAttenuation(-L, lightForward, angleScale,
                                angleOffset); // 角度減衰の計算
     return saturate(dot(N, L)) * lightCol * att / F_PI;
 }
@@ -111,6 +111,7 @@ float3 EvaluatePhotometricLight(
     float3 L = normalize(unnormalizedLightVec);
     float att = 1.0f;
     att *= GetIESProfileAttenuation(L, lightForward);
+    att *= GetDistanceAttenuation(unnormalizedLightVec);
 
     return saturate(dot(N, L)) * lightCol * att / (4.0f * F_PI);
 }
