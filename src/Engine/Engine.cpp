@@ -97,10 +97,7 @@ void Engine::Update() {
 
     // シーン内の全ゲームオブジェクトのtransformを更新
     for (auto& obj : m_Scene.GetGameObjects()) {
-        obj->GetTransform().CalcWorldMatrix();
-        uint32_t idx = obj->GetIndex();
-        m_FrameResources[m_FrameIndex].GetTransforms()[idx]->Update(
-            obj->GetTransform().CalcWorldMatrix());
+        obj->UpdateTransformGPU(m_FrameIndex);
     }
 
     // ビュー行列・射影行列を転置して格納
@@ -156,9 +153,8 @@ void Engine::Render() {
         for (auto& obj : m_Scene.GetGameObjects()) {
             // [b1] TransformConstants (モデル単位)
             m_pCmdList->SetGraphicsRootConstantBufferView(
-                RootParam::CBV_Transform, m_FrameResources[m_FrameIndex]
-                                              .GetTransforms()[obj->GetIndex()]
-                                              ->GetGPUAddress());
+                RootParam::CBV_Transform,
+                obj->GetTransformGPU(m_FrameIndex).GetGPUAddress());
 
             // 各メッシュを描画
             const auto& meshes    = obj->GetModel().GetMeshes();
@@ -669,12 +665,8 @@ void Engine::TermApp() {
 /// @return 追加したGameObjectのインデックス
 uint32_t Engine::AddGameObject(Model* pModel) {
     // シーンにゲームオブジェクトを追加
-    uint32_t objectIndex = m_Scene.CreateGameObject(pModel);
-
-    // ゲームオブジェクトのTransformを確保・初期化
-    for (int i = 0; i < FrameCount; i++) {
-        m_FrameResources[i].AddTransform(m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
-    }
+    uint32_t objectIndex =
+        m_Scene.CreateGameObject(pModel, m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
 
     return objectIndex;
 }

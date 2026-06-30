@@ -13,3 +13,8 @@ bool GameObject::SetModel(Model* pModel) {
     m_model = pModel;
     return true;
 }
+
+// ワールド行列CBの更新
+void GameObject::UpdateTransformGPU(int frameIndex) {
+    m_transformGPU[frameIndex].Update(m_transform.CalcWorldMatrix());
+}

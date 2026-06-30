@@ -20,9 +20,16 @@ void Scene::DiscardModelUploads() {
     }
 }
 
-uint32_t Scene::CreateGameObject(Model* pModel) {
+uint32_t Scene::CreateGameObject(
+    Model* pModel, ID3D12Device* pDevice, DescriptorPool* pPoolCBV) {
     auto pObj = std::make_unique<GameObject>(pModel);
     m_gameObjects.push_back(std::move(pObj));
+
+    // transformGPUの初期化
+    for (int i = 0; i < 2; i++) {
+        m_gameObjects.back()->GetTransformGPU(i).Init(pDevice, pPoolCBV,
+            m_gameObjects.back()->GetTransform().CalcWorldMatrix());
+    }
 
     // objectIndexの割り当て
     uint32_t objectIndex;

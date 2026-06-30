@@ -4,8 +4,8 @@
 #include <stack>
 #include <vector>
 
-#include "Engine/Scene/GameObject.h"
 #include "Engine/Model/Model.h"
+#include "Engine/Scene/GameObject.h"
 #include "Engine/Shader/TransformGPU.h"
 
 class Scene {
@@ -22,7 +22,8 @@ public:
     void DiscardModelUploads();
 
     /// @brief シーン内にゲームオブジェクトを作成する
-    uint32_t CreateGameObject(Model* pModel);
+    uint32_t CreateGameObject(
+        Model* pModel, ID3D12Device* pDevice, DescriptorPool* pPoolCBV);
 
     /// @brief ゲームオブジェクトを削除する
     void RemoveGameObject(uint32_t index);

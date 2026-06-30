@@ -4,6 +4,7 @@
 
 #include "Engine/Model/Model.h"
 #include "Engine/Scene/Transform.h"
+#include "Engine/Shader/TransformGPU.h"
 
 class GameObject {
 public:
@@ -14,18 +15,25 @@ public:
     /// @param pModel
     bool SetModel(Model* pModel);
 
+    /// @brief ワールド行列CBの更新
+    void UpdateTransformGPU(int frameIndex);
+
     //=========================================
     // アクセサ
     //=========================================
     Transform& GetTransform() { return m_transform; }
-    Model& GetModel() { return *m_model; }
-    uint32_t GetIndex() const { return m_objectIndex; }
+    TransformGPU& GetTransformGPU(int frameIndex) {
+        return m_transformGPU[frameIndex];
+    }
+    const Model& GetModel() const { return *m_model; }
 
-    void SetIndex(uint32_t index) { m_objectIndex = index; }
+    void SetIndex(uint32_t index) { m_index = index; }
+    uint32_t GetIndex() const { return m_index; }
 
 private:
     Transform m_transform;
+    TransformGPU m_transformGPU[2];  // ワールド行列のシェーダーリソース
     Model* m_model = nullptr;
 
-    uint32_t m_objectIndex = 0;  // FrameResource内のTransformGPUと対応付けるID
+    uint32_t m_index = 0;  // シーン内のオブジェクトインデックス
 };
