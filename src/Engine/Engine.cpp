@@ -272,12 +272,12 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         DXGI_SWAP_CHAIN_DESC1 desc = {};
         desc.Width                 = width;
         desc.Height                = height;
-        desc.Format                = DXGI_FORMAT_R16G16B16A16_FLOAT;
+        desc.Format                = kBackBufferFormat;
         desc.Stereo                = FALSE;
         desc.SampleDesc.Count      = 1;
         desc.SampleDesc.Quality    = 0;
         desc.BufferUsage           = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        desc.BufferCount           = FrameCount;
+        desc.BufferCount           = config::kFrameCount;
         desc.Scaling               = DXGI_SCALING_STRETCH;
         desc.SwapEffect            = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         desc.AlphaMode             = DXGI_ALPHA_MODE_IGNORE;
@@ -299,7 +299,7 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         m_pSwapChain->SetColorSpace1(DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
 
         // フレームレイテンシ待機オブジェクトの取得
-        m_pSwapChain->SetMaximumFrameLatency(FrameCount);
+        m_pSwapChain->SetMaximumFrameLatency(config::kFrameCount);
         m_frameLatencyWaitableObject =
             m_pSwapChain->GetFrameLatencyWaitableObject();
 
@@ -311,36 +311,37 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         // CBV/SRV/UAV
         if (!DescriptorPool::Create(m_pDevice.Get(),
                 D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-                D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 2048,
-                &m_pPoolCBV_SRV_UAV)) {
+                D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+                config::kCbvSrvUavCapacity, &m_pPoolCBV_SRV_UAV)) {
             return false;
         }
 
         // SMP
         if (!DescriptorPool::Create(m_pDevice.Get(),
                 D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
-                D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 256, &m_pPoolSMP)) {
+                D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+                config::kSamplerCapacity, &m_pPoolSMP)) {
             return false;
         }
 
         // RTV
         if (!DescriptorPool::Create(m_pDevice.Get(),
                 D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-                512, &m_pPoolRTV)) {
+                config::kRtvCapacity, &m_pPoolRTV)) {
             return false;
         }
 
         // DSV
         if (!DescriptorPool::Create(m_pDevice.Get(),
                 D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-                512, &m_pPoolDSV)) {
+                config::kDsvCapacity, &m_pPoolDSV)) {
             return false;
         }
     }
 
     // レンダーターゲットビューの生成
     {
-        for (auto i = 0u; i < FrameCount; i++) {
+        for (auto i = 0u; i < config::kFrameCount; i++) {
             if (!m_ColorTarget[i].Init(
                     m_pDevice.Get(), m_pPoolRTV, i, m_pSwapChain.Get())) {
                 return false;
@@ -351,7 +352,7 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
     // 深度ステンシルバッファの生成
     {
         if (!m_DepthTarget.Init(m_pDevice.Get(), m_pPoolDSV, width, height,
-                DXGI_FORMAT_D32_FLOAT)) {
+                kDepthBufferFormat)) {
             return false;
         }
     }
@@ -382,7 +383,7 @@ void Engine::TermD3D() {
     m_CommandQueue.Flush();
 
     // レンダーターゲットビューの解放
-    for (auto i = 0u; i < FrameCount; i++) {
+    for (auto i = 0u; i < config::kFrameCount; i++) {
         m_ColorTarget[i].Term();
     }
 
@@ -409,7 +410,7 @@ void Engine::TermD3D() {
 // パイプライン，メッシュロード，バッファ生成など
 bool Engine::InitApp() {
     // フレームリソースの初期化
-    for (int i = 0; i < FrameCount; i++) {
+    for (int i = 0; i < config::kFrameCount; i++) {
         if (!m_FrameResources[i].Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV)) {
             return false;
         }
@@ -600,8 +601,8 @@ bool Engine::InitApp() {
             .SetVertexShader(vsBlob.Get())
             .SetPixelShader(psBlob.Get())
             .SetInputLayout(StandardVertex::GetInputLayout())
-            .SetRTVFormat(DXGI_FORMAT_R16G16B16A16_FLOAT)
-            .SetDSVFormat(DXGI_FORMAT_D32_FLOAT);
+            .SetRTVFormat(kBackBufferFormat)
+            .SetDSVFormat(kDepthBufferFormat);
 
         if (!pipelineBuilder.Build(m_pDevice.Get())) {
             MessageBoxW(nullptr, L"Failed to build graphics pipeline state.",
@@ -650,7 +651,7 @@ void Engine::TermApp() {
     m_pRootSignature.Reset();
 
     // フレームリソースの解放
-    for (int i = 0; i < FrameCount; i++) {
+    for (int i = 0; i < config::kFrameCount; i++) {
         m_FrameResources[i].Term();
     }
 

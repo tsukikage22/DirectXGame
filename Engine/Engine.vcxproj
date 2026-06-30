@@ -160,6 +160,7 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\Engine\Core\EngineConfig.h" />
     <ClInclude Include="..\include\Engine\Resource\IESProfile.h" />
     <ClInclude Include="..\include\Engine\Scene\Camera.h" />
     <ClInclude Include="..\include\Engine\Graphics\ColorTarget.h" />

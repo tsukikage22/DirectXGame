@@ -21,6 +21,7 @@
 #include "Engine/Core/ComPtr.h"
 #include "Engine/Core/CommandQueue.h"
 #include "Engine/Core/DescriptorPool.h"
+#include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/FrameResource.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Graphics/DepthTarget.h"
@@ -78,8 +79,6 @@ struct DisplayInfo {
 ////////////////////////////////////////////
 class Engine {
 public:
-    static constexpr uint32_t FrameCount = 2;  // フレームバッファ数
-
     //==================================================================
     // ライフサイクル管理
     //==================================================================
@@ -115,6 +114,13 @@ public:
 
 private:
     //==============================================================
+    // constants
+    //==============================================================
+    static constexpr DXGI_FORMAT kBackBufferFormat =
+        DXGI_FORMAT_R16G16B16A16_FLOAT;
+    static constexpr DXGI_FORMAT kDepthBufferFormat = DXGI_FORMAT_D32_FLOAT;
+
+    //==============================================================
     // private variables
     //==============================================================
 
@@ -125,21 +131,20 @@ private:
     engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
     engine::ComPtr<IDXGIFactory6> m_pFactory;    // DXGIファクトリ
 
-    uint32_t m_FrameIndex;       // 現在のフレーム番号
-    size_t m_maxObjects = 1000;  // 最大オブジェクト数
+    uint32_t m_FrameIndex;  // 現在のフレーム番号
 
     DescriptorPool* m_pPoolCBV_SRV_UAV;  // CBV/SRV/UAV用ディスクリプタプール
     DescriptorPool* m_pPoolRTV;          // RTV用ディスクリプタプール
     DescriptorPool* m_pPoolDSV;          // DSV用ディスクリプタプール
     DescriptorPool* m_pPoolSMP;          // サンプラ用ディスクリプタプール
 
-    ColorTarget m_ColorTarget[FrameCount];  // カラーターゲット
-    DepthTarget m_DepthTarget;              // 深度ステンシル
-    CommandQueue m_CommandQueue;            // コマンドキュー
-    D3D12_VIEWPORT m_Viewport;              // ビューポート
-    D3D12_RECT m_ScissorRect;               // シザー矩形
+    ColorTarget m_ColorTarget[config::kFrameCount];  // カラーターゲット
+    DepthTarget m_DepthTarget;                       // 深度ステンシル
+    CommandQueue m_CommandQueue;                     // コマンドキュー
+    D3D12_VIEWPORT m_Viewport;                       // ビューポート
+    D3D12_RECT m_ScissorRect;                        // シザー矩形
 
-    FrameResource m_FrameResources[FrameCount];  // フレームリソース
+    FrameResource m_FrameResources[config::kFrameCount];  // フレームリソース
 
     std::vector<ModelAsset> m_ModelAssets;  // モデルデータ
     UINT m_textureCount = 0;                // テクスチャ数
@@ -148,8 +153,6 @@ private:
     Scene m_Scene;                          // シーン
 
     IESProfile m_IESProfile;  // IESプロファイル
-
-    static constexpr size_t maxObjects = 100;  // 最大オブジェクト数
 
     InputSystem m_InputSystem;                  // 入力システム
     DisplayInfo m_DisplayInfo;                  // ディスプレイ情報
