@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <dxgi.h>
-
 #include <cstdint>
 
 namespace config {
@@ -27,4 +25,4 @@ inline constexpr uint32_t kCbvSrvUavCapacity =
 inline constexpr uint32_t kSamplerCapacity = 256;              // <= 2048
 inline constexpr uint32_t kRtvCapacity     = kFrameCount + 8;  // バックバッファ
 inline constexpr uint32_t kDsvCapacity     = 1 + 4;  // メイン深度 + 余白
-};  // namespace config
+}  // namespace config

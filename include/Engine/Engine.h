@@ -23,6 +23,7 @@
 #include "Engine/Core/DescriptorPool.h"
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/FrameResource.h"
+#include "Engine/Core/Handle.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Graphics/DepthTarget.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
@@ -176,7 +177,7 @@ private:
     // 内部ヘルパー
     //==============================================================
     /// @brief SceneへのGameObject追加とGPUリソースの割り当て
-    uint32_t AddGameObject(Model* pModel);
+    engine::ObjectHandle AddGameObject(Model* pModel);
 
     /// @brief HDR対応チェック
     DisplayInfo GetDisplayInfo();

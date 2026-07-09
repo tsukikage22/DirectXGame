@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "Engine/Core/Handle.h"
+
 // 前方宣言
 class Engine;
 class CameraController;
@@ -25,6 +27,6 @@ private:
     Engine* m_pEngine;
     std::unique_ptr<CameraController> m_pCameraController;
 
-    GameObject* m_pObject1;  // シーン内のゲームオブジェクトへのポインタ
-    GameObject* m_pObject2;  // シーン内のゲームオブジェクトへのポインタ
+    engine::ObjectHandle m_object1;  // シーン内のゲームオブジェクトのハンドル
+    engine::ObjectHandle m_object2;  // シーン内のゲームオブジェクトのハンドル
 };

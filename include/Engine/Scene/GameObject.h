@@ -3,18 +3,15 @@
 #include <d3d12.h>
 
 #include "Engine/Core/EngineConfig.h"
+#include "Engine/Core/Handle.h"
 #include "Engine/Model/Model.h"
 #include "Engine/Scene/Transform.h"
 #include "Engine/Shader/TransformGPU.h"
 
 class GameObject {
 public:
-    GameObject(Model* pModel);
+    GameObject(engine::ModelHandle handle);
     ~GameObject();
-
-    /// @brief モデルをセット
-    /// @param pModel
-    bool SetModel(Model* pModel);
 
     /// @brief ワールド行列CBの更新
     void UpdateTransformGPU(int frameIndex);
@@ -26,16 +23,14 @@ public:
     TransformGPU& GetTransformGPU(int frameIndex) {
         return m_transformGPU[frameIndex];
     }
-    const Model& GetModel() const { return *m_model; }
 
-    void SetIndex(uint32_t index) { m_index = index; }
-    uint32_t GetIndex() const { return m_index; }
+    void SetModelHandle(engine::ModelHandle handle) { m_modelHandle = handle; }
+    const engine::ModelHandle GetModelHandle() const { return m_modelHandle; }
 
 private:
     Transform m_transform;
     TransformGPU m_transformGPU
         [config::kFrameCount];  // ワールド行列のシェーダーリソース
-    Model* m_model = nullptr;
 
-    uint32_t m_index = 0;  // シーン内のオブジェクトインデックス
+    engine::ModelHandle m_modelHandle;
 };

@@ -96,9 +96,8 @@ void Engine::Update() {
     shader::SceneConstants sc = {};
 
     // シーン内の全ゲームオブジェクトのtransformを更新
-    for (auto& obj : m_Scene.GetGameObjects()) {
-        obj->UpdateTransformGPU(m_FrameIndex);
-    }
+    m_Scene.ForEachObject(
+        [&](GameObject& obj) { obj.UpdateTransformGPU(m_FrameIndex); });
 
     // ビュー行列・射影行列を転置して格納
     DirectX::XMFLOAT4X4 view       = m_Camera.GetViewMatrix();
@@ -150,16 +149,18 @@ void Engine::Render() {
         m_pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         // 全オブジェクトを描画
-        for (auto& obj : m_Scene.GetGameObjects()) {
+        m_Scene.ForEachObject([&](GameObject& obj) {
             // [b1] TransformConstants (モデル単位)
             m_pCmdList->SetGraphicsRootConstantBufferView(
                 RootParam::CBV_Transform,
-                obj->GetTransformGPU(m_FrameIndex).GetGPUAddress());
+                obj.GetTransformGPU(m_FrameIndex).GetGPUAddress());
 
             // 各メッシュを描画
-            const auto& meshes    = obj->GetModel().GetMeshes();
-            const auto& materials = obj->GetModel().GetMaterials();
-            for (auto& mesh : obj->GetModel().GetMeshes()) {
+            const auto model = m_Scene.GetModel(obj.GetModelHandle());
+            if (model == nullptr) return;
+            const auto& meshes    = model->GetMeshes();
+            const auto& materials = model->GetMaterials();
+            for (auto& mesh : meshes) {
                 // このメッシュが使うマテリアルを取得
                 uint32_t materialID = mesh->GetMaterialID();
 
@@ -186,7 +187,7 @@ void Engine::Render() {
                 m_pCmdList->DrawIndexedInstanced(
                     mesh->GetIndexCount(), 1, 0, 0, 0);
             }
-        }
+        });
     }
 }
 
@@ -493,19 +494,21 @@ bool Engine::InitApp() {
         // auto moon  = loader.LoadModel(moonPath, batch);
 
         // モデルをシーンに追加
-        auto pEarth = m_Scene.AddModel(std::move(earth));
-        // auto pMoon  = m_Scene.AddModel(std::move(moon));
+        engine::ModelHandle modelHandle =
+            m_Scene.RegisterModel(std::move(earth));
+        // auto pMoon  = m_Scene.RegisterModel(std::move(moon));
 
         // ゲームオブジェクトをシーンに追加
-        uint32_t objectIndex  = AddGameObject(pEarth);
-        uint32_t objectIndex2 = AddGameObject(pEarth);
+        engine::ObjectHandle objectHandle = m_Scene.CreateGameObject(
+            modelHandle, m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
+        engine::ObjectHandle objectHandle2 = m_Scene.CreateGameObject(
+            modelHandle, m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
 
         // 座標設定
         DirectX::XMFLOAT3 pos1 = { -1.0f, 0.0f, 0.0f };
         DirectX::XMFLOAT3 pos2 = { 1.0f, 0.0f, 0.0f };
-        m_Scene.GetGameObjects()[objectIndex]->GetTransform().SetPosition(pos1);
-        m_Scene.GetGameObjects()[objectIndex2]->GetTransform().SetPosition(
-            pos2);
+        m_Scene.GetObject(objectHandle)->GetTransform().SetPosition(pos1);
+        m_Scene.GetObject(objectHandle2)->GetTransform().SetPosition(pos2);
 
         // 転送完了を待機
         auto future = batch.End(m_CommandQueue.GetD3DQueue());
@@ -662,16 +665,6 @@ void Engine::TermApp() {
 //=============================================
 // 内部ヘルパー
 //=============================================
-/// @brief SceneへのGameObject追加とGPUリソースの割り当て
-/// @return 追加したGameObjectのインデックス
-uint32_t Engine::AddGameObject(Model* pModel) {
-    // シーンにゲームオブジェクトを追加
-    uint32_t objectIndex =
-        m_Scene.CreateGameObject(pModel, m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
-
-    return objectIndex;
-}
-
 /// @brief HDR対応チェック
 DisplayInfo Engine::GetDisplayInfo() {
     // 出力情報の初期化
