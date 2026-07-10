@@ -1,5 +1,6 @@
-#include "Engine/Resource/ShaderResourceTexture.h"
+﻿#include "Engine/Resource/ShaderResourceTexture.h"
 
+#include "Engine/Core/DescriptorPool.h"
 #include "Engine/Core/DxDebug.h"
 
 ShaderResourceTexture::ShaderResourceTexture() : m_pPoolSRV(nullptr) {}
@@ -66,8 +67,7 @@ bool ShaderResourceTexture::InitFromImage(ID3D12Device* pDevice,
 
     // SRVの作成
     {
-        uint32_t idx = m_pPoolSRV->Allocate();
-        SrvIndex srvIndex{ idx };
+        DescriptorAllocation allocation = m_pPoolSRV->Allocate();
 
         D3D12_RESOURCE_DESC texDesc             = m_texture.GetDesc();
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -87,9 +87,9 @@ bool ShaderResourceTexture::InitFromImage(ID3D12Device* pDevice,
         }
 
         pDevice->CreateShaderResourceView(
-            m_texture.GetResource(), &srvDesc, m_pPoolSRV->GetCPUHandle(idx));
+            m_texture.GetResource(), &srvDesc, allocation.GetCPUHandle());
 
-        m_srvs.push_back(srvIndex);
+        m_srvs.push_back(std::move(allocation));
     }
 
     return true;
@@ -130,8 +130,7 @@ bool ShaderResourceTexture::InitSolidColorRGBA8(ID3D12Device* pDevice,
         D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
     // SRVの作成
-    uint32_t idx = m_pPoolSRV->Allocate();
-    SrvIndex srvIndex{ idx };
+    DescriptorAllocation allocation = m_pPoolSRV->Allocate();
 
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.Format                          = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -143,19 +142,14 @@ bool ShaderResourceTexture::InitSolidColorRGBA8(ID3D12Device* pDevice,
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
     pDevice->CreateShaderResourceView(
-        m_texture.GetResource(), &srvDesc, m_pPoolSRV->GetCPUHandle(idx));
+        m_texture.GetResource(), &srvDesc, allocation.GetCPUHandle());
 
-    m_srvs.push_back(srvIndex);
+    m_srvs.push_back(std::move(allocation));
 
     return true;
 }
 
 void ShaderResourceTexture::Term() {
-    for (auto idx : m_srvs) {
-        if (idx.IsValid() && m_pPoolSRV) {
-            m_pPoolSRV->Free(idx.index);
-        }
-    }
     m_srvs.clear();
     m_texture.Term();
     m_pPoolSRV = nullptr;
@@ -165,19 +159,12 @@ D3D12_GPU_DESCRIPTOR_HANDLE ShaderResourceTexture::GetDefaultSrvGpu() const {
     if (m_srvs.empty() || !m_srvs.front().IsValid() || !m_pPoolSRV) {
         return {};
     }
-    return m_pPoolSRV->GetGPUHandle(m_srvs.front().index);
+    return m_srvs.front().GetGPUHandle();
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE ShaderResourceTexture::GetDefaultSrvCpu() const {
     if (m_srvs.empty() || !m_srvs.front().IsValid() || !m_pPoolSRV) {
         return {};
     }
-    return m_pPoolSRV->GetCPUHandle(m_srvs.front().index);
-}
-
-SrvIndex ShaderResourceTexture::GetDefaultSrvIndex() const {
-    if (m_srvs.empty() || !m_srvs.front().IsValid() || !m_pPoolSRV) {
-        return SrvIndex{};
-    }
-    return m_srvs.front();
+    return m_srvs.front().GetCPUHandle();
 }

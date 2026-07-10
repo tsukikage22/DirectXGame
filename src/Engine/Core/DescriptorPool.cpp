@@ -2,6 +2,8 @@
 
 #include <stdexcept>
 
+#include "Engine/Core/DescriptorAllocation.h"
+
 bool DescriptorPool::Create(ID3D12Device* pDevice,
     D3D12_DESCRIPTOR_HEAP_TYPE type, D3D12_DESCRIPTOR_HEAP_FLAGS flags,
     uint32_t capacity, DescriptorPool** outPool) {
@@ -40,29 +42,27 @@ bool DescriptorPool::Create(ID3D12Device* pDevice,
     return true;
 }
 
-// プールへの割り当て
-uint32_t DescriptorPool::Allocate() {
-    std::lock_guard<std::mutex> lock(m_mutex);
-
-    assert(!m_free.empty() && "DescriptorPool: No free descriptors available");
-
-    uint32_t index = m_free.back();
-    m_free.pop_back();
-    return index;
+// ディスクリプタプールへの割り当て
+DescriptorAllocation DescriptorPool::Allocate() {
+    uint32_t index = ReserveIndex();
+    return DescriptorAllocation(this, index);
 }
 
-uint32_t DescriptorPool::LinearAllocateRange(uint32_t count) {
+DescriptorAllocation DescriptorPool::AllocateRange(uint32_t count) {
     // 引数チェック
     if (count == 0) {
-        return UINT32_MAX;
+        assert(false && "Range count must be greater than 0");
+        return DescriptorAllocation(nullptr, UINT32_MAX, 0);
     }
     if (count == 1) return Allocate();
 
+    // m_freeのデータ競合を防ぐため，mutexで保護する
+    // lockがスコープを抜ける時に自動でunlockされる
     std::lock_guard<std::mutex> lock(m_mutex);
 
     if (m_free.size() < count) {
         assert(false && "Not enough free descriptors");
-        return UINT32_MAX;
+        return DescriptorAllocation(nullptr, UINT32_MAX, 0);
     }
 
     // ソート
@@ -83,12 +83,28 @@ uint32_t DescriptorPool::LinearAllocateRange(uint32_t count) {
             uint32_t startIndex = m_free[i];
             // 割り当てた領域をフリーリストから削除
             m_free.erase(m_free.begin() + i, m_free.begin() + i + count);
-            return startIndex;
+            return DescriptorAllocation(this, startIndex, count);
         }
     }
 
     assert(false && "No continuous range found");
-    return UINT32_MAX;
+    return DescriptorAllocation(nullptr, UINT32_MAX, 0);
+}
+
+//========================================================================
+// private methods
+//========================================================================
+// インデックスの確保
+uint32_t DescriptorPool::ReserveIndex() {
+    // m_freeのデータ競合を防ぐため，mutexで保護する
+    // lockがスコープを抜ける時に自動でunlockされる
+    std::lock_guard<std::mutex> lock(m_mutex);
+
+    assert(!m_free.empty() && "DescriptorPool: No free descriptors available");
+
+    uint32_t index = m_free.back();
+    m_free.pop_back();
+    return index;
 }
 
 // 割り当ての解放
@@ -97,15 +113,6 @@ void DescriptorPool::Free(uint32_t index) {
 
     if (index >= m_capacity) return;
     m_free.push_back(index);
-}
-
-void DescriptorPool::FreeRange(uint32_t startIndex, uint32_t count) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-
-    if (startIndex + count > m_capacity) return;
-    for (uint32_t i = 0; i < count; i++) {
-        m_free.push_back(startIndex + i);
-    }
 }
 
 // CPUハンドル取得
@@ -118,12 +125,9 @@ D3D12_GPU_DESCRIPTOR_HANDLE DescriptorPool::GetGPUHandle(uint32_t index) const {
     return m_pHeap->GetGpuHandle(index);
 }
 
-uint32_t DescriptorPool::Capacity() const { return m_capacity; }
-
-uint32_t DescriptorPool::FreeCount() const {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return static_cast<uint32_t>(m_free.size());
-}
+//========================================================================
+// コンストラクタ・デストラクタ
+//========================================================================
 
 DescriptorPool::DescriptorPool() : m_capacity(0), m_shaderVisible(false) {}
 

@@ -70,18 +70,16 @@ void Engine::BeginFrame() {
 
     // 5. レンダーターゲットとビューポートの設定・クリア
     // レンダーターゲットの設定
-    uint32_t RTVIndex = m_ColorTarget[m_FrameIndex].GetRTVIndex();
-    uint32_t DSVIndex = m_DepthTarget.GetDSVIndex();
-    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_pPoolRTV->GetCPUHandle(RTVIndex);
-    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_pPoolDSV->GetCPUHandle(DSVIndex);
+    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle =
+        m_ColorTarget[m_FrameIndex].GetCPUHandle();
+    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_DepthTarget.GetCPUHandle();
     m_pCmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
     // レンダーターゲットのクリア
     const float clearColor[] = { 0.25f, 0.25f, 0.25f, 1.0f };
-    m_pCmdList->ClearRenderTargetView(
-        m_pPoolRTV->GetCPUHandle(RTVIndex), clearColor, 0, nullptr);
-    m_pCmdList->ClearDepthStencilView(m_pPoolDSV->GetCPUHandle(DSVIndex),
-        D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+    m_pCmdList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+    m_pCmdList->ClearDepthStencilView(
+        dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
     // ビューポートの設定
     m_pCmdList->RSSetViewports(1, &m_Viewport);

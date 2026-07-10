@@ -160,6 +160,7 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\Engine\Core\DescriptorAllocation.h" />
     <ClInclude Include="..\include\Engine\Core\EngineConfig.h" />
     <ClInclude Include="..\include\Engine\Core\GenHandle.h" />
     <ClInclude Include="..\include\Engine\Core\SlotMap.h" />
@@ -205,6 +206,7 @@
     <ClInclude Include="..\include\Engine\Model\VertexTypes.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\Engine\Core\DescriptorAllocation.cpp" />
     <ClCompile Include="..\src\Engine\Resource\AssetPath.cpp" />
     <ClCompile Include="..\src\Engine\Resource\IESProfile.cpp" />
     <ClCompile Include="..\src\Engine\Scene\Camera.cpp" />

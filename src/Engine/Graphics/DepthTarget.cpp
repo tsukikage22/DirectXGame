@@ -1,7 +1,8 @@
-#include "Engine/Graphics/DepthTarget.h"
+﻿#include "Engine/Graphics/DepthTarget.h"
 
-DepthTarget::DepthTarget()
-    : m_Target(), m_pPoolDSV(nullptr), m_DSVIndex(UINT32_MAX), m_ViewDesc{} {}
+#include "Engine/Core/DescriptorPool.h"
+
+DepthTarget::DepthTarget() : m_Target(), m_pPoolDSV(nullptr), m_ViewDesc{} {}
 
 DepthTarget::~DepthTarget() { Term(); }
 
@@ -25,26 +26,21 @@ bool DepthTarget::Init(ID3D12Device* pDevice, DescriptorPool* pPoolDSV,
     }
 
     // DSVの作成
-    m_pPoolDSV = pPoolDSV;
-    m_DSVIndex = m_pPoolDSV->Allocate();
+    m_pPoolDSV      = pPoolDSV;
+    m_DSVAllocation = m_pPoolDSV->Allocate();
 
     m_ViewDesc.ViewDimension      = D3D12_DSV_DIMENSION_TEXTURE2D;
     m_ViewDesc.Format             = format;
     m_ViewDesc.Texture2D.MipSlice = 0;
     m_ViewDesc.Flags              = D3D12_DSV_FLAG_NONE;
 
-    pDevice->CreateDepthStencilView(m_Target.GetResource(), &m_ViewDesc,
-        m_pPoolDSV->GetCPUHandle(m_DSVIndex));
+    pDevice->CreateDepthStencilView(
+        m_Target.GetResource(), &m_ViewDesc, m_DSVAllocation.GetCPUHandle());
 
     return true;
 }
 
 void DepthTarget::Term() {
     m_Target.Term();
-
-    if (m_pPoolDSV != nullptr && m_DSVIndex != UINT32_MAX) {
-        m_pPoolDSV->Free(m_DSVIndex);
-        m_DSVIndex = UINT32_MAX;
-    }
     m_pPoolDSV = nullptr;
 }

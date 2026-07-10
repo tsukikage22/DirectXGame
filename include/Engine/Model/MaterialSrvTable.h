@@ -5,6 +5,8 @@
 #include <cassert>
 #include <optional>
 
+#include "Engine/Core/DescriptorAllocation.h"
+
 class DescriptorPool;
 class TextureManager;
 class MaterialGPU;
@@ -26,6 +28,5 @@ public:
 
 private:
     DescriptorPool* m_pPoolSRV = nullptr;
-
-    std::optional<uint32_t> m_SRVbase = std::nullopt;
+    DescriptorAllocation m_SRVbase;  // SRVテーブルの先頭インデックス
 };

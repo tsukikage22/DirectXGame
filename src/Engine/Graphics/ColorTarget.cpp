@@ -1,7 +1,6 @@
 #include "Engine/Graphics/ColorTarget.h"
 
-ColorTarget::ColorTarget()
-    : m_Target(), m_pPoolRTV(nullptr), m_RTVIndex(UINT32_MAX), m_ViewDesc{} {}
+ColorTarget::ColorTarget() : m_Target(), m_pPoolRTV(nullptr), m_ViewDesc{} {}
 
 ColorTarget::~ColorTarget() { Term(); }
 
@@ -18,8 +17,8 @@ bool ColorTarget::Init(ID3D12Device* pDevice, DescriptorPool* pPoolRTV,
     }
 
     // RTVの作成
-    m_pPoolRTV = pPoolRTV;
-    m_RTVIndex = m_pPoolRTV->Allocate();
+    m_pPoolRTV      = pPoolRTV;
+    m_RTVAllocation = m_pPoolRTV->Allocate();
 
     DXGI_SWAP_CHAIN_DESC desc;
     pSwapChain->GetDesc(&desc);
@@ -29,18 +28,13 @@ bool ColorTarget::Init(ID3D12Device* pDevice, DescriptorPool* pPoolRTV,
     m_ViewDesc.Texture2D.MipSlice   = 0;
     m_ViewDesc.Texture2D.PlaneSlice = 0;
 
-    pDevice->CreateRenderTargetView(m_Target.GetResource(), &m_ViewDesc,
-        m_pPoolRTV->GetCPUHandle(m_RTVIndex));
+    pDevice->CreateRenderTargetView(
+        m_Target.GetResource(), &m_ViewDesc, m_RTVAllocation.GetCPUHandle());
 
     return true;
 }
 
 void ColorTarget::Term() {
     m_Target.Term();
-
-    if (m_pPoolRTV != nullptr && m_RTVIndex != UINT32_MAX) {
-        m_pPoolRTV->Free(m_RTVIndex);
-        m_RTVIndex = UINT32_MAX;
-    }
     m_pPoolRTV = nullptr;
 }
