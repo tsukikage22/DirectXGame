@@ -23,7 +23,7 @@
 #include "Engine/Core/DescriptorPool.h"
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/FrameResource.h"
-#include "Engine/Core/Handle.h"
+#include "Engine/Core/GenHandle.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Graphics/DepthTarget.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"

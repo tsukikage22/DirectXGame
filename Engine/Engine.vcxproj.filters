@@ -180,10 +180,10 @@
     <ClInclude Include="..\include\Engine\Core\EngineConfig.h">
       <Filter>ヘッダー ファイル\Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\Core\Handle.h">
+    <ClInclude Include="..\include\Engine\Core\SlotMap.h">
       <Filter>ヘッダー ファイル\Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\Core\SlotMap.h">
+    <ClInclude Include="..\include\Engine\Core\GenHandle.h">
       <Filter>ヘッダー ファイル\Core</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include <memory>
 
-#include "Engine/Core/Handle.h"
+#include "Engine/Core/GenHandle.h"
 
 // 前方宣言
 class Engine;

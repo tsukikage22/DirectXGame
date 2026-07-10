@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "Engine/Core/EngineConfig.h"
-#include "Engine/Core/Handle.h"
+#include "Engine/Core/GenHandle.h"
 #include "Engine/Core/SlotMap.h"
 #include "Engine/Model/Model.h"
 #include "Engine/Scene/GameObject.h"

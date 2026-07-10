@@ -3,7 +3,7 @@
 #include <d3d12.h>
 
 #include "Engine/Core/EngineConfig.h"
-#include "Engine/Core/Handle.h"
+#include "Engine/Core/GenHandle.h"
 #include "Engine/Model/Model.h"
 #include "Engine/Scene/Transform.h"
 #include "Engine/Shader/TransformGPU.h"

@@ -7,12 +7,12 @@
 #include <memory>
 #include <vector>
 
-#include "Engine/Core/Handle.h"
+#include "Engine/Core/GenHandle.h"
 
 template <typename T, typename Tag>
 class SlotMap {
 public:
-    using HandleType = engine::Handle<Tag>;
+    using HandleType = engine::GenHandle<Tag>;
 
     /// @brief 空きスロットへ追加しハンドルを返す
     HandleType Insert(T value) {

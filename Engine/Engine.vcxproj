@@ -161,7 +161,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Engine\Core\EngineConfig.h" />
-    <ClInclude Include="..\include\Engine\Core\Handle.h" />
+    <ClInclude Include="..\include\Engine\Core\GenHandle.h" />
     <ClInclude Include="..\include\Engine\Core\SlotMap.h" />
     <ClInclude Include="..\include\Engine\Resource\IESProfile.h" />
     <ClInclude Include="..\include\Engine\Scene\Camera.h" />

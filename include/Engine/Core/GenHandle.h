@@ -7,7 +7,7 @@
 
 namespace engine {
 template <typename Tag>
-struct Handle {
+struct GenHandle {
     uint32_t index      = UINT32_MAX;  // インデックス
     uint32_t generation = 0;           // 世代カウンタ
 
@@ -17,7 +17,7 @@ struct Handle {
 struct GameObjectTag {};
 struct ModelTag {};
 
-using ObjectHandle = Handle<GameObjectTag>;
-using ModelHandle  = Handle<ModelTag>;
+using ObjectHandle = GenHandle<GameObjectTag>;
+using ModelHandle  = GenHandle<ModelTag>;
 
 }  // namespace engine
