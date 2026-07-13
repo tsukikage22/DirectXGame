@@ -37,17 +37,18 @@ public:
     }
 
     /// @brief ハンドルに対応する要素を削除する
-    void Erase(HandleType h) {
+    T Erase(HandleType h) {
         // 引数のチェック
-        if (h.index >= m_slots.size()) return;
+        if (h.index >= m_slots.size()) return T{};
 
         // スロットのgenerationを確認
         Slot& slot = m_slots[h.index];
-        if (slot.generation != h.generation) return;
+        if (slot.generation != h.generation) return T{};
 
         // 実データ配列は末尾要素を削除対象の位置に移動して詰める
         uint32_t lastDataIndex   = m_data.size() - 1;
         uint32_t erasedDataIndex = slot.dataIndex;
+        T erasedData             = std::move(m_data[erasedDataIndex]);
         m_data[erasedDataIndex]  = std::move(m_data[lastDataIndex]);
         m_data.pop_back();
 
@@ -63,7 +64,7 @@ public:
         slot.generation++;
         m_freeList.push_back(h.index);
 
-        return;
+        return std::move(erasedData);
     }
 
     /// @brief generationを確認し有効なら実体を返す
