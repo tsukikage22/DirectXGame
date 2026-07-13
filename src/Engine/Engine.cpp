@@ -54,6 +54,8 @@ void Engine::BeginFrame() {
     if (fenceValue != 0) {
         m_CommandQueue.Wait(fenceValue, INFINITE);
     }
+    // 遅延解放キューのクリア
+    m_Scene.BeginFrame(m_FrameIndex);
 
     // 3. コマンドリスト/アロケータのリセット
     m_FrameResources[m_FrameIndex].BeginFrame(m_pCmdList.Get());

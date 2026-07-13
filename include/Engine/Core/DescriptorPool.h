@@ -68,7 +68,7 @@ private:
     /// @brief インデックスの確保
     uint32_t ReserveIndex();
 
-    /// @brief ディスクリプタプールの解放
+    /// @brief 割り当ての解放
     void Free(uint32_t index);
 
     // ハンドルの取得

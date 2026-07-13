@@ -41,10 +41,34 @@ engine::ObjectHandle Scene::CreateGameObject(engine::ModelHandle model,
 
 // ゲームオブジェクトの削除
 void Scene::RemoveGameObject(engine::ObjectHandle handle) {
-    m_gameObjectMap.Erase(handle);
+    auto obj = m_gameObjectMap.Erase(handle);
+    if (obj.has_value()) {
+        m_retireQueue.Retire(std::move(obj.value()), m_currentFrameIndex);
+    }
 }
 
 void Scene::Term() {
     // モデルの破棄
     m_modelMap.ForEach([](std::unique_ptr<Model>& pModel) { pModel->Term(); });
+
+    // 遅延解放キューのクリア
+    m_retireQueue.ClearAll();
+}
+
+/// 遅延解放キューのクリア
+void Scene::BeginFrame(uint32_t frameIndex) {
+    m_currentFrameIndex = frameIndex;
+    m_retireQueue.Clear(frameIndex);
+}
+
+/// ハンドルに対応するゲームオブジェクトの取得
+GameObject* Scene::GetObject(engine::ObjectHandle handle) {
+    auto* pObj = m_gameObjectMap.Get(handle);
+    return pObj ? pObj->get() : nullptr;
+}
+
+/// ハンドルに対応するモデルの取得
+Model* Scene::GetModel(engine::ModelHandle handle) {
+    auto* pModel = m_modelMap.Get(handle);
+    return pModel ? pModel->get() : nullptr;
 }

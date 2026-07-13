@@ -6,6 +6,7 @@
 
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/GenHandle.h"
+#include "Engine/Core/RetireQueue.h"
 #include "Engine/Core/SlotMap.h"
 #include "Engine/Model/Model.h"
 #include "Engine/Scene/GameObject.h"
@@ -31,6 +32,10 @@ public:
     /// @brief ゲームオブジェクトを削除する
     void RemoveGameObject(engine::ObjectHandle handle);
 
+    /// @brief
+    /// フレーム開始時の処理，frameIndexの設定と遅延解放キューのクリア，必ずフェンス待機後に呼び出す
+    void BeginFrame(uint32_t frameIndex);
+
     /// @brief 全ゲームオブジェクトに対してfnを呼び出す
     template <typename Fn>
     void ForEachObject(Fn&& fn) {
@@ -40,16 +45,10 @@ public:
     }
 
     /// @brief ハンドルに対応するゲームオブジェクトの取得
-    GameObject* GetObject(engine::ObjectHandle handle) {
-        auto* pObj = m_gameObjectMap.Get(handle);
-        return pObj ? pObj->get() : nullptr;
-    }
+    GameObject* GetObject(engine::ObjectHandle handle);
 
     /// @brief ハンドルに対応するモデルの取得
-    Model* GetModel(engine::ModelHandle handle) {
-        auto* pModel = m_modelMap.Get(handle);
-        return pModel ? pModel->get() : nullptr;
-    }
+    Model* GetModel(engine::ModelHandle handle);
 
 private:
     //==============================================================
@@ -59,4 +58,8 @@ private:
         m_gameObjectMap;  // ゲームオブジェクトのスロットマップ
     SlotMap<std::unique_ptr<Model>, engine::ModelTag>
         m_modelMap;  // モデルのスロットマップ
+
+    // 遅延解放キュー
+    RetireQueue<std::unique_ptr<GameObject>> m_retireQueue;
+    uint32_t m_currentFrameIndex = 0;  // 現在のフレームインデックス
 };
