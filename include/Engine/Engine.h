@@ -67,6 +67,7 @@ enum RootParam {
     SRV_IESProfile = 6   // t0, space1
 };
 
+/// @brief ディスプレイ情報
 struct DisplayInfo {
     HMONITOR hMonitor;
     bool isHDRSupported;
@@ -74,6 +75,9 @@ struct DisplayInfo {
     float minLuminance;
     float maxFullFrameLuminance;
 };
+
+// 前方宣言
+class ModelLoadScope;
 
 ////////////////////////////////////////////
 // Engine class
@@ -100,6 +104,9 @@ public:
 
     void Present();
 
+    /// @brief モデルロード用オブジェクトの作成
+    ModelLoadScope CreateModelLoadScope();
+
     //==================================================================
     // アクセサ
     //==================================================================
@@ -124,7 +131,6 @@ private:
     //==============================================================
     // private variables
     //==============================================================
-
     engine::ComPtr<ID3D12Device> m_pDevice;                // デバイス
     engine::ComPtr<IDXGISwapChain3> m_pSwapChain;          // スワップチェイン
     engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList;  // コマンドリスト
@@ -147,6 +153,7 @@ private:
 
     FrameResource m_FrameResources[config::kFrameCount];  // フレームリソース
 
+    ModelLoader m_modelLoader;
     std::vector<ModelAsset> m_ModelAssets;  // モデルデータ
     UINT m_textureCount = 0;                // テクスチャ数
     TextureManager m_TextureManager;        // テクスチャマネージャ
@@ -164,7 +171,6 @@ private:
 
     HWND m_hWnd;  // ウィンドウハンドル
 
-private:
     /////////////////////////////////////////////////////////////////////////
     // private methods
     /////////////////////////////////////////////////////////////////////////
@@ -176,9 +182,6 @@ private:
     //==============================================================
     // 内部ヘルパー
     //==============================================================
-    /// @brief SceneへのGameObject追加とGPUリソースの割り当て
-    engine::ObjectHandle AddGameObject(Model* pModel);
-
     /// @brief HDR対応チェック
     DisplayInfo GetDisplayInfo();
 
@@ -188,7 +191,6 @@ private:
     //==============================================================
     // Inner Class
     //==============================================================
-
     /// @brief ウィンドウイベント用の内部クラス
     class WindowEventAdapter : public IWindowEventListener {
     public:

@@ -3,6 +3,8 @@
 #include <DirectXMath.h>
 
 #include "Engine/Engine.h"
+#include "Engine/Resource/AssetPath.h"
+#include "Engine/Resource/ModelLoadScope.h"
 #include "Engine/Scene/Scene.h"
 #include "Game/CameraController.h"
 
@@ -13,13 +15,22 @@ Game::Game()
 Game::~Game() {}
 
 void Game::Init(Engine* pEngine) {
-    m_pEngine = pEngine;
+    m_pEngine      = pEngine;
+    m_pInputSystem = &m_pEngine->GetInputSystem();
 
     m_pCameraController = std::make_unique<CameraController>();
 
     // カメラコントローラの初期化
     m_pCameraController->Init(
         &m_pEngine->GetCamera(), &m_pEngine->GetInputSystem());
+
+    // モデルのロード
+    auto loader = m_pEngine->CreateModelLoadScope();
+    std::filesystem::path path;
+    AssetPath().GetAssetPath(L"model/TextureSphere.glb", path);
+    m_earthModel = loader.LoadModel(path);
+    AssetPath().GetAssetPath(L"model/MoonSphere.glb", path);
+    m_moonModel = loader.LoadModel(path);
 }
 
 void Game::Tick(float deltaTime) {
@@ -28,11 +39,22 @@ void Game::Tick(float deltaTime) {
         m_pCameraController->Update(deltaTime);
     }
 
-    // ゲームオブジェクトの更新
-    Scene& scene = m_pEngine->GetScene();
-    scene.ForEachObject([deltaTime](GameObject& obj) {
-        DirectX::XMFLOAT3 rot = obj.GetTransform().GetRotation();
-        rot.y += 2.0f * deltaTime;  // 毎フレーム少しずつ回転
-        obj.GetTransform().SetRotation(rot);
-    });
+    // ゲームオブジェクトの生成削除
+    if (m_pInputSystem->WasKeyPressed('1')) {
+        if (!m_earthObject.IsValid()) {
+            m_earthObject = m_pEngine->GetScene().SpawnObject(m_earthModel);
+        } else {
+            m_pEngine->GetScene().DespawnObject(m_earthObject);
+            m_earthObject = {};
+        }
+    }
+
+    if (m_pInputSystem->WasKeyPressed('2')) {
+        if (!m_moonObject.IsValid()) {
+            m_moonObject = m_pEngine->GetScene().SpawnObject(m_moonModel);
+        } else {
+            m_pEngine->GetScene().DespawnObject(m_moonObject);
+            m_moonObject = {};
+        }
+    }
 }

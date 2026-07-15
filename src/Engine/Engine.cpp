@@ -9,6 +9,7 @@
 #include "Engine/Engine.h"
 
 #include "Engine/Core/DxDebug.h"
+#include "Engine/Resource/ModelLoadScope.h"
 
 ////////////////////////////////////////////
 // Engine class
@@ -426,22 +427,17 @@ bool Engine::InitApp() {
         m_pCmdList->Close();
     }
 
-    // 3Dモデルのロード
+    // ファイルのロード
     {
-        // ファイルの検索
-        std::filesystem::path earthPath, moonPath;
-        if (!AssetPath().GetAssetPath(L"model/TextureSphere.glb", earthPath)) {
-            OutputDebugStringW(L"Error: model not found.\n");
-            MessageBoxW(nullptr, L"Failed to find TextureSphere file.",
-                L"Error", MB_OK);
+        // ModelLoaderの初期化
+        if (!m_modelLoader.Init(
+                m_pDevice.Get(), m_pPoolCBV_SRV_UAV, &m_TextureManager)) {
+            assert(false && "Failed to initialize ModelLoader.");
             return false;
         }
-        if (!AssetPath().GetAssetPath(L"model/MoonSphere.glb", moonPath)) {
-            OutputDebugStringW(L"Error: model not found.\n");
-            MessageBoxW(
-                nullptr, L"Failed to find MoonSphere file.", L"Error", MB_OK);
-            return false;
-        }
+
+        // シーンの初期化
+        m_Scene.Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
 
         // TextureManagerの初期化
         if (!m_TextureManager.Init(m_pDevice.Get())) {
@@ -477,38 +473,6 @@ bool Engine::InitApp() {
                 nullptr, L"Failed to initialize IESProfile.", L"Error", MB_OK);
             return false;
         }
-
-        // モデルのロード
-        ModelLoader loader;
-        if (!loader.Init(
-                m_pDevice.Get(), m_pPoolCBV_SRV_UAV, &m_TextureManager)) {
-            MessageBoxW(
-                nullptr, L"Failed to initialize ModelLoader.", L"Error", MB_OK);
-            return false;
-        }
-        auto earth = loader.LoadModel(earthPath, batch);
-        if (!earth) {
-            MessageBoxW(nullptr, L"Failed to load model.", L"Error", MB_OK);
-            return false;
-        }
-        // auto moon  = loader.LoadModel(moonPath, batch);
-
-        // モデルをシーンに追加
-        engine::ModelHandle modelHandle =
-            m_Scene.RegisterModel(std::move(earth));
-        // auto pMoon  = m_Scene.RegisterModel(std::move(moon));
-
-        // ゲームオブジェクトをシーンに追加
-        engine::ObjectHandle objectHandle = m_Scene.CreateGameObject(
-            modelHandle, m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
-        engine::ObjectHandle objectHandle2 = m_Scene.CreateGameObject(
-            modelHandle, m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
-
-        // 座標設定
-        DirectX::XMFLOAT3 pos1 = { -1.0f, 0.0f, 0.0f };
-        DirectX::XMFLOAT3 pos2 = { 1.0f, 0.0f, 0.0f };
-        m_Scene.GetObject(objectHandle)->GetTransform().SetPosition(pos1);
-        m_Scene.GetObject(objectHandle2)->GetTransform().SetPosition(pos2);
 
         // 転送完了を待機
         auto future = batch.End(m_CommandQueue.GetD3DQueue());
@@ -660,6 +624,17 @@ void Engine::TermApp() {
 
     // コマンドリストの解放
     m_pCmdList.Reset();
+}
+
+ModelLoadScope Engine::CreateModelLoadScope() {
+    // ResourceUploadBatchのBegin
+    auto batch =
+        std::make_unique<DirectX::ResourceUploadBatch>(m_pDevice.Get());
+    batch->Begin();
+
+    // ModelLoadScopeの初期化
+    return ModelLoadScope(
+        std::move(batch), m_CommandQueue, m_modelLoader, m_Scene);
 }
 
 //=============================================

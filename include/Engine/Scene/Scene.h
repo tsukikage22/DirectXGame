@@ -1,5 +1,7 @@
 #pragma once
 
+#include <d3d12.h>
+
 #include <memory>
 #include <stack>
 #include <vector>
@@ -17,6 +19,8 @@ public:
     Scene();
     ~Scene();
 
+    void Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV);
+
     void Term();
 
     /// @brief シーンにモデルを追加する
@@ -26,11 +30,10 @@ public:
     void DiscardModelUploads();
 
     /// @brief シーン内にゲームオブジェクトを作成する
-    engine::ObjectHandle CreateGameObject(engine::ModelHandle model,
-        ID3D12Device* pDevice, DescriptorPool* pPoolCBV);
+    engine::ObjectHandle SpawnObject(engine::ModelHandle model);
 
     /// @brief ゲームオブジェクトを削除する
-    void RemoveGameObject(engine::ObjectHandle handle);
+    void DespawnObject(engine::ObjectHandle handle);
 
     /// @brief
     /// フレーム開始時の処理，frameIndexの設定と遅延解放キューのクリア，必ずフェンス待機後に呼び出す
@@ -54,6 +57,11 @@ private:
     //==============================================================
     // メンバ変数
     //==============================================================
+    // D3D12
+    ID3D12Device* m_pDevice    = nullptr;  // デバイス
+    DescriptorPool* m_pPoolCBV = nullptr;  // CBV用ディスクリプタプール
+
+    // モデルとオブジェクトのスロットマップ
     SlotMap<std::unique_ptr<GameObject>, engine::GameObjectTag>
         m_gameObjectMap;  // ゲームオブジェクトのスロットマップ
     SlotMap<std::unique_ptr<Model>, engine::ModelTag>

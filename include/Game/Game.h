@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Engine/Core/GenHandle.h"
+#include "Engine/Input/InputSystem.h"
 
 // 前方宣言
 class Engine;
@@ -25,8 +26,14 @@ public:
 
 private:
     Engine* m_pEngine;
+    InputSystem* m_pInputSystem;
     std::unique_ptr<CameraController> m_pCameraController;
 
-    engine::ObjectHandle m_object1;  // シーン内のゲームオブジェクトのハンドル
-    engine::ObjectHandle m_object2;  // シーン内のゲームオブジェクトのハンドル
+    engine::ModelHandle m_earthModel;  // シーン内の球体モデルのハンドル
+    engine::ModelHandle m_moonModel;
+
+    engine::ObjectHandle
+        m_earthObject;  // シーン内のゲームオブジェクトのハンドル
+    engine::ObjectHandle
+        m_moonObject;  // シーン内のゲームオブジェクトのハンドル
 };
