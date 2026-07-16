@@ -7,8 +7,11 @@
 #include <vector>
 
 #include "Engine/Core/ComPtr.h"
-#include "Engine/Core/DescriptorPool.h"
+#include "Engine/Core/DescriptorAllocation.h"
 #include "Engine/Resource/TextureResource.h"
+
+// 前方宣言
+class DescriptorPool;
 
 //-----------------------------------------------
 // Light Source Structure
@@ -54,11 +57,9 @@ public:
     //------------------------------------------------
     D3D12_GPU_DESCRIPTOR_HANDLE GetSrvGpuHandle() const;
 
-    uint32_t GetSrvIndex() const { return m_srvIndex; }
-
 private:
     TextureResource m_texture;   // IESプロファイルのテクスチャ
-    uint32_t m_srvIndex;         // ディスクリプタプール内のインデックス
+    DescriptorAllocation m_srv;  // SRVディスクリプタ
     DescriptorPool* m_pPoolSRV;  // ディスクリプタプール
 
     // コピー禁止

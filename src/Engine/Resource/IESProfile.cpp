@@ -4,6 +4,7 @@
 
 #include <fstream>
 
+#include "Engine/Core/DescriptorPool.h"
 #include "Engine/Core/DxDebug.h"
 
 namespace {
@@ -305,7 +306,7 @@ std::vector<float> BuildPixels(
 //------------------------------------------------
 // IESProfile class
 //------------------------------------------------
-IESProfile::IESProfile() : m_srvIndex(UINT32_MAX), m_pPoolSRV(nullptr) {}
+IESProfile::IESProfile() : m_pPoolSRV(nullptr) {}
 
 IESProfile::~IESProfile() { Term(); }
 
@@ -349,8 +350,7 @@ bool IESProfile::Init(ID3D12Device* pDevice, DescriptorPool* pPool,
     }
 
     // SRVインデックスの確保
-    uint32_t index = m_pPoolSRV->Allocate();
-    m_srvIndex     = index;
+    m_srv = m_pPoolSRV->Allocate();
 
     // SRVディスクリプタの設定
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -364,7 +364,7 @@ bool IESProfile::Init(ID3D12Device* pDevice, DescriptorPool* pPool,
 
     // SRVの生成
     pDevice->CreateShaderResourceView(
-        m_texture.GetResource(), &srvDesc, m_pPoolSRV->GetCPUHandle(index));
+        m_texture.GetResource(), &srvDesc, m_srv.GetCPUHandle());
 
     // ResourceUploadBatchでアップロード
     D3D12_SUBRESOURCE_DATA subRes = {};
@@ -379,18 +379,11 @@ bool IESProfile::Init(ID3D12Device* pDevice, DescriptorPool* pPool,
     return true;
 }
 
-void IESProfile::Term() {
-    if (m_srvIndex != UINT32_MAX && m_pPoolSRV) {
-        m_pPoolSRV->Free(m_srvIndex);
-    }
-
-    m_srvIndex = UINT32_MAX;
-    m_pPoolSRV = nullptr;
-}
+void IESProfile::Term() { m_pPoolSRV = nullptr; }
 
 D3D12_GPU_DESCRIPTOR_HANDLE IESProfile::GetSrvGpuHandle() const {
-    if (m_srvIndex != UINT32_MAX && m_pPoolSRV) {
-        return m_pPoolSRV->GetGPUHandle(m_srvIndex);
+    if (m_srv.IsValid() && m_pPoolSRV) {
+        return m_srv.GetGPUHandle();
     }
 
     return {};

@@ -3,10 +3,7 @@
 #include "Engine/Core/DxDebug.h"
 
 FrameResource::FrameResource()
-    : m_pCmdAllocator(nullptr),
-      m_pTransforms(),
-      m_sceneConstants(),
-      m_fenceValue(0) {}
+    : m_pCmdAllocator(nullptr), m_sceneConstants(), m_fenceValue(0) {}
 
 FrameResource::~FrameResource() { Term(); }
 
@@ -45,22 +42,6 @@ void FrameResource::Term() {
     m_sceneConstants.Term();
     m_lightingConstants.Term();
     m_pCmdAllocator.Reset();
-}
-
-bool FrameResource::AddTransform(
-    ID3D12Device* pDevice, DescriptorPool* pPoolCBV) {
-    // メモリ確保
-    size_t curSize = m_pTransforms.size();
-    m_pTransforms.reserve(curSize + 1);
-
-    // Transformの初期化と追加
-    auto transform = std::make_unique<TransformGPU>();
-    if (!transform->Init(pDevice, pPoolCBV)) {
-        return false;
-    }
-    m_pTransforms.push_back(std::move(transform));
-
-    return true;
 }
 
 void FrameResource::BeginFrame(ID3D12GraphicsCommandList* pCmdList) {

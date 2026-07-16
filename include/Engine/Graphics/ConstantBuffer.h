@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "Engine/Core/ComPtr.h"
-#include "Engine/Core/DescriptorPool.h"
+#include "Engine/Core/DescriptorAllocation.h"
 #include "Engine/Graphics/GPUBuffer.h"
 
 class DescriptorPool;
@@ -33,7 +33,7 @@ public:
     //========================================
     /// @brief ディスクリプタハンドルの取得
     D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const {
-        return m_pPool->GetGPUHandle(m_index);
+        return m_allocation.GetGPUHandle();
     }
 
     /// @brief GPU仮想アドレスの取得
@@ -43,11 +43,11 @@ public:
 
 private:
     DescriptorPool* m_pPool;                 // ディスクリプタプール
+    DescriptorAllocation m_allocation;       // ディスクリプタの割り当て
     void* m_pMappedData;                     // マップ済みデータ
     D3D12_GPU_VIRTUAL_ADDRESS m_GPUAddress;  // GPU仮想アドレス
-    uint32_t m_index;    // ディスクリプタプールのインデックス
-    GPUBuffer m_buffer;  // アップロード用バッファ
-    size_t m_size;       // バッファサイズ
+    GPUBuffer m_buffer;                      // アップロード用バッファ
+    size_t m_size;                           // バッファサイズ
 
     ConstantBuffer(const ConstantBuffer&)            = delete;
     ConstantBuffer& operator=(const ConstantBuffer&) = delete;

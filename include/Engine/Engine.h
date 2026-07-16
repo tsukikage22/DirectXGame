@@ -21,7 +21,9 @@
 #include "Engine/Core/ComPtr.h"
 #include "Engine/Core/CommandQueue.h"
 #include "Engine/Core/DescriptorPool.h"
+#include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/FrameResource.h"
+#include "Engine/Core/GenHandle.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Graphics/DepthTarget.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
@@ -65,6 +67,7 @@ enum RootParam {
     SRV_IESProfile = 6   // t0, space1
 };
 
+/// @brief ディスプレイ情報
 struct DisplayInfo {
     HMONITOR hMonitor;
     bool isHDRSupported;
@@ -73,13 +76,14 @@ struct DisplayInfo {
     float maxFullFrameLuminance;
 };
 
+// 前方宣言
+class ModelLoadScope;
+
 ////////////////////////////////////////////
 // Engine class
 ////////////////////////////////////////////
 class Engine {
 public:
-    static constexpr uint32_t FrameCount = 2;  // フレームバッファ数
-
     //==================================================================
     // ライフサイクル管理
     //==================================================================
@@ -100,6 +104,9 @@ public:
 
     void Present();
 
+    /// @brief モデルロード用オブジェクトの作成
+    ModelLoadScope CreateModelLoadScope();
+
     //==================================================================
     // アクセサ
     //==================================================================
@@ -115,9 +122,15 @@ public:
 
 private:
     //==============================================================
+    // constants
+    //==============================================================
+    static constexpr DXGI_FORMAT kBackBufferFormat =
+        DXGI_FORMAT_R16G16B16A16_FLOAT;
+    static constexpr DXGI_FORMAT kDepthBufferFormat = DXGI_FORMAT_D32_FLOAT;
+
+    //==============================================================
     // private variables
     //==============================================================
-
     engine::ComPtr<ID3D12Device> m_pDevice;                // デバイス
     engine::ComPtr<IDXGISwapChain3> m_pSwapChain;          // スワップチェイン
     engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList;  // コマンドリスト
@@ -125,22 +138,22 @@ private:
     engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
     engine::ComPtr<IDXGIFactory6> m_pFactory;    // DXGIファクトリ
 
-    uint32_t m_FrameIndex;       // 現在のフレーム番号
-    size_t m_maxObjects = 1000;  // 最大オブジェクト数
+    uint32_t m_FrameIndex;  // 現在のフレーム番号
 
     DescriptorPool* m_pPoolCBV_SRV_UAV;  // CBV/SRV/UAV用ディスクリプタプール
     DescriptorPool* m_pPoolRTV;          // RTV用ディスクリプタプール
     DescriptorPool* m_pPoolDSV;          // DSV用ディスクリプタプール
     DescriptorPool* m_pPoolSMP;          // サンプラ用ディスクリプタプール
 
-    ColorTarget m_ColorTarget[FrameCount];  // カラーターゲット
-    DepthTarget m_DepthTarget;              // 深度ステンシル
-    CommandQueue m_CommandQueue;            // コマンドキュー
-    D3D12_VIEWPORT m_Viewport;              // ビューポート
-    D3D12_RECT m_ScissorRect;               // シザー矩形
+    ColorTarget m_ColorTarget[config::kFrameCount];  // カラーターゲット
+    DepthTarget m_DepthTarget;                       // 深度ステンシル
+    CommandQueue m_CommandQueue;                     // コマンドキュー
+    D3D12_VIEWPORT m_Viewport;                       // ビューポート
+    D3D12_RECT m_ScissorRect;                        // シザー矩形
 
-    FrameResource m_FrameResources[FrameCount];  // フレームリソース
+    FrameResource m_FrameResources[config::kFrameCount];  // フレームリソース
 
+    ModelLoader m_modelLoader;
     std::vector<ModelAsset> m_ModelAssets;  // モデルデータ
     UINT m_textureCount = 0;                // テクスチャ数
     TextureManager m_TextureManager;        // テクスチャマネージャ
@@ -148,8 +161,6 @@ private:
     Scene m_Scene;                          // シーン
 
     IESProfile m_IESProfile;  // IESプロファイル
-
-    static constexpr size_t maxObjects = 100;  // 最大オブジェクト数
 
     InputSystem m_InputSystem;                  // 入力システム
     DisplayInfo m_DisplayInfo;                  // ディスプレイ情報
@@ -160,7 +171,6 @@ private:
 
     HWND m_hWnd;  // ウィンドウハンドル
 
-private:
     /////////////////////////////////////////////////////////////////////////
     // private methods
     /////////////////////////////////////////////////////////////////////////
@@ -172,9 +182,6 @@ private:
     //==============================================================
     // 内部ヘルパー
     //==============================================================
-    /// @brief SceneへのGameObject追加とGPUリソースの割り当て
-    uint32_t AddGameObject(Model* pModel);
-
     /// @brief HDR対応チェック
     DisplayInfo GetDisplayInfo();
 
@@ -184,7 +191,6 @@ private:
     //==============================================================
     // Inner Class
     //==============================================================
-
     /// @brief ウィンドウイベント用の内部クラス
     class WindowEventAdapter : public IWindowEventListener {
     public:

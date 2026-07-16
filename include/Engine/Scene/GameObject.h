@@ -2,30 +2,35 @@
 
 #include <d3d12.h>
 
+#include "Engine/Core/EngineConfig.h"
+#include "Engine/Core/GenHandle.h"
 #include "Engine/Model/Model.h"
 #include "Engine/Scene/Transform.h"
+#include "Engine/Shader/TransformGPU.h"
 
 class GameObject {
 public:
-    GameObject(Model* pModel);
+    GameObject(engine::ModelHandle handle);
     ~GameObject();
 
-    /// @brief モデルをセット
-    /// @param pModel
-    bool SetModel(Model* pModel);
+    /// @brief ワールド行列CBの更新
+    void UpdateTransformGPU(int frameIndex);
 
     //=========================================
     // アクセサ
     //=========================================
     Transform& GetTransform() { return m_transform; }
-    Model& GetModel() { return *m_model; }
-    uint32_t GetIndex() const { return m_objectIndex; }
+    TransformGPU& GetTransformGPU(int frameIndex) {
+        return m_transformGPU[frameIndex];
+    }
 
-    void SetIndex(uint32_t index) { m_objectIndex = index; }
+    void SetModelHandle(engine::ModelHandle handle) { m_modelHandle = handle; }
+    const engine::ModelHandle GetModelHandle() const { return m_modelHandle; }
 
 private:
     Transform m_transform;
-    Model* m_model = nullptr;
+    TransformGPU m_transformGPU
+        [config::kFrameCount];  // ワールド行列のシェーダーリソース
 
-    uint32_t m_objectIndex = 0;  // FrameResource内のTransformGPUと対応付けるID
+    engine::ModelHandle m_modelHandle;
 };

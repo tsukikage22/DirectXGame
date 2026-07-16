@@ -1,6 +1,9 @@
-#pragma once
+﻿#pragma once
 
 #include <memory>
+
+#include "Engine/Core/GenHandle.h"
+#include "Engine/Input/InputSystem.h"
 
 // 前方宣言
 class Engine;
@@ -23,8 +26,14 @@ public:
 
 private:
     Engine* m_pEngine;
+    InputSystem* m_pInputSystem;
     std::unique_ptr<CameraController> m_pCameraController;
 
-    GameObject* m_pObject1;  // シーン内のゲームオブジェクトへのポインタ
-    GameObject* m_pObject2;  // シーン内のゲームオブジェクトへのポインタ
+    engine::ModelHandle m_earthModel;  // シーン内の球体モデルのハンドル
+    engine::ModelHandle m_moonModel;
+
+    engine::ObjectHandle
+        m_earthObject;  // シーン内のゲームオブジェクトのハンドル
+    engine::ObjectHandle
+        m_moonObject;  // シーン内のゲームオブジェクトのハンドル
 };

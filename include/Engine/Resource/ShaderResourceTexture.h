@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <d3d12.h>
 #include <directxtex.h>
@@ -7,15 +7,11 @@
 #include <optional>
 #include <vector>
 
-#include "Engine/Core/DescriptorPool.h"
-#include "Engine/Model/ModelAsset.h"
+#include "Engine/Core/DescriptorAllocation.h"
 #include "Engine/Resource/TextureResource.h"
+#include "Engine/Model/ModelAsset.h"
 
-/// @brief SRVインデックス
-struct SrvIndex {
-    uint32_t index = UINT32_MAX;
-    bool IsValid() const { return index != UINT32_MAX; }
-};
+class DescriptorPool;
 
 /// @brief 個別のテクスチャリソースとそのSRVの管理
 class ShaderResourceTexture {
@@ -35,17 +31,12 @@ public:
     bool InitSolidColorRGBA8(ID3D12Device* pDevice, DescriptorPool* pPoolSRV,
         uint32_t color, DirectX::ResourceUploadBatch& batch);
 
-    // TODO: Init関数の共通部分をまとめてヘルパ関数にする
-
     /// @brief 終了処理（SRV解放，Resource解放）
     void Term();
 
     //=======================================
     // アクセサ
     //=======================================
-    /// @brief デフォルトSRVのインデックス
-    SrvIndex GetDefaultSrvIndex() const;
-
     const TextureResource* GetTextureResource() const { return &m_texture; }
 
     D3D12_GPU_DESCRIPTOR_HANDLE GetDefaultSrvGpu() const;
@@ -53,9 +44,11 @@ public:
     D3D12_CPU_DESCRIPTOR_HANDLE GetDefaultSrvCpu() const;
 
 private:
-    TextureResource m_texture;     // テクスチャリソース
-    DescriptorPool* m_pPoolSRV;    // SRV用ディスクリプタプール
-    std::vector<SrvIndex> m_srvs;  // SRVインデックス
+    TextureResource m_texture;   // テクスチャリソース
+    DescriptorPool* m_pPoolSRV;  // SRV用ディスクリプタプール
+
+    // 一つのテクスチャに対して複数のSRVを作ることを想定し，配列にする
+    std::vector<DescriptorAllocation> m_srvs;  // SRVインデックス
 
     // コピー禁止
     ShaderResourceTexture(const ShaderResourceTexture&)            = delete;

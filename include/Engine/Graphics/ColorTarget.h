@@ -6,6 +6,7 @@
 #include <cstdint>
 
 #include "Engine/Core/ComPtr.h"
+#include "Engine/Core/DescriptorAllocation.h"
 #include "Engine/Core/DescriptorPool.h"
 #include "Engine/Resource/TextureResource.h"
 
@@ -35,16 +36,18 @@ public:
     //========================================================================
     ID3D12Resource* GetResource() const { return m_Target.GetResource(); }
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// @brief RTVのディスクリプタプールインデックスの取得
-    /// @return RTVインデックス
-    ///////////////////////////////////////////////////////////////////////////
-    uint32_t GetRTVIndex() const { return m_RTVIndex; }
+    D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle() const {
+        return m_RTVAllocation.GetCPUHandle();
+    }
+
+    D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const {
+        return m_RTVAllocation.GetGPUHandle();
+    }
 
 private:
     TextureResource m_Target;                  // リソース
     DescriptorPool* m_pPoolRTV;                // ディスクリプタプール
-    uint32_t m_RTVIndex;                       // RTVインデックス
+    DescriptorAllocation m_RTVAllocation;      // RTVのディスクリプタ
     D3D12_RENDER_TARGET_VIEW_DESC m_ViewDesc;  // RTVのディスクリプタ
 
     ColorTarget(const ColorTarget&)    = delete;

@@ -177,6 +177,24 @@
     <ClInclude Include="..\include\Engine\Resource\IESProfile.h">
       <Filter>ヘッダー ファイル\Resource</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Engine\Core\EngineConfig.h">
+      <Filter>ヘッダー ファイル\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Engine\Core\SlotMap.h">
+      <Filter>ヘッダー ファイル\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Engine\Core\GenHandle.h">
+      <Filter>ヘッダー ファイル\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Engine\Core\DescriptorAllocation.h">
+      <Filter>ヘッダー ファイル\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Engine\Core\RetireQueue.h">
+      <Filter>ヘッダー ファイル\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Engine\Resource\ModelLoadScope.h">
+      <Filter>ヘッダー ファイル\Resource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\Engine\Engine.cpp">
@@ -270,6 +288,12 @@
       <Filter>ソース ファイル\Resource</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Engine\Resource\IESProfile.cpp">
+      <Filter>ソース ファイル\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Engine\Core\DescriptorAllocation.cpp">
+      <Filter>ソース ファイル\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Engine\Resource\ModelLoadScope.cpp">
       <Filter>ソース ファイル\Resource</Filter>
     </ClCompile>
   </ItemGroup>

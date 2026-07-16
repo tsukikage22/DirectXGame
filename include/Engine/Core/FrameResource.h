@@ -24,9 +24,6 @@ public:
     /// @brief 終了処理
     void Term();
 
-    /// @brief Transformを追加
-    bool AddTransform(ID3D12Device* pDevice, DescriptorPool* pPoolCBV);
-
     /// @brief フレーム開始
     /// @param pCmdList
     void BeginFrame(ID3D12GraphicsCommandList* pCmdList);

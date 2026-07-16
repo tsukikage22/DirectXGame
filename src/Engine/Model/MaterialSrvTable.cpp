@@ -14,9 +14,9 @@ bool MaterialSrvTable::Init(ID3D12Device* pDevice, DescriptorPool* pPoolSRV,
     m_pPoolSRV = pPoolSRV;
 
     // 連続領域の確保
-    m_SRVbase = m_pPoolSRV->LinearAllocateRange(
+    m_SRVbase = m_pPoolSRV->AllocateRange(
         static_cast<uint32_t>(TextureUsage::Count));  // マテリアル用に5つ確保
-    if (!m_SRVbase.has_value()) {
+    if (!m_SRVbase.IsValid()) {
         assert(false && "Failed to allocate SRV range for MaterialSrvTable");
         return false;
     }
@@ -74,9 +74,7 @@ bool MaterialSrvTable::Init(ID3D12Device* pDevice, DescriptorPool* pPoolSRV,
         }
 
         // MaterialSRVにコピー
-        uint32_t destIndex = m_SRVbase.value() + i;
-        D3D12_CPU_DESCRIPTOR_HANDLE destCPUHandle =
-            m_pPoolSRV->GetCPUHandle(destIndex);
+        D3D12_CPU_DESCRIPTOR_HANDLE destCPUHandle = m_SRVbase.GetCPUHandle(i);
 
         pDevice->CopyDescriptorsSimple(1, destCPUHandle, srcCPUHandle,
             D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -86,19 +84,14 @@ bool MaterialSrvTable::Init(ID3D12Device* pDevice, DescriptorPool* pPoolSRV,
 }
 
 void MaterialSrvTable::Term() {
-    // 連続領域のプールからの解放
-    if (m_pPoolSRV && m_SRVbase.has_value()) {
-        m_pPoolSRV->FreeRange(
-            m_SRVbase.value(), static_cast<uint32_t>(TextureUsage::Count));
-    }
+    // 連続領域のプールからの解放はデストラクタによって行われるのでやらない
     m_pPoolSRV = nullptr;
-    m_SRVbase.reset();
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE MaterialSrvTable::GetBaseGPUHandle() const {
-    if (m_pPoolSRV == nullptr || !m_SRVbase.has_value()) {
+    if (m_pPoolSRV == nullptr || !m_SRVbase.IsValid()) {
         return {};
     }
 
-    return m_pPoolSRV->GetGPUHandle(m_SRVbase.value());
+    return m_SRVbase.GetGPUHandle();
 }

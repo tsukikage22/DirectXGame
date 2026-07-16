@@ -3,6 +3,9 @@
 #include <DirectXMath.h>
 
 #include "Engine/Engine.h"
+#include "Engine/Resource/AssetPath.h"
+#include "Engine/Resource/ModelLoadScope.h"
+#include "Engine/Scene/Scene.h"
 #include "Game/CameraController.h"
 
 Game::Game()
@@ -12,7 +15,8 @@ Game::Game()
 Game::~Game() {}
 
 void Game::Init(Engine* pEngine) {
-    m_pEngine = pEngine;
+    m_pEngine      = pEngine;
+    m_pInputSystem = &m_pEngine->GetInputSystem();
 
     m_pCameraController = std::make_unique<CameraController>();
 
@@ -20,12 +24,13 @@ void Game::Init(Engine* pEngine) {
     m_pCameraController->Init(
         &m_pEngine->GetCamera(), &m_pEngine->GetInputSystem());
 
-    // ゲームオブジェクトの取得
-    auto& scene = m_pEngine->GetScene();
-    if (!scene.GetGameObjects().empty()) {
-        m_pObject1 = scene.GetGameObject(0);
-        m_pObject2 = scene.GetGameObject(1);
-    }
+    // モデルのロード
+    auto loader = m_pEngine->CreateModelLoadScope();
+    std::filesystem::path path;
+    AssetPath().GetAssetPath(L"model/TextureSphere.glb", path);
+    m_earthModel = loader.LoadModel(path);
+    AssetPath().GetAssetPath(L"model/MoonSphere.glb", path);
+    m_moonModel = loader.LoadModel(path);
 }
 
 void Game::Tick(float deltaTime) {
@@ -34,15 +39,22 @@ void Game::Tick(float deltaTime) {
         m_pCameraController->Update(deltaTime);
     }
 
-    // ゲームオブジェクトの更新
-    if (m_pObject1) {
-        DirectX::XMFLOAT3 rot = m_pObject1->GetTransform().GetRotation();
-        rot.y += 2.0f * deltaTime;  // 毎フレーム少しずつ回転
-        m_pObject1->GetTransform().SetRotation(rot);
+    // ゲームオブジェクトの生成削除
+    if (m_pInputSystem->WasKeyPressed('1')) {
+        if (!m_earthObject.IsValid()) {
+            m_earthObject = m_pEngine->GetScene().SpawnObject(m_earthModel);
+        } else {
+            m_pEngine->GetScene().DespawnObject(m_earthObject);
+            m_earthObject = {};
+        }
     }
-    if (m_pObject2) {
-        DirectX::XMFLOAT3 rot = m_pObject2->GetTransform().GetRotation();
-        rot.y -= 2.0f * deltaTime;  // 毎フレーム少しずつ回転
-        m_pObject2->GetTransform().SetRotation(rot);
+
+    if (m_pInputSystem->WasKeyPressed('2')) {
+        if (!m_moonObject.IsValid()) {
+            m_moonObject = m_pEngine->GetScene().SpawnObject(m_moonModel);
+        } else {
+            m_pEngine->GetScene().DespawnObject(m_moonObject);
+            m_moonObject = {};
+        }
     }
 }

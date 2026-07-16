@@ -3,8 +3,7 @@
 #include "Engine/Core/DescriptorPool.h"
 
 // コンストラクタ
-ConstantBuffer::ConstantBuffer()
-    : m_pPool(nullptr), m_pMappedData(nullptr), m_index(0) {}
+ConstantBuffer::ConstantBuffer() : m_pPool(nullptr), m_pMappedData(nullptr) {}
 
 // デストラクタ
 ConstantBuffer::~ConstantBuffer() { Term(); }
@@ -17,9 +16,9 @@ bool ConstantBuffer::Init(
         return false;
     }
 
-    m_pPool = pPool;
-    m_index = m_pPool->Allocate();
-    m_size  = size;
+    m_pPool      = pPool;
+    m_allocation = pPool->Allocate();
+    m_size       = size;
 
     // 定数バッファのサイズを256の倍数に切り上げる
     // ~(align - 1) は，2^8-1 のビット反転なので，下位8ビットが0，
@@ -29,14 +28,12 @@ bool ConstantBuffer::Init(
 
     // バッファの作成とメモリマッピング
     if (!m_buffer.CreateDynamic(pDevice, sizeAligned)) {
-        m_pPool->Free(m_index);
         return false;
     }
 
     m_pMappedData = m_buffer.GetMappedPtr();
     if (m_pMappedData == nullptr) {
         m_buffer.Term();
-        m_pPool->Free(m_index);
         return false;
     }
 
@@ -47,7 +44,7 @@ bool ConstantBuffer::Init(
     CBVdesc.BufferLocation                  = m_GPUAddress;
     CBVdesc.SizeInBytes                     = static_cast<UINT>(sizeAligned);
 
-    pDevice->CreateConstantBufferView(&CBVdesc, pPool->GetCPUHandle(m_index));
+    pDevice->CreateConstantBufferView(&CBVdesc, m_allocation.GetCPUHandle());
 
     return true;
 }
@@ -57,13 +54,7 @@ void ConstantBuffer::Term() {
     // メモリマッピングの解除
     m_buffer.Term();
 
-    // ビューの破棄
-    if (m_pPool != nullptr) {
-        m_pPool->Free(m_index);
-        m_pPool = nullptr;
-        m_index = 0;
-    }
-
+    m_pPool       = nullptr;
     m_pMappedData = nullptr;
 }
 

@@ -160,7 +160,13 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\Engine\Core\DescriptorAllocation.h" />
+    <ClInclude Include="..\include\Engine\Core\EngineConfig.h" />
+    <ClInclude Include="..\include\Engine\Core\GenHandle.h" />
+    <ClInclude Include="..\include\Engine\Core\RetireQueue.h" />
+    <ClInclude Include="..\include\Engine\Core\SlotMap.h" />
     <ClInclude Include="..\include\Engine\Resource\IESProfile.h" />
+    <ClInclude Include="..\include\Engine\Resource\ModelLoadScope.h" />
     <ClInclude Include="..\include\Engine\Scene\Camera.h" />
     <ClInclude Include="..\include\Engine\Graphics\ColorTarget.h" />
     <ClInclude Include="..\include\Engine\Core\CommandQueue.h" />
@@ -202,8 +208,10 @@
     <ClInclude Include="..\include\Engine\Model\VertexTypes.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\Engine\Core\DescriptorAllocation.cpp" />
     <ClCompile Include="..\src\Engine\Resource\AssetPath.cpp" />
     <ClCompile Include="..\src\Engine\Resource\IESProfile.cpp" />
+    <ClCompile Include="..\src\Engine\Resource\ModelLoadScope.cpp" />
     <ClCompile Include="..\src\Engine\Scene\Camera.cpp" />
     <ClCompile Include="..\src\Engine\Graphics\ColorTarget.cpp" />
     <ClCompile Include="..\src\Engine\Core\CommandQueue.cpp" />

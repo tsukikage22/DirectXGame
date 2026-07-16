@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -6,8 +6,11 @@
 #include <cstdint>
 
 #include "Engine/Core/ComPtr.h"
-#include "Engine/Core/DescriptorPool.h"
+#include "Engine/Core/DescriptorAllocation.h"
 #include "Engine/Resource/TextureResource.h"
+
+// 前方宣言
+class DescriptorPool;
 
 class DepthTarget {
 public:
@@ -30,16 +33,17 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     void Term();
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// @brief DSVインデックスの取得
-    /// @return DSVインデックス
-    ///////////////////////////////////////////////////////////////////////////
-    uint32_t GetDSVIndex() const { return m_DSVIndex; }
+    D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle() const {
+        return m_DSVAllocation.GetCPUHandle();
+    }
+    D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const {
+        return m_DSVAllocation.GetGPUHandle();
+    }
 
 private:
     TextureResource m_Target;                  // リソース
     DescriptorPool* m_pPoolDSV;                // ディスクリプタプール
-    uint32_t m_DSVIndex;                       // DSVインデックス
+    DescriptorAllocation m_DSVAllocation;      // DSVのディスクリプタ
     D3D12_DEPTH_STENCIL_VIEW_DESC m_ViewDesc;  // DSVのディスクリプタ
 
     DepthTarget(const DepthTarget&)    = delete;
