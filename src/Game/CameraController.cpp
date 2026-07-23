@@ -1,5 +1,7 @@
 #include "Game/CameraController.h"
 
+#include <DirectXMath.h>
+
 CameraController::CameraController()
     : m_pCamera(nullptr),
       m_pInputSystem(nullptr),

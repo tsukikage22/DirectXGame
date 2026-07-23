@@ -2,6 +2,7 @@
 
 Camera::Camera()
     : m_position(0.0f, 0.0f, -5.0f),
+      m_orientation(0.0f, 0.0f, 0.0f, 1.0f),
       m_rotation(0.0f, 0.0f, 0.0f),
       m_target(0.0f, 0.0f, 0.0f),
       m_up(0.0f, 1.0f, 0.0f),
@@ -15,9 +16,14 @@ Camera::Camera()
 DirectX::XMFLOAT4X4 Camera::GetViewMatrix() {
     DirectX::XMVECTOR eyePos = DirectX::XMLoadFloat3(&m_position);
 
-    // rotationから回転行列を作成
+    // rotaionをラジアンに変換
+    DirectX::XMFLOAT3 rotationRad = { DirectX::XMConvertToRadians(m_rotation.x),
+        DirectX::XMConvertToRadians(m_rotation.y),
+        DirectX::XMConvertToRadians(m_rotation.z) };
+
+    // 回転行列を作成
     DirectX::XMMATRIX rotMatrix = DirectX::XMMatrixRotationRollPitchYaw(
-        m_rotation.x, m_rotation.y, m_rotation.z);
+        rotationRad.x, rotationRad.y, rotationRad.z);
 
     // 前方ベクトルと上方向ベクトルを回転させる
     DirectX::XMVECTOR forward = DirectX::XMVector3TransformNormal(
@@ -62,4 +68,38 @@ void Camera::SetTarget(const DirectX::XMFLOAT3& target) {
     m_rotation.y = atan2(dx, dz);       // yaw
     m_rotation.x = -atan2(dy, xzDist);  // pitch
     m_rotation.z = 0.0f;                // roll
+
+    // ラジアンをオイラー角に変換
+    m_rotation.x = DirectX::XMConvertToDegrees(m_rotation.x);
+    m_rotation.y = DirectX::XMConvertToDegrees(m_rotation.y);
+}
+
+// forwardの計算
+DirectX::XMFLOAT3 Camera::GetForward() const {
+    DirectX::XMVECTOR q       = DirectX::XMLoadFloat4(&m_orientation);
+    DirectX::XMVECTOR forward = DirectX::XMVectorSet(0, 0, 1, 0);
+    forward                   = DirectX::XMVector3Rotate(forward, q);
+    DirectX::XMFLOAT3 forwardFloat3;
+    DirectX::XMStoreFloat3(&forwardFloat3, forward);
+    return forwardFloat3;
+}
+
+// upの計算
+DirectX::XMFLOAT3 Camera::GetUp() const {
+    DirectX::XMVECTOR q  = DirectX::XMLoadFloat4(&m_orientation);
+    DirectX::XMVECTOR up = DirectX::XMVectorSet(0, 1, 0, 0);
+    up                   = DirectX::XMVector3Rotate(up, q);
+    DirectX::XMFLOAT3 upFloat3;
+    DirectX::XMStoreFloat3(&upFloat3, up);
+    return upFloat3;
+}
+
+// rightの計算
+DirectX::XMFLOAT3 Camera::GetRight() const {
+    DirectX::XMVECTOR q     = DirectX::XMLoadFloat4(&m_orientation);
+    DirectX::XMVECTOR right = DirectX::XMVectorSet(1, 0, 0, 0);
+    right                   = DirectX::XMVector3Rotate(right, q);
+    DirectX::XMFLOAT3 rightFloat3;
+    DirectX::XMStoreFloat3(&rightFloat3, right);
+    return rightFloat3;
 }
