@@ -42,9 +42,9 @@ public:
         m_position = position;
     }
     void SetScale(const DirectX::XMFLOAT3& scale) { m_scale = scale; }
-
     DirectX::XMFLOAT3 GetPosition() const { return m_position; }
     DirectX::XMFLOAT3 GetScale() const { return m_scale; }
+    DirectX::XMFLOAT4 GetOrientation() const { return m_orientation; }
 
 private:
     DirectX::XMFLOAT3 m_position;

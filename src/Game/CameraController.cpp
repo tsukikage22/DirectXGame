@@ -2,11 +2,13 @@
 
 #include <DirectXMath.h>
 
+#include "Engine/Scene/Transform.h"
+
 CameraController::CameraController()
     : m_pCamera(nullptr),
       m_pInputSystem(nullptr),
       m_moveSpeed(1.0f),
-      m_rotateSpeed(1.0f) {}
+      m_rotateSpeed(5.0f) {}
 
 CameraController::~CameraController() {}
 
@@ -25,17 +27,18 @@ void CameraController::Update(float deltaTime) {
         return;
     }
 
-    DirectX::XMFLOAT3 pos = m_pCamera->GetPosition();
-    DirectX::XMFLOAT3 rot = m_pCamera->GetRotation();
+    DirectX::XMFLOAT3 pos = m_pCamera->GetTransform().GetPosition();
+    float yaw             = 0.0f;
 
-    // 回転処理（Q/E）
+    // yaw回転処理（Q/E）
     if (m_pInputSystem->IsKeyDown('Q')) {
-        rot.y -= m_rotateSpeed * deltaTime;
+        yaw -= m_rotateSpeed * deltaTime;
     }
     if (m_pInputSystem->IsKeyDown('E')) {
-        rot.y += m_rotateSpeed * deltaTime;
+        yaw += m_rotateSpeed * deltaTime;
     }
-    m_pCamera->SetRotation(rot);
+    m_pCamera->GetTransform().RotateWorld(
+        DirectX::XMLoadFloat3(&engine::kUp), yaw);
 
     // 移動処理（WASD）
     float moveZ = 0.0f;
@@ -56,5 +59,5 @@ void CameraController::Update(float deltaTime) {
     // 簡易的に加算（回転と連動しない）
     pos.x += moveX;
     pos.z += moveZ;
-    m_pCamera->SetPosition(pos);
+    m_pCamera->GetTransform().SetPosition(pos);
 }

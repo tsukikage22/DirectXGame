@@ -4,6 +4,8 @@
 
 #include <DirectXMath.h>
 
+#include "Engine/Scene/Transform.h"
+
 class Camera {
 public:
     Camera();
@@ -11,24 +13,11 @@ public:
     //================================
     // カメラの設定
     //================================
-    /// @brief 位置の設定
-    /// @param position
-    void SetPosition(const DirectX::XMFLOAT3& position) {
-        m_position = position;
-    };
-
-    /// @brief 向きの設定（度）
-    void SetRotation(const DirectX::XMFLOAT3& rotation) {
-        m_rotation = rotation;
-    };
-
-    /// @brief 向きの設定（注視点）
-    /// @param target
-    void SetTarget(const DirectX::XMFLOAT3& target);
-
     /// @brief 垂直視野角の設定
     /// @param fovY
-    void SetFovY(float fovY) { m_fovY = fovY; };
+    void SetFovYDeg(float fovY) {
+        m_fovYRad = DirectX::XMConvertToRadians(fovY);
+    };
 
     /// @brief アスペクト比の設定
     /// @param aspect
@@ -50,31 +39,18 @@ public:
     DirectX::XMFLOAT4X4 GetProjectionMatrix();
 
     //================================
-    // ベクトルの導出
+    // アクセサ
     //================================
-    DirectX::XMFLOAT3 GetForward() const;
-    DirectX::XMFLOAT3 GetUp() const;
-    DirectX::XMFLOAT3 GetRight() const;
-
-    // Transformとクオータニオンへの移行のため削除予定
-    DirectX::XMFLOAT3 GetRotation() const { return m_rotation; };
-    DirectX::XMFLOAT3 GetPosition() const { return m_position; };
+    Transform& GetTransform() { return m_transform; }
 
 private:
-    // カメラの状態 TODO: 回転はクォータニオンの方が良い
-    DirectX::XMFLOAT3 m_position;     // カメラの位置
-    DirectX::XMFLOAT4 m_orientation;  // カメラの向き（クォータニオン）
-    float m_fovY;                     // 垂直視野角（オイラー角）
-    float m_aspect;                   // アスペクト比
-    float m_nearZ = 1.0f;             // 描画範囲（最小）
-    float m_farZ  = 1000.0f;          // 描画範囲（最大）
+    Transform m_transform;    // 位置や姿勢
+    float m_fovYRad;          // 垂直視野角（ラジアン）
+    float m_aspect;           // アスペクト比
+    float m_nearZ = 1.0f;     // 描画範囲（最小）
+    float m_farZ  = 1000.0f;  // 描画範囲（最大）
 
     // 行列
     DirectX::XMFLOAT4X4 m_viewMatrix;  // ビュー行列
     DirectX::XMFLOAT4X4 m_projMatrix;  // 射影行列
-
-    // 削除予定
-    DirectX::XMFLOAT3 m_rotation;  // カメラの向き（オイラー角）
-    DirectX::XMFLOAT3 m_target;    // カメラの注視点
-    DirectX::XMFLOAT3 m_up;        // カメラの上方向ベクトル
 };
