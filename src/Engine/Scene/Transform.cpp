@@ -60,3 +60,30 @@ void XM_CALLCONV Transform::RotateLocal(FXMVECTOR axis, float angleDeg) {
         XMQuaternionMultiply(rotationQuat, XMLoadFloat4(&m_orientation));
     XMStoreFloat4(&m_orientation, XMQuaternionNormalize(orientation));
 }
+
+XMFLOAT3 Transform::GetForward() const {
+    // ワールドの基底ベクトルをクオータニオンで回転させる
+    XMVECTOR forward = XMVector3Rotate(
+        XMLoadFloat3(&engine::kForward), XMLoadFloat4(&m_orientation));
+    XMFLOAT3 forwardFloat3;
+    XMStoreFloat3(&forwardFloat3, forward);
+    return forwardFloat3;
+}
+
+XMFLOAT3 Transform::GetUp() const {
+    // ワールドの基底ベクトルをクオータニオンで回転させる
+    XMVECTOR up = XMVector3Rotate(
+        XMLoadFloat3(&engine::kUp), XMLoadFloat4(&m_orientation));
+    XMFLOAT3 upFloat3;
+    XMStoreFloat3(&upFloat3, up);
+    return upFloat3;
+}
+
+XMFLOAT3 Transform::GetRight() const {
+    // ワールドの基底ベクトルをクオータニオンで回転させる
+    XMVECTOR right = XMVector3Rotate(
+        XMLoadFloat3(&engine::kRight), XMLoadFloat4(&m_orientation));
+    XMFLOAT3 rightFloat3;
+    XMStoreFloat3(&rightFloat3, right);
+    return rightFloat3;
+}

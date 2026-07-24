@@ -14,9 +14,9 @@ public:
     // カメラの設定
     //================================
     /// @brief 垂直視野角の設定
-    /// @param fovY
-    void SetFovYDeg(float fovY) {
-        m_fovYRad = DirectX::XMConvertToRadians(fovY);
+    /// @param fovYDeg 垂直視野角（度）
+    void SetFovYDeg(float fovYDeg) {
+        m_fovYRad = DirectX::XMConvertToRadians(fovYDeg);
     };
 
     /// @brief アスペクト比の設定
@@ -42,6 +42,7 @@ public:
     // アクセサ
     //================================
     Transform& GetTransform() { return m_transform; }
+    const Transform& GetTransform() const { return m_transform; }
 
 private:
     Transform m_transform;    // 位置や姿勢

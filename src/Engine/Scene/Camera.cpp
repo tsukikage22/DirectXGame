@@ -8,7 +8,7 @@ Camera::Camera()
       m_nearZ(1.0f),
       m_farZ(1000.0f) {
     // 初期位置を設定
-    this->GetTransform().SetPosition({ 0.0f, 0.0f, -5.0f });
+    m_transform.SetPosition({ 0.0f, 0.0f, -5.0f });
 }
 
 /// @brief ビュー行列の計算

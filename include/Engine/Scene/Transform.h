@@ -35,6 +35,15 @@ public:
     /// @brief ローカル座標系での回転操作
     void XM_CALLCONV RotateLocal(DirectX::FXMVECTOR axis, float angleDeg);
 
+    /// @brief ローカル前方向の取得
+    DirectX::XMFLOAT3 GetForward() const;
+
+    /// @brief ローカル上方向の取得
+    DirectX::XMFLOAT3 GetUp() const;
+
+    /// @brief ローカル右方向の取得
+    DirectX::XMFLOAT3 GetRight() const;
+
     //=========================================
     // アクセサ
     //=========================================

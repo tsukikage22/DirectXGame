@@ -7,8 +7,8 @@
 CameraController::CameraController()
     : m_pCamera(nullptr),
       m_pInputSystem(nullptr),
-      m_moveSpeed(1.0f),
-      m_rotateSpeed(5.0f) {}
+      m_moveSpeed(3.0f),
+      m_rotateSpeed(10.0f) {}
 
 CameraController::~CameraController() {}
 
@@ -37,8 +37,10 @@ void CameraController::Update(float deltaTime) {
     if (m_pInputSystem->IsKeyDown('E')) {
         yaw += m_rotateSpeed * deltaTime;
     }
-    m_pCamera->GetTransform().RotateWorld(
-        DirectX::XMLoadFloat3(&engine::kUp), yaw);
+    if (yaw != 0.0f) {
+        m_pCamera->GetTransform().RotateWorld(
+            DirectX::XMLoadFloat3(&engine::kUp), yaw);
+    }
 
     // 移動処理（WASD）
     float moveZ = 0.0f;
@@ -56,8 +58,11 @@ void CameraController::Update(float deltaTime) {
         moveX += m_moveSpeed * deltaTime;
     }
 
-    // 簡易的に加算（回転と連動しない）
-    pos.x += moveX;
-    pos.z += moveZ;
+    // カメラの前方向と右方向を取得
+    DirectX::XMFLOAT3 forward = m_pCamera->GetTransform().GetForward();
+    DirectX::XMFLOAT3 right   = m_pCamera->GetTransform().GetRight();
+    pos.x += moveX * right.x + moveZ * forward.x;
+    pos.y += moveX * right.y + moveZ * forward.y;
+    pos.z += moveX * right.z + moveZ * forward.z;
     m_pCamera->GetTransform().SetPosition(pos);
 }
