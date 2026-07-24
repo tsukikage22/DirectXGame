@@ -1,5 +1,7 @@
 #include "App/Window.h"
 
+#include <windowsx.h>
+
 #include "Engine/Input/IInputReceiver.h"
 #include "Engine/Input/IWindowEventListener.h"
 
@@ -122,14 +124,57 @@ LRESULT Window::HandleMessage(
         } break;
 
         case WM_KEYDOWN: {
+            // キーボード押下
             if (m_inputReceiver) {
                 m_inputReceiver->OnKeyDown(static_cast<uint32_t>(wParam));
             }
         } break;
 
         case WM_KEYUP: {
+            // キーボード解放
             if (m_inputReceiver) {
                 m_inputReceiver->OnKeyUp(static_cast<uint32_t>(wParam));
+            }
+        } break;
+
+        case WM_MOUSEMOVE: {
+            // マウス移動
+            if (m_inputReceiver) {
+                int x = GET_X_LPARAM(lParam);
+                int y = GET_Y_LPARAM(lParam);
+                m_inputReceiver->OnMouseMove(x, y);
+            }
+        } break;
+
+        case WM_LBUTTONDOWN: {
+            // マウス左ボタン押下
+            SetCapture(hWnd);  // マウスキャプチャを開始
+            if (m_inputReceiver) {
+                m_inputReceiver->OnMouseDown(Button::Left);
+            }
+        } break;
+
+        case WM_LBUTTONUP: {
+            // マウス左ボタン解放
+            ReleaseCapture();  // マウスキャプチャを解放
+            if (m_inputReceiver) {
+                m_inputReceiver->OnMouseUp(Button::Left);
+            }
+        } break;
+
+        case WM_RBUTTONDOWN: {
+            // マウス右ボタン押下
+            SetCapture(hWnd);  // マウスキャプチャを開始
+            if (m_inputReceiver) {
+                m_inputReceiver->OnMouseDown(Button::Right);
+            }
+        } break;
+
+        case WM_RBUTTONUP: {
+            // マウス右ボタン解放
+            ReleaseCapture();  // マウスキャプチャを解放
+            if (m_inputReceiver) {
+                m_inputReceiver->OnMouseUp(Button::Right);
             }
         } break;
 
