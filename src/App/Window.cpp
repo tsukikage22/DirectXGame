@@ -156,9 +156,12 @@ LRESULT Window::HandleMessage(
 
         case WM_LBUTTONUP: {
             // マウス左ボタン解放
-            ReleaseCapture();  // マウスキャプチャを解放
             if (m_inputReceiver) {
                 m_inputReceiver->OnMouseUp(Button::Left);
+            }
+            // 他のボタンが押されていなければマウスキャプチャを解放
+            if ((wParam & (MK_LBUTTON | MK_RBUTTON | MK_MBUTTON)) == 0) {
+                ReleaseCapture();
             }
         } break;
 
@@ -172,9 +175,31 @@ LRESULT Window::HandleMessage(
 
         case WM_RBUTTONUP: {
             // マウス右ボタン解放
-            ReleaseCapture();  // マウスキャプチャを解放
             if (m_inputReceiver) {
                 m_inputReceiver->OnMouseUp(Button::Right);
+            }
+            // 他のボタンが押されていなければマウスキャプチャを解放
+            if ((wParam & (MK_LBUTTON | MK_RBUTTON | MK_MBUTTON)) == 0) {
+                ReleaseCapture();
+            }
+        } break;
+
+        case WM_CAPTURECHANGED: {
+            // マウスキャプチャが解除された場合の処理
+            if (m_inputReceiver) {
+                // すべてのボタンを解放状態にする
+                m_inputReceiver->OnMouseUp(Button::Left);
+                m_inputReceiver->OnMouseUp(Button::Right);
+                m_inputReceiver->OnMouseUp(Button::Middle);
+            }
+        } break;
+
+        case WM_KILLFOCUS: {
+            // ウィンドウがフォーカスを失った場合、すべてのボタンを解放状態にする
+            if (m_inputReceiver) {
+                m_inputReceiver->OnMouseUp(Button::Left);
+                m_inputReceiver->OnMouseUp(Button::Right);
+                m_inputReceiver->OnMouseUp(Button::Middle);
             }
         } break;
 
