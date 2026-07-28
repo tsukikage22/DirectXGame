@@ -110,7 +110,7 @@ void Engine::Update() {
         &sc.projection, DirectX::XMMatrixTranspose(projMat));
 
     // カメラ位置・時間・露出の設定
-    sc.cameraPosition = m_Camera.GetPosition();
+    sc.cameraPosition = m_Camera.GetTransform().GetPosition();
     sc.time           = static_cast<float>(GetTickCount64()) / 1000.0f;
     sc.exposure       = 3.0f;
 

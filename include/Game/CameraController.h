@@ -22,10 +22,15 @@ public:
     void Update(float deltaTime);
 
 private:
+    // Forwardベクトルからオイラー角への変換（roll=0のためForwardから求められる）
+    static DirectX::XMFLOAT2 ForwardToEuler(const DirectX::XMFLOAT3& forward);
+
     Camera* m_pCamera;
     InputSystem* m_pInputSystem;
 
     // パラメータ
     float m_moveSpeed;    // 移動速度
-    float m_rotateSpeed;  // 回転速度
+    float m_sensitivity;  // マウス感度
+    float m_pitch;        // ピッチ角（度）
+    float m_yaw;          // ヨー角（度）
 };

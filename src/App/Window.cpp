@@ -1,5 +1,7 @@
 #include "App/Window.h"
 
+#include <windowsx.h>
+
 #include "Engine/Input/IInputReceiver.h"
 #include "Engine/Input/IWindowEventListener.h"
 
@@ -122,14 +124,82 @@ LRESULT Window::HandleMessage(
         } break;
 
         case WM_KEYDOWN: {
+            // キーボード押下
             if (m_inputReceiver) {
                 m_inputReceiver->OnKeyDown(static_cast<uint32_t>(wParam));
             }
         } break;
 
         case WM_KEYUP: {
+            // キーボード解放
             if (m_inputReceiver) {
                 m_inputReceiver->OnKeyUp(static_cast<uint32_t>(wParam));
+            }
+        } break;
+
+        case WM_MOUSEMOVE: {
+            // マウス移動
+            if (m_inputReceiver) {
+                int x = GET_X_LPARAM(lParam);
+                int y = GET_Y_LPARAM(lParam);
+                m_inputReceiver->OnMouseMove(x, y);
+            }
+        } break;
+
+        case WM_LBUTTONDOWN: {
+            // マウス左ボタン押下
+            SetCapture(hWnd);  // マウスキャプチャを開始
+            if (m_inputReceiver) {
+                m_inputReceiver->OnMouseDown(Button::Left);
+            }
+        } break;
+
+        case WM_LBUTTONUP: {
+            // マウス左ボタン解放
+            if (m_inputReceiver) {
+                m_inputReceiver->OnMouseUp(Button::Left);
+            }
+            // 他のボタンが押されていなければマウスキャプチャを解放
+            if ((wParam & (MK_LBUTTON | MK_RBUTTON | MK_MBUTTON)) == 0) {
+                ReleaseCapture();
+            }
+        } break;
+
+        case WM_RBUTTONDOWN: {
+            // マウス右ボタン押下
+            SetCapture(hWnd);  // マウスキャプチャを開始
+            if (m_inputReceiver) {
+                m_inputReceiver->OnMouseDown(Button::Right);
+            }
+        } break;
+
+        case WM_RBUTTONUP: {
+            // マウス右ボタン解放
+            if (m_inputReceiver) {
+                m_inputReceiver->OnMouseUp(Button::Right);
+            }
+            // 他のボタンが押されていなければマウスキャプチャを解放
+            if ((wParam & (MK_LBUTTON | MK_RBUTTON | MK_MBUTTON)) == 0) {
+                ReleaseCapture();
+            }
+        } break;
+
+        case WM_CAPTURECHANGED: {
+            // マウスキャプチャが解除された場合の処理
+            if (m_inputReceiver) {
+                // すべてのボタンを解放状態にする
+                m_inputReceiver->OnMouseUp(Button::Left);
+                m_inputReceiver->OnMouseUp(Button::Right);
+                m_inputReceiver->OnMouseUp(Button::Middle);
+            }
+        } break;
+
+        case WM_KILLFOCUS: {
+            // ウィンドウがフォーカスを失った場合、すべてのボタンを解放状態にする
+            if (m_inputReceiver) {
+                m_inputReceiver->OnMouseUp(Button::Left);
+                m_inputReceiver->OnMouseUp(Button::Right);
+                m_inputReceiver->OnMouseUp(Button::Middle);
             }
         } break;
 
