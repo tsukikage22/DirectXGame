@@ -16,8 +16,10 @@ struct GenHandle {
 
 struct GameObjectTag {};
 struct ModelTag {};
+struct LightTag {};
 
 using ObjectHandle = GenHandle<GameObjectTag>;
 using ModelHandle  = GenHandle<ModelTag>;
+using LightHandle  = GenHandle<LightTag>;
 
 }  // namespace engine
