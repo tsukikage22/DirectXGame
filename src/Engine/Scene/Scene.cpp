@@ -59,6 +59,19 @@ void Scene::DespawnObject(engine::ObjectHandle handle) {
     }
 }
 
+// ライトの作成
+engine::LightHandle Scene::SpawnLight(LightType type) {
+    auto pLight                = std::make_unique<Light>(type);
+    engine::LightHandle handle = m_lightMap.Insert(std::move(pLight));
+    return handle;
+}
+
+// ライトの削除
+void Scene::DespawnLight(engine::LightHandle handle) {
+    // ライトはCPUデータのみで毎フレームバッファへコピーするので遅延解放は不要
+    m_lightMap.Erase(handle);
+}
+
 void Scene::Term() {
     // モデルの破棄
     m_modelMap.ForEach([](std::unique_ptr<Model>& pModel) { pModel->Term(); });
@@ -83,4 +96,9 @@ GameObject* Scene::GetObject(engine::ObjectHandle handle) {
 Model* Scene::GetModel(engine::ModelHandle handle) {
     auto* pModel = m_modelMap.Get(handle);
     return pModel ? pModel->get() : nullptr;
+}
+
+Light* Scene::GetLight(engine::LightHandle handle) {
+    auto* pLight = m_lightMap.Get(handle);
+    return pLight ? pLight->get() : nullptr;
 }

@@ -5,11 +5,18 @@
 
 Light::Light(LightType type)
     : m_type(type),
-      m_intensity(100.0f),
       m_range(100.0f),
       m_color({ 1.0f, 1.0f, 1.0f }),
+      m_enabled(true),
       m_innerAngleDeg(15.0f),
-      m_outerAngleDeg(30.0f) {}
+      m_outerAngleDeg(30.0f) {
+    // ライトの種類に応じて初期値を設定
+    if (type == LightType::Directional) {
+        m_intensity = 10000.0f;  // 照度[lx]
+    } else {
+        m_intensity = 100.0f;  // 光度[cd]
+    }
+}
 
 Light::~Light() {}
 
@@ -32,18 +39,10 @@ void Light::SetIlluminance(float illuminance) {
 //================================
 void Light::SetColor(const DirectX::XMFLOAT3& color) { m_color = color; }
 
-void Light::SetPosition(const DirectX::XMFLOAT3& position) {
-    m_transform.SetPosition(position);
-}
-
-void Light::SetRotation(float pitch, float yaw, float roll) {
-    m_transform.SetRotation(pitch, yaw, roll);
-}
-
 void Light::SetSpotAngles(float innerAngleDeg, float outerAngleDeg) {
     innerAngleDeg   = std::clamp(innerAngleDeg, 0.0f, 90.0f);
     m_outerAngleDeg = std::min(std::max(innerAngleDeg, outerAngleDeg), 90.0f);
-    m_innerAngleDeg = std::min(innerAngleDeg, m_outerAngleDeg);
+    m_innerAngleDeg = innerAngleDeg;
 }
 
 Transform& Light::GetTransform() { return m_transform; }

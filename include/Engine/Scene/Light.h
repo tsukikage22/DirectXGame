@@ -22,6 +22,9 @@ public:
     Light(LightType type);
     ~Light();
 
+    /// @brief ライトの有効/無効を切り替える
+    void ToggleLight() { m_enabled = !m_enabled; }
+
     //================================
     // アクセサ
     //================================
@@ -35,8 +38,6 @@ public:
 
     void SetRange(float range);
     void SetColor(const DirectX::XMFLOAT3& color);
-    void SetPosition(const DirectX::XMFLOAT3& position);
-    void SetRotation(float pitch, float yaw, float roll);
 
     void SetSpotAngles(float innerAngleDeg, float outerAngleDeg);
 
@@ -58,6 +59,7 @@ private:
     float m_range;              // 範囲
     DirectX::XMFLOAT3 m_color;  // 色
     Transform m_transform;      // ライトの位置・方向を保持するTransform
+    bool m_enabled;             // ライトの有効/無効
 
     // スポットライト用パラメータ
     float m_innerAngleDeg;  // スポットライトの内側角度（度）
