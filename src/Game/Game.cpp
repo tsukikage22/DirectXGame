@@ -5,6 +5,7 @@
 #include "Engine/Engine.h"
 #include "Engine/Resource/AssetPath.h"
 #include "Engine/Resource/ModelLoadScope.h"
+#include "Engine/Scene/GameObject.h"
 #include "Engine/Scene/Scene.h"
 #include "Game/CameraController.h"
 
@@ -29,8 +30,10 @@ void Game::Init(Engine* pEngine) {
     std::filesystem::path path;
     AssetPath().GetAssetPath(L"model/TextureSphere.glb", path);
     m_earthModel = loader.LoadModel(path);
-    AssetPath().GetAssetPath(L"model/MoonSphere.glb", path);
-    m_moonModel = loader.LoadModel(path);
+    AssetPath().GetAssetPath(L"model/lowpoly_apple.glb", path);
+    m_appleModel = loader.LoadModel(path);
+    AssetPath().GetAssetPath(L"model/Katana.glb", path);
+    m_katanaModel = loader.LoadModel(path);
 }
 
 void Game::Tick(float deltaTime) {
@@ -50,11 +53,24 @@ void Game::Tick(float deltaTime) {
     }
 
     if (m_pInputSystem->WasKeyPressed('2')) {
-        if (!m_moonObject.IsValid()) {
-            m_moonObject = m_pEngine->GetScene().SpawnObject(m_moonModel);
+        if (!m_appleObject.IsValid()) {
+            m_appleObject = m_pEngine->GetScene().SpawnObject(m_appleModel);
+            m_pEngine->GetScene()
+                .GetObject(m_appleObject)
+                ->GetTransform()
+                .SetScale({ 3.0f, 3.0f, 3.0f });
         } else {
-            m_pEngine->GetScene().DespawnObject(m_moonObject);
-            m_moonObject = {};
+            m_pEngine->GetScene().DespawnObject(m_appleObject);
+            m_appleObject = {};
+        }
+    }
+
+    if (m_pInputSystem->WasKeyPressed('3')) {
+        if (!m_katanaObject.IsValid()) {
+            m_katanaObject = m_pEngine->GetScene().SpawnObject(m_katanaModel);
+        } else {
+            m_pEngine->GetScene().DespawnObject(m_katanaObject);
+            m_katanaObject = {};
         }
     }
 }

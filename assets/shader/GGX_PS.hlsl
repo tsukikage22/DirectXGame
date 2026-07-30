@@ -44,7 +44,7 @@ PSOutput main(VSOutput input) : SV_TARGET
     // テクスチャと定数からPBRパラメータを計算
     float4 baseColor = baseColorTex * baseColorFactor;
     float metallic = metallicRoughnessTex.b * metallicFactor;
-    float roughness = metallicRoughnessTex.r * roughnessFactor;
+    float roughness = metallicRoughnessTex.g * roughnessFactor;
     float ao = aoTex * occlusionFactor;
 
     //==============================================
