@@ -32,11 +32,19 @@ public:
     /// @param intensity
     void SetIntensity(float intensity);
 
+    /// @brief
+    /// 平行光源以外の光の強さを光束[lm]で設定する（内部で光度に変換する）
+    /// @param luminousFlux
+    void SetLuminousFlux(float luminousFlux);
+
     /// @brief 平行光源の照度[lx]を設定する
     /// @param illuminance
     void SetIlluminance(float illuminance);
 
     void SetRange(float range);
+
+    /// @brief ライトの色を設定する．色度のみを扱うため内部で正規化を行う．
+    /// @param color
     void SetColor(const DirectX::XMFLOAT3& color);
 
     void SetSpotAngles(float innerAngleDeg, float outerAngleDeg);
@@ -47,6 +55,7 @@ public:
     float GetRange() const;
     DirectX::XMFLOAT3 GetColor() const;
     Transform& GetTransform();
+    bool IsEnabled() const { return m_enabled; }
 
     float GetInnerAngle() const;
     float GetOuterAngle() const;

@@ -43,6 +43,7 @@ cbuffer SceneConstants : register(b0) {
     float3 cameraPos; // カメラ位置（ワールド座標系）
     float time;       // 経過時間（秒）
     float exposure;   // 露出
+    uint lightCount;  // ライトの数
 };
 
 // [b2] マテリアル定数

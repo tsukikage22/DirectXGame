@@ -198,6 +198,9 @@
     <ClInclude Include="..\include\Engine\Scene\Light.h">
       <Filter>ヘッダー ファイル\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Engine\Shader\LightBuffer.h">
+      <Filter>ヘッダー ファイル\Shader</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\Engine\Engine.cpp">
@@ -301,6 +304,9 @@
     </ClCompile>
     <ClCompile Include="..\src\Engine\Scene\Light.cpp">
       <Filter>ソース ファイル\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Engine\Shader\LightBuffer.cpp">
+      <Filter>ソース ファイル\Shader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

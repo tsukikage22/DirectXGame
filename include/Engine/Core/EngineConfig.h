@@ -8,7 +8,7 @@
 namespace config {
 inline constexpr uint32_t kFrameCount = 2;      // フレームリソースの数
 inline constexpr uint32_t kMaxObjects = 10000;  // 最大オブジェクト数
-inline constexpr uint32_t kMaxLights  = 8;      // 最大ライト数
+inline constexpr uint32_t kMaxLights  = 64;     // 最大ライト数
 
 // 1マテリアル当たりの見積もり
 inline constexpr uint32_t kMaxMaterials       = 2560;  // 最大マテリアル数

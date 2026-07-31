@@ -26,6 +26,18 @@ void Light::SetIntensity(float intensity) {
     m_intensity = intensity;
 }
 
+void Light::SetLuminousFlux(float luminousFlux) {
+    assert((m_type != LightType::Directional) &&
+           "Use SetIlluminance for directional lights.");
+    // 光束[lm]から光度[cd]に変換する
+    if (m_type == LightType::Point || m_type == LightType::Photometric) {
+        m_intensity = luminousFlux / (4.0f * DirectX::XM_PI);
+    } else if (m_type == LightType::Spot) {
+        // スポットライトの場合はコーン角を使わずPIで割る（簡易的な近似）
+        m_intensity = luminousFlux / DirectX::XM_PI;
+    }
+}
+
 void Light::SetRange(float range) { m_range = std::max(range, 1e-3f); }
 
 void Light::SetIlluminance(float illuminance) {
@@ -37,7 +49,22 @@ void Light::SetIlluminance(float illuminance) {
 //================================
 // アクセサ
 //================================
-void Light::SetColor(const DirectX::XMFLOAT3& color) { m_color = color; }
+void Light::SetColor(const DirectX::XMFLOAT3& color) {
+    m_color = color;
+    // 負の値を許容しない
+    m_color.x = std::max(m_color.x, 0.0f);
+    m_color.y = std::max(m_color.y, 0.0f);
+    m_color.z = std::max(m_color.z, 0.0f);
+    // 最大成分で正規化する
+    float maxComponent = std::max({ m_color.x, m_color.y, m_color.z });
+    if (maxComponent <= 1e-6f) {
+        assert(false && "Light color must not be black");
+        m_color = { 1.0f, 1.0f, 1.0f };
+        return;
+    }
+    m_color = { m_color.x / maxComponent, m_color.y / maxComponent,
+        m_color.z / maxComponent };
+}
 
 void Light::SetSpotAngles(float innerAngleDeg, float outerAngleDeg) {
     innerAngleDeg   = std::clamp(innerAngleDeg, 0.0f, 90.0f);
