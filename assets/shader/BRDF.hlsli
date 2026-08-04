@@ -47,4 +47,36 @@ float G2_SmithCorrelated(float NL, float NV, float alpha) {
     return 0.5f / (GGXV + GGXL + 1e-4f);
 }
 
+//--------------------------------------------------------------
+// BRDFの計算（GGX）
+//--------------------------------------------------------------
+float3 EvaluateBRDF(float3 N, float3 V, float3 L, float3 baseColor,
+    float metallic, float roughness) {
+    // ハーフベクトルの計算
+    float3 H = normalize(L + V);
+
+    // 内積
+    float NV = saturate(dot(N, V));
+    float NL = saturate(dot(N, L));
+    float NH = saturate(dot(N, H));
+    float VH = saturate(dot(V, H));
+
+    // 拡散反射の計算（正規化Lambertモデル）
+    float3 Kd = baseColor.rgb * (1.0f - metallic); // 拡散反射率
+    float3 diffuse = Kd * (1.0f / F_PI);
+
+    // 鏡面反射の計算
+    float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), baseColor.rgb, metallic);
+    float a = roughness * roughness;
+    float D = D_GGX(NH, a);
+    float G = G2_SmithCorrelated(NL, NV, a);
+    float3 Fr = SchlickFresnel(F0, VH);
+    float3 specular = D * G * Fr;
+
+    // 物体の色を反映した最終カラーの計算
+    float3 BRDF = diffuse + specular;
+
+    return BRDF;
+}
+
 #endif // BRDF_HLSLI

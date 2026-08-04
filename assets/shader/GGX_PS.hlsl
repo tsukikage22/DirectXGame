@@ -66,73 +66,23 @@ PSOutput main(VSOutput input) : SV_TARGET
     // viewベクトルの計算
     float3 V = normalize(cameraPos - input.worldPos);
 
-    // ライトベクトルの計算
-    float3 L;
-    if (lightType == 0)
-    {
-        // ディレクショナルライト
-        L = -lightForward;
-    }
-    else
-    {
-        // ポイントライトまたはスポットライト
-        L = normalize(lightPosition - input.worldPos);
-    }
+    // 光源からライトベクトルと色付きの照度を取得
+    float3 L, E;
+    Light light = MakeLightFromLegacy();
+    GetLightSample(light, input.worldPos, L, E);
 
-    // ハーフベクトルの計算
-    float3 H = normalize(L + V);
-
-    // 内積
-    float NV = saturate(dot(N, V));
+    // 内積計算
     float NL = saturate(dot(N, L));
-    float NH = saturate(dot(N, H));
-    float VH = saturate(dot(V, H));
 
     //==============================================
-    // 拡散反射の計算（正規化Lambertモデル）
+    // BRDFの計算
     //==============================================
-    float3 Kd = baseColor.rgb * (1.0f - metallic); // 拡散反射率
-    float3 diffuse = Kd * (1.0f / F_PI);
+    float3 BRDF = EvaluateBRDF(N, V, L, baseColor.rgb, metallic, roughness);
 
     //==============================================
-    // 鏡面反射の計算
+    // 最終カラーの計算 
     //==============================================
-    float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), baseColor.rgb, metallic);
-    float a = roughness * roughness;
-    float D = D_GGX(NH, a);
-    float G = G2_SmithCorrelated(NL, NV, a);
-    float3 Fr = SchlickFresnel(F0, VH);
-
-    float3 specular = D * G * Fr;
-
-    // 物体の色を反映した最終カラーの計算
-    float3 BRDF = diffuse + specular;
-
-    // ライティング計算
-    float3 lit = float3(0.0f, 0.0f, 0.0f);
-    if (lightType == 0)
-    {
-        // ディレクショナルライト
-        lit = NL * lightColor * illuminance;
-    }
-    else if (lightType == 1)
-    {
-        // ポイントライト
-        lit = EvaluatePointLight(N, input.worldPos, lightPosition, lightColor * luminousFlux);
-    }
-    else if (lightType == 2)
-    {
-        // スポットライト
-        lit = EvaluateSpotLight(N, input.worldPos, lightPosition, lightForward,
-                                lightColor * luminousFlux, lightAngleScale, lightAngleOffset);
-    }
-    else if (lightType == 3) {
-        // フォトメトリックライト
-        lit = EvaluatePhotometricLight(N, input.worldPos, lightPosition, lightForward,
-                                       lightColor * luminousFlux);
-    }
-
-    float3 finalColor = lit * BRDF;
+    float3 finalColor = E * NL * BRDF;
     finalColor = finalColor * exposure;
 
     // トーンマップの適用
