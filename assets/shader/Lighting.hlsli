@@ -64,7 +64,7 @@ float GetIESProfileAttenuation(
 
 /// @brief ライトからライトベクトル（入射方向）Lと照度E[lx]を取り出す
 /// @note ここで計算したEは厳密には照度ではない
-/// intensityは白色光の時の光束（あるいは照度）という意味で，colorは正規化色度
+/// intensityは白色光の時の光度（あるいは照度）という意味で，colorは正規化色度
 void GetLightSample(Light light, float3 worldPos, out float3 L, out float3 E) {
     if(light.type == LIGHT_TYPE_DIRECTIONAL) {
         L = -light.forward; // lightの前方の反対
@@ -76,21 +76,18 @@ void GetLightSample(Light light, float3 worldPos, out float3 L, out float3 E) {
     float3 toLight = light.position - worldPos;
     L = normalize(toLight);
 
-    // 光束[lm]から照度[lx]への変換
-    // 照度は光束*カラー*減衰係数*正規化係数（立体角あるいは近似値）
+    // 光度[cd]から照度[lx]への変換
+    // 照度は光度*カラー*減衰係数
     float att = GetDistanceAttenuation(toLight, light.invSqrRadius);
-    float normalization = 1 / (4 * F_PI);
     if (light.type == LIGHT_TYPE_SPOT) // スポットライトの場合は角度減衰が必要
     {
         att *= GetAngleAttenuation(L, light.forward, light.angleScale, light.angleOffset);
-        // コーン角を使わずにπで割る近似で光束を光度に変換する
-        normalization = 1 / F_PI;
     }
     else if (light.type == LIGHT_TYPE_PHOTOMETRIC)  // フォトメトリックライトの場合も個別の減衰が必要
     {
         att *= GetIESProfileAttenuation(L, light.forward);
     }
-    E = light.intensity * light.color * att * normalization;
+    E = light.intensity * light.color * att;
 
     return;
 }

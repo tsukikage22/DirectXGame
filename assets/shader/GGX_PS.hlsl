@@ -60,30 +60,31 @@ PSOutput main(VSOutput input) : SV_TARGET
     // 法線ベクトルをワールド空間へ変換
     float3 N = normalize(mul(tangentSpaceNormal, TBN));
 
-    //==============================================
-    // 反射計算の準備
-    //==============================================
     // viewベクトルの計算
     float3 V = normalize(cameraPos - input.worldPos);
 
-    // 光源からライトベクトルと色付きの照度を取得
-    float3 L, E;
-    Light light = MakeLightFromLegacy();
-    GetLightSample(light, input.worldPos, L, E);
+    //==============================================
+    // ライティング計算
+    //==============================================
+    float3 finalColor = float3(0.0f, 0.0f, 0.0f);
+    
+    // 光源の数だけループしてfinalColorに加算
+    for(uint i=0; i<lightCount; i++) {
+        Light light = lightBuffer[i];
 
-    // 内積計算
-    float NL = saturate(dot(N, L));
+        // 光源からライトベクトルと色付きの照度を取得
+        float3 L, E;
+        GetLightSample(light, input.worldPos, L, E);
 
-    //==============================================
-    // BRDFの計算
-    //==============================================
-    float3 BRDF = EvaluateBRDF(N, V, L, baseColor.rgb, metallic, roughness);
+        // 内積計算
+        float NL = saturate(dot(N, L));
 
-    //==============================================
-    // 最終カラーの計算 
-    //==============================================
-    float3 finalColor = E * NL * BRDF;
-    finalColor = finalColor * exposure;
+        // BRDFの計算
+        float3 BRDF = EvaluateBRDF(N, V, L, baseColor.rgb, metallic, roughness);
+        finalColor += E * NL * BRDF;
+    }
+
+    finalColor *= exposure;
 
     // トーンマップの適用
     float3 toneMapped = GT_Tonemap(finalColor);

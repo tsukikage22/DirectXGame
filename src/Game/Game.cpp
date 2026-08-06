@@ -34,6 +34,63 @@ void Game::Init(Engine* pEngine) {
     m_appleModel = loader.LoadModel(path);
     AssetPath().GetAssetPath(L"model/Katana.glb", path);
     m_katanaModel = loader.LoadModel(path);
+
+    // ライトの作成
+    engine::LightHandle lightHandle;
+
+    // Directional
+    /*
+    {
+        lightHandle  = m_pEngine->GetScene().SpawnLight(LightType::Directional);
+        auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
+        pLight->GetTransform().SetRotation(90.0f, 0.0f, 0.0f);
+        pLight->SetIlluminance(1.5f);
+        pLight->SetColor({ 1.0f, 1.0f, 1.0f });
+    }
+    */
+
+    // Point
+    /*
+    {
+        lightHandle  = m_pEngine->GetScene().SpawnLight(LightType::Point);
+        auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
+        pLight->GetTransform().SetPosition({ 5.0f, 5.0f, 0.0f });
+        pLight->SetIntensity(100.0f);
+        pLight->SetRange(10.0f);
+        pLight->SetColor({ 1.0f, 1.0f, 1.0f });
+    }
+    */
+
+    // Spot
+    /*
+    {
+        lightHandle  = m_pEngine->GetScene().SpawnLight(LightType::Spot);
+        auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
+        pLight->GetTransform().SetPosition({ 0.0f, 5.0f, 0.0f });
+        pLight->GetTransform().SetRotation(90.0f, 0.0f, 0.0f);
+        pLight->SetIntensity(100.0f);
+        pLight->SetRange(10.0f);
+        pLight->SetColor({ 1.0f, 1.0f, 1.0f });
+        pLight->SetSpotAngles(5.0f, 15.0f);
+    }
+    */
+
+    // 2 point lights
+    {
+        lightHandle  = m_pEngine->GetScene().SpawnLight(LightType::Point);
+        auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
+        pLight->GetTransform().SetPosition({ 5.0f, 5.0f, 0.0f });
+        pLight->SetIntensity(100.0f);
+        pLight->SetRange(10.0f);
+        pLight->SetColor({ 1.0f, 0.0f, 0.0f });
+
+        lightHandle = m_pEngine->GetScene().SpawnLight(LightType::Point);
+        pLight      = m_pEngine->GetScene().GetLight(lightHandle);
+        pLight->GetTransform().SetPosition({ -5.0f, 5.0f, 0.0f });
+        pLight->SetIntensity(100.0f);
+        pLight->SetRange(10.0f);
+        pLight->SetColor({ 0.0f, 0.0f, 1.0f });
+    }
 }
 
 void Game::Tick(float deltaTime) {

@@ -55,21 +55,8 @@ cbuffer MaterialConstants : register(b2) {
     float occlusionFactor;
 };
 
-// [b3] ライティング定数
-cbuffer LightingConstants : register(b3) {
-    uint lightType;          // 0: 平行光源, 1: 点光源, 2: スポット光源
-    float3 lightPosition;    // 位置（点光源/スポット光源用）
-    float3 lightForward;     // 方向（平行光源/スポット光源用）
-    float luminousFlux;      // 光束 [lm]（平行光源以外）
-    float illuminance;       // 照度 [lx]（平行光源用）
-    float3 lightColor;       // 色
-    float lightAngleScale;   // スポットライトの角度減衰係数（スポット光源用）
-    float lightAngleOffset;  // スポットライトの角度オフセット（スポット光源用）
-    float lightInvSqrRadius; // 計算の打ち切りに使う，影響半径の二乗の逆数（点光源/スポット光源用）
-};
-
-// [b4] ディスプレイ定数
-cbuffer DisplayConstants : register(b4) {
+// [b3] ディスプレイ定数
+cbuffer DisplayConstants : register(b3) {
     float maxLuminance;
     float minLuminance;
     float paperWhiteNits;
@@ -115,32 +102,18 @@ static const uint LIGHT_TYPE_PHOTOMETRIC = 3; // フォトメトリックライ�
 // ライト構造体
 struct Light {
     float3 position;    // ライトの位置（ワールド座標系）
-    uint type;        // ライトの種類
+    uint type;          // ライトの種類
     float3 forward;     // ライトの方向（ワールド座標系）
     float invSqrRadius; // 影響半径の逆二乗（計算の打ち切りに使う）
     float3 color;       // ライトの色
-    float intensity;    // 光の強度（平行光源の場合は照度[lx]，それ以外は光束[lm]）
+    float intensity;    // 光の強度（平行光源の場合は照度[lx]，それ以外は光度[cd]）
     float angleScale;   // スポットライトの角度減衰係数
     float angleOffset;  // スポットライトの角度オフセット
     uint iesIndex;      // IESプロファイルのインデックス
-    float _padding;  // 16バイトアラインメント用
+    float _padding;     // CPU側構造体とサイズを一致させるため
 };
 
-// 一時的な，LightingConstantsからLightを作る関数
-Light MakeLightFromLegacy()
-{
-    Light light;
-    light.type = lightType;
-    light.position = lightPosition;
-    light.color = lightColor;
-    light.forward = lightForward;
-    light.intensity = (light.type == LIGHT_TYPE_DIRECTIONAL) 
-        ? illuminance : luminousFlux;
-    light.invSqrRadius = lightInvSqrRadius;
-    light.angleOffset = lightAngleOffset;
-    light.angleScale = lightAngleScale;
-    light.iesIndex = 0;
-    return light;
-}
+// [t0, space2] ライトバッファ
+StructuredBuffer<Light> lightBuffer : register(t0, space2);
 
 #endif // COMMON_HLSLI

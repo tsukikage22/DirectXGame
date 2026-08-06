@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 
 Light::Light(LightType type)
     : m_type(type),
@@ -19,6 +20,28 @@ Light::Light(LightType type)
 }
 
 Light::~Light() {}
+
+shader::LightConstants Light::ToShaderConstants() const {
+    shader::LightConstants lc = {};
+    lc.position               = m_transform.GetPosition();
+    lc.forward                = m_transform.GetForward();
+    lc.type                   = static_cast<uint32_t>(m_type);
+    lc.color                  = m_color;
+    lc.intensity              = m_intensity;
+    lc.invSqrRadius           = 1.0f / (m_range * m_range);
+    lc.iesIndex               = 0;  // IESプロファイルは未対応
+
+    // スポットライトの角度減衰係数とオフセットを計算
+    // angleScaleは，ライトベクトルと照射方向のなす角がouterで0，innerで1となる線形補間
+    // angleOffsetは，角度がouterのときに0となるように調整するための切片
+    if (m_type == LightType::Spot) {
+        float cosInner = cosf(DirectX::XMConvertToRadians(m_innerAngleDeg));
+        float cosOuter = cosf(DirectX::XMConvertToRadians(m_outerAngleDeg));
+        lc.angleScale  = 1.0f / std::max(cosInner - cosOuter, 1e-6f);
+        lc.angleOffset = -cosOuter * lc.angleScale;
+    }
+    return lc;
+}
 
 void Light::SetIntensity(float intensity) {
     assert((m_type != LightType::Directional) &&

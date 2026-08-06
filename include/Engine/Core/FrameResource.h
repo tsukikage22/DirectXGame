@@ -47,6 +47,9 @@ public:
     /// @brief LightingConstantsGPUの取得
     LightingConstantsGPU& GetLightingConstants() { return m_lightingConstants; }
 
+    /// @brief LightBufferの取得
+    LightBuffer& GetLightBuffer() { return m_lightBuffer; }
+
     /// @brief フェンス値の取得
     UINT64 GetFenceValue() const { return m_fenceValue; }
 

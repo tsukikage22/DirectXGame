@@ -61,10 +61,10 @@ enum RootParam {
     CBV_Scene      = 0,  // b0
     CBV_Transform  = 1,  // b1
     CBV_Material   = 2,  // b2
-    CBV_Lighting   = 3,  // b3
-    CBV_Display    = 4,  // b4
-    SRV_Texture    = 5,  // t0
-    SRV_IESProfile = 6   // t0, space1
+    CBV_Display    = 3,  // b3
+    SRV_Texture    = 4,  // t0-t4
+    SRV_IESProfile = 5,  // t0, space1
+    SRV_Lights     = 6,  // t0, space2
 };
 
 /// @brief ディスプレイ情報

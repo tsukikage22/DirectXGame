@@ -8,6 +8,7 @@
 #include <cstdint>
 
 #include "Engine/Scene/Transform.h"
+#include "Engine/Shader/ShaderConstants.h"
 
 // ライトの種類
 enum class LightType : uint32_t {
@@ -24,6 +25,8 @@ public:
 
     /// @brief ライトの有効/無効を切り替える
     void ToggleLight() { m_enabled = !m_enabled; }
+
+    shader::LightConstants ToShaderConstants() const;
 
     //================================
     // アクセサ
