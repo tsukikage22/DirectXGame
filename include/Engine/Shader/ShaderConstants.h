@@ -24,23 +24,7 @@ struct SceneConstants {
 };
 static_assert(sizeof(SceneConstants) % 16 == 0, "Must be 16-byte aligned");
 
-/// @brief ライティング計算用の定数（フレーム毎更新）
-struct LightingConstants {
-    uint32_t lightType;  // 0: ディレクショナルライト, 1: ポイントライト,
-                         // 2: スポットライト, 3: フォトメトリックライト
-    DirectX::XMFLOAT3 lightPosition;  // 位置
-    DirectX::XMFLOAT3 lightForward;   // 方向
-    float luminousFlux;               // 光束 [lm]（平行光源以外）
-                                      // シェーダー側で照度に変換する
-    float illuminance;                // 照度 [lx]（平行光源のみ）
-    DirectX::XMFLOAT3 lightColor;     // 色
-    float lightAngleScale;            // スポットライトの角度減衰係数
-    float lightAngleOffset;           // スポットライトの角度オフセット
-    float lightInvSqrRadius;  // 影響半径の二乗の逆数（計算の打ち切りに使う）
-    float _padding[1];        // 16バイトアラインメント用
-};
-static_assert(sizeof(LightingConstants) % 16 == 0, "Must be 16-byte aligned");
-
+/// @brief ライティング計算に関わる定数
 struct LightConstants {
     DirectX::XMFLOAT3 position;  // ライトの位置
     uint32_t

@@ -162,9 +162,6 @@
     <ClInclude Include="..\include\Engine\Input\InputSystem.h">
       <Filter>ヘッダー ファイル\Input</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\Shader\LightingConstantsGPU.h">
-      <Filter>ヘッダー ファイル\Shader</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\Engine\Shader\DisplayConstantsGPU.h">
       <Filter>ヘッダー ファイル\Shader</Filter>
     </ClInclude>
@@ -284,9 +281,6 @@
     <ClCompile Include="..\src\Engine\Input\InputSystem.cpp">
       <Filter>ソース ファイル\Input</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\Shader\LightingConstantsGPU.cpp">
-      <Filter>ソース ファイル\Shader</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\Engine\Shader\DisplayConstantsGPU.cpp">
       <Filter>ソース ファイル\Shader</Filter>
     </ClCompile>
@@ -310,16 +304,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\assets\shader\TestPS.hlsl">
-      <Filter>リソース ファイル</Filter>
-    </FxCompile>
     <FxCompile Include="..\assets\shader\TestVS.hlsl">
-      <Filter>リソース ファイル</Filter>
-    </FxCompile>
-    <FxCompile Include="..\assets\shader\LambertPS.hlsl">
-      <Filter>リソース ファイル</Filter>
-    </FxCompile>
-    <FxCompile Include="..\assets\shader\Cook-TorrancePBR_PS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
     <FxCompile Include="..\assets\shader\GGX_PS.hlsl">
@@ -337,6 +322,9 @@
       <Filter>リソース ファイル</Filter>
     </None>
     <None Include="..\assets\shader\Tonemap.hlsli">
+      <Filter>リソース ファイル</Filter>
+    </None>
+    <None Include="..\assets\shader\Materials.hlsli">
       <Filter>リソース ファイル</Filter>
     </None>
   </ItemGroup>

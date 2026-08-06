@@ -8,6 +8,7 @@
 #include "BRDF.hlsli"
 #include "Tonemap.hlsli"
 #include "Lighting.hlsli"
+#include "Materials.hlsli"
 
 //==============================================================
 // Helper Functions
@@ -42,10 +43,10 @@ PSOutput main(VSOutput input) : SV_TARGET
     float aoTex = occlusionTexture.Sample(smp, input.texCoord).r;
 
     // テクスチャと定数からPBRパラメータを計算
-    float4 baseColor = baseColorTex * baseColorFactor;
-    float metallic = metallicRoughnessTex.b * metallicFactor;
-    float roughness = metallicRoughnessTex.g * roughnessFactor;
-    float ao = aoTex * occlusionFactor;
+    float4 baseColor = baseColorTex * g_material.baseColorFactor;
+    float metallic = metallicRoughnessTex.b * g_material.metallicFactor;
+    float roughness = metallicRoughnessTex.g * g_material.roughnessFactor;
+    float ao = aoTex * g_material.occlusionFactor;
 
     //==============================================
     // 法線ベクトルのワールド変換
@@ -61,7 +62,7 @@ PSOutput main(VSOutput input) : SV_TARGET
     float3 N = normalize(mul(tangentSpaceNormal, TBN));
 
     // viewベクトルの計算
-    float3 V = normalize(cameraPos - input.worldPos);
+    float3 V = normalize(g_scene.cameraPos - input.worldPos);
 
     //==============================================
     // ライティング計算
@@ -69,8 +70,8 @@ PSOutput main(VSOutput input) : SV_TARGET
     float3 finalColor = float3(0.0f, 0.0f, 0.0f);
     
     // 光源の数だけループしてfinalColorに加算
-    for(uint i=0; i<lightCount; i++) {
-        Light light = lightBuffer[i];
+    for(uint i=0; i<g_scene.lightCount; i++) {
+        Light light = g_lightBuffer[i];
 
         // 光源からライトベクトルと色付きの照度を取得
         float3 L, E;
@@ -84,7 +85,7 @@ PSOutput main(VSOutput input) : SV_TARGET
         finalColor += E * NL * BRDF;
     }
 
-    finalColor *= exposure;
+    finalColor *= g_scene.exposure;
 
     // トーンマップの適用
     float3 toneMapped = GT_Tonemap(finalColor);

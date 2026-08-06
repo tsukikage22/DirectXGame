@@ -19,7 +19,8 @@ inline constexpr uint32_t kMiscSrvCbvReserve  = 256;  // IES/IBLなど
 inline constexpr uint32_t kCbvSrvUavCapacity =
     kMaxObjects * kFrameCount                    // Transform CBV
     + kMaxMaterials * (1 + kTexturePerMaterial)  // Material CBV + PBRテクスチャ
-    + kFrameCount * 2                            // Scene/Lighting CBV
+    + kFrameCount                                // Scene CBV
+    + kFrameCount                                // Light StructuredBuffer
     + kMiscSrvCbvReserve;                        // IES/IBLなど
 
 inline constexpr uint32_t kSamplerCapacity = 256;              // <= 2048

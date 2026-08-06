@@ -1,5 +1,5 @@
 /// @file Lighting.hlsli
-/// @brief ライティングに関する関数群
+/// @brief ライティングに関する宣言や関数
 
 #pragma once
 
@@ -8,6 +8,47 @@
 
 #include "Common.hlsli"
 
+//==============================================================
+// Constants
+//==============================================================
+// ライト種類
+static const uint LIGHT_TYPE_DIRECTIONAL = 0; // 平行光源
+static const uint LIGHT_TYPE_POINT = 1;       // 点光源
+static const uint LIGHT_TYPE_SPOT = 2;        // スポット光源
+static const uint LIGHT_TYPE_PHOTOMETRIC = 3; // フォトメトリックライト
+
+//==============================================================
+// Structures
+//==============================================================
+// ライト構造体
+struct Light {
+    float3 position;    // ライトの位置（ワールド座標系）
+    uint type;          // ライトの種類
+    float3 forward;     // ライトの方向（ワールド座標系）
+    float invSqrRadius; // 影響半径の逆二乗（計算の打ち切りに使う）
+    float3 color;       // ライトの色
+    float intensity;    // 光の強度（平行光源の場合は照度[lx]，それ以外は光度[cd]）
+    float angleScale;   // スポットライトの角度減衰係数
+    float angleOffset;  // スポットライトの角度オフセット
+    uint iesIndex;      // IESプロファイルのインデックス
+    float _padding;     // CPU側構造体とサイズを一致させるため
+};
+
+//==============================================================
+// Resource Bindings
+//==============================================================
+// [t0, space2] ライトバッファ
+StructuredBuffer<Light> g_lightBuffer : register(t0, space2);
+
+// [t0, space1] IESプロファイルテクスチャ
+Texture2D<float4> IESMap : register(t0, space1);
+
+// [s1] IESプロファイル用サンプラー
+SamplerState IESSmp : register(s1);
+
+//==============================================================
+// Functions
+//==============================================================
 //--------------------------------------------------------------
 // 距離減衰の計算
 //--------------------------------------------------------------
