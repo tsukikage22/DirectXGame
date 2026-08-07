@@ -26,7 +26,6 @@ void TextureManager::Term() {
     // デフォルトテクスチャの解放
     m_pDefaultWhiteTexture.reset();
     m_pDefaultNormalFlatTexture.reset();
-    m_pDefaultRmaTexture.reset();
 
     // テクスチャリソースの解放
     for (auto& t : m_textures) {
@@ -163,7 +162,6 @@ bool TextureManager::CreateDefaultTextures(
     // デフォルトテクスチャの生成
     m_pDefaultWhiteTexture      = std::make_unique<ShaderResourceTexture>();
     m_pDefaultNormalFlatTexture = std::make_unique<ShaderResourceTexture>();
-    m_pDefaultRmaTexture        = std::make_unique<ShaderResourceTexture>();
 
     // 白色ベースカラー（1.0, 1.0, 1.0），R=0xFF, G=0xFF, B=0xFF, A=0xFF
     uint8_t r   = 0xFF;
@@ -187,17 +185,6 @@ bool TextureManager::CreateDefaultTextures(
         return false;
     }
 
-    // RMAテクスチャ（1.0, 0.0, 1.0），R=0xFF, G=0x00, B=0xFF, A=0xFF
-    r      = 0xFF;
-    g      = 0x00;
-    b      = 0xFF;
-    a      = 0xFF;
-    result = CreateSolidColorTexture(
-        batch, r, g, b, a, m_pPoolAssetSRV, *m_pDefaultRmaTexture);
-    if (!result) {
-        return false;
-    }
-
     return true;
 }
 
@@ -207,8 +194,4 @@ ShaderResourceTexture* TextureManager::GetWhiteDefault() const {
 
 ShaderResourceTexture* TextureManager::GetNormalFlat() const {
     return m_pDefaultNormalFlatTexture.get();
-}
-
-ShaderResourceTexture* TextureManager::GetRmaDefault() const {
-    return m_pDefaultRmaTexture.get();
 }

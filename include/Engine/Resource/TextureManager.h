@@ -34,7 +34,6 @@ public:
     //==========================================
     ShaderResourceTexture* GetWhiteDefault() const;
     ShaderResourceTexture* GetNormalFlat() const;
-    ShaderResourceTexture* GetRmaDefault() const;
 
     //=========================================
     // Factory メソッド
@@ -75,7 +74,6 @@ private:
     // デフォルトテクスチャ
     std::unique_ptr<ShaderResourceTexture> m_pDefaultWhiteTexture;
     std::unique_ptr<ShaderResourceTexture> m_pDefaultNormalFlatTexture;
-    std::unique_ptr<ShaderResourceTexture> m_pDefaultRmaTexture;
 
     // private methods
 
