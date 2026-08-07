@@ -1,20 +1,22 @@
-#include "Engine/Resource/ModelLoadScope.h"
+#include "Engine/Resource/AssetLoadScope.h"
 
 #include "Engine/Core/CommandQueue.h"
+#include "Engine/Resource/IESProfile.h"
 #include "Engine/Resource/ModelLoader.h"
 #include "Engine/Scene/Scene.h"
 
 /// @brief Begin済みのbatchを受け取り，モデルロードができるようにする
-ModelLoadScope::ModelLoadScope(
+AssetLoadScope::AssetLoadScope(
     std::unique_ptr<DirectX::ResourceUploadBatch> pbatch, CommandQueue& queue,
-    ModelLoader& loader, Scene& scene)
+    ModelLoader& loader, Scene& scene, IESProfile& iesProfile)
     : m_pbatch(std::move(pbatch)),
       m_queue(queue),
       m_loader(loader),
-      m_scene(scene) {};
+      m_scene(scene),
+      m_iesProfile(iesProfile) {};
 
 /// @brief デストラクタでResouceUploadBatchとUploadヒープの破棄をする
-ModelLoadScope::~ModelLoadScope() {
+AssetLoadScope::~AssetLoadScope() {
     if (!m_pbatch) {
         return;
     }
@@ -24,10 +26,16 @@ ModelLoadScope::~ModelLoadScope() {
 }
 
 /// @brief モデルをロードし，シーンに登録する
-engine::ModelHandle ModelLoadScope::LoadModel(
+engine::ModelHandle AssetLoadScope::LoadModel(
     const std::filesystem::path& path) {
     auto model                      = m_loader.LoadModel(path, *m_pbatch);
     engine::ModelHandle modelHandle = m_scene.RegisterModel(std::move(model));
     assert(modelHandle.IsValid() && "Failed to load model.");
     return modelHandle;
+}
+
+/// @brief IESプロファイルをロードし，配光テクスチャを作成する
+std::optional<uint32_t> AssetLoadScope::LoadIESProfile(
+    const std::filesystem::path& path) {
+    return m_iesProfile.CreateIESTexture(path, *m_pbatch);
 }

@@ -8,8 +8,8 @@
 #include <vector>
 
 #include "Engine/Core/DescriptorAllocation.h"
-#include "Engine/Resource/TextureResource.h"
 #include "Engine/Model/ModelAsset.h"
+#include "Engine/Resource/TextureResource.h"
 
 class DescriptorPool;
 
@@ -29,7 +29,8 @@ public:
         const ImageAsset& image, DirectX::ResourceUploadBatch& batch);
 
     bool InitSolidColorRGBA8(ID3D12Device* pDevice, DescriptorPool* pPoolSRV,
-        uint32_t color, DirectX::ResourceUploadBatch& batch);
+        uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+        DirectX::ResourceUploadBatch& batch);
 
     /// @brief 終了処理（SRV解放，Resource解放）
     void Term();

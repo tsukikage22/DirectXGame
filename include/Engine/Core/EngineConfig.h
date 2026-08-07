@@ -8,7 +8,7 @@
 namespace config {
 inline constexpr uint32_t kFrameCount = 2;      // フレームリソースの数
 inline constexpr uint32_t kMaxObjects = 10000;  // 最大オブジェクト数
-inline constexpr uint32_t kMaxLights  = 8;      // 最大ライト数
+inline constexpr uint32_t kMaxLights  = 64;     // 最大ライト数
 
 // 1マテリアル当たりの見積もり
 inline constexpr uint32_t kMaxMaterials       = 2560;  // 最大マテリアル数
@@ -19,7 +19,8 @@ inline constexpr uint32_t kMiscSrvCbvReserve  = 256;  // IES/IBLなど
 inline constexpr uint32_t kCbvSrvUavCapacity =
     kMaxObjects * kFrameCount                    // Transform CBV
     + kMaxMaterials * (1 + kTexturePerMaterial)  // Material CBV + PBRテクスチャ
-    + kFrameCount * 2                            // Scene/Lighting CBV
+    + kFrameCount                                // Scene CBV
+    + kFrameCount                                // Light StructuredBuffer
     + kMiscSrvCbvReserve;                        // IES/IBLなど
 
 inline constexpr uint32_t kSamplerCapacity = 256;              // <= 2048

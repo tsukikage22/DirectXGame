@@ -8,6 +8,25 @@
 
 #include "Common.hlsli"
 
+//=============================================================
+// Structure
+//=============================================================
+struct DisplayConstants {
+    float maxLuminance;
+    float minLuminance;
+    float paperWhiteNits;
+    float maxFullFrameLuminance;
+};
+
+//==============================================================
+// Resource Bindings
+//==============================================================
+// [b3] ディスプレイ定数
+ConstantBuffer<DisplayConstants> g_display: register(b3);
+
+//==============================================================
+// Functions
+//==============================================================
 //--------------------------------------------------------------
 // GTトーンマップ
 //--------------------------------------------------------------
@@ -21,7 +40,7 @@ float3 GT_Tonemap(float3 color) {
         return color;
     }
 
-    float k = maxLuminance / paperWhiteNits;
+    float k = g_display.maxLuminance / g_display.paperWhiteNits;
 
     // パラメータ定義
     float P = k;     // 最大輝度

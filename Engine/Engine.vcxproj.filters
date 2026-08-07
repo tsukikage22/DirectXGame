@@ -162,9 +162,6 @@
     <ClInclude Include="..\include\Engine\Input\InputSystem.h">
       <Filter>ヘッダー ファイル\Input</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\Shader\LightingConstantsGPU.h">
-      <Filter>ヘッダー ファイル\Shader</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\Engine\Shader\DisplayConstantsGPU.h">
       <Filter>ヘッダー ファイル\Shader</Filter>
     </ClInclude>
@@ -192,8 +189,14 @@
     <ClInclude Include="..\include\Engine\Core\RetireQueue.h">
       <Filter>ヘッダー ファイル\Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\Resource\ModelLoadScope.h">
+    <ClInclude Include="..\include\Engine\Resource\AssetLoadScope.h">
       <Filter>ヘッダー ファイル\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Engine\Scene\Light.h">
+      <Filter>ヘッダー ファイル\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Engine\Shader\LightBuffer.h">
+      <Filter>ヘッダー ファイル\Shader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -278,9 +281,6 @@
     <ClCompile Include="..\src\Engine\Input\InputSystem.cpp">
       <Filter>ソース ファイル\Input</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\Shader\LightingConstantsGPU.cpp">
-      <Filter>ソース ファイル\Shader</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\Engine\Shader\DisplayConstantsGPU.cpp">
       <Filter>ソース ファイル\Shader</Filter>
     </ClCompile>
@@ -293,21 +293,18 @@
     <ClCompile Include="..\src\Engine\Core\DescriptorAllocation.cpp">
       <Filter>ソース ファイル\Core</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\Resource\ModelLoadScope.cpp">
+    <ClCompile Include="..\src\Engine\Resource\AssetLoadScope.cpp">
       <Filter>ソース ファイル\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Engine\Scene\Light.cpp">
+      <Filter>ソース ファイル\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Engine\Shader\LightBuffer.cpp">
+      <Filter>ソース ファイル\Shader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\assets\shader\TestPS.hlsl">
-      <Filter>リソース ファイル</Filter>
-    </FxCompile>
     <FxCompile Include="..\assets\shader\TestVS.hlsl">
-      <Filter>リソース ファイル</Filter>
-    </FxCompile>
-    <FxCompile Include="..\assets\shader\LambertPS.hlsl">
-      <Filter>リソース ファイル</Filter>
-    </FxCompile>
-    <FxCompile Include="..\assets\shader\Cook-TorrancePBR_PS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
     <FxCompile Include="..\assets\shader\GGX_PS.hlsl">
@@ -325,6 +322,9 @@
       <Filter>リソース ファイル</Filter>
     </None>
     <None Include="..\assets\shader\Tonemap.hlsli">
+      <Filter>リソース ファイル</Filter>
+    </None>
+    <None Include="..\assets\shader\Materials.hlsli">
       <Filter>リソース ファイル</Filter>
     </None>
   </ItemGroup>

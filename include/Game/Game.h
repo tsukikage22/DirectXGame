@@ -30,10 +30,13 @@ private:
     std::unique_ptr<CameraController> m_pCameraController;
 
     engine::ModelHandle m_earthModel;  // シーン内の球体モデルのハンドル
-    engine::ModelHandle m_moonModel;
+    engine::ModelHandle m_appleModel;
+    engine::ModelHandle m_katanaModel;
+    engine::ModelHandle m_planeModel;
 
     engine::ObjectHandle
         m_earthObject;  // シーン内のゲームオブジェクトのハンドル
-    engine::ObjectHandle
-        m_moonObject;  // シーン内のゲームオブジェクトのハンドル
+    engine::ObjectHandle m_appleObject;
+    engine::ObjectHandle m_katanaObject;
+    engine::ObjectHandle m_planeObject;
 };

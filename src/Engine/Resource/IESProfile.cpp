@@ -225,35 +225,6 @@ float Interpolate(
     return BilinearSample(s, t, profileData);
 }
 
-/// @brief テクスチャサイズの計算
-int ComputeTextureSize(const IESProfileData& profileData) {
-    // 128, anglesVの数, anglesHの数の中で最大の値を選び，
-    // それを超える最小の2のべき乗をテクスチャサイズとする
-    auto size = 128;
-    size      = DirectX::XMMax(size, int(profileData.anglesV.size()));
-    size      = DirectX::XMMax(size, int(profileData.anglesH.size()));
-
-    // 128pxから2次元テクスチャの最大値までの範囲で、最も近い2のべき乗を求める
-    bool find = false;
-    for (int i = 7; i <= D3D12_MAX_TEXTURE_DIMENSION_2_TO_EXP; i++) {
-        auto lhs = exp2(i - 1);
-        auto rhs = exp2(i);
-        if (lhs < size && size <= rhs) {
-            size = int(rhs);
-            find = true;
-            break;
-        }
-    }
-
-    if (!find) {
-        OutputDebugStringW(
-            L"Failed to determine texture size for IES profile.\n");
-        return -1;
-    }
-
-    return size;
-}
-
 /// @brief IESProfileのカンデラ値からテクセルへの変換
 std::vector<float> BuildPixels(
     const IESProfileData& profileData, int w, int h) {
@@ -306,15 +277,15 @@ std::vector<float> BuildPixels(
 //------------------------------------------------
 // IESProfile class
 //------------------------------------------------
-IESProfile::IESProfile() : m_pPoolSRV(nullptr) {}
+IESProfile::IESProfile()
+    : m_pPoolSRV(nullptr), m_pDevice(nullptr), m_count(0) {}
 
 IESProfile::~IESProfile() { Term(); }
 
 /// @brief 初期化処理
-bool IESProfile::Init(ID3D12Device* pDevice, DescriptorPool* pPool,
-    std::filesystem::path path, DirectX::ResourceUploadBatch& batch) {
+bool IESProfile::Init(ID3D12Device* pDevice, DescriptorPool* pPool) {
     // 引数チェック
-    if (!pDevice || !pPool || path.empty()) {
+    if (!pDevice || !pPool) {
         OutputDebugStringW(L"Invalid arguments to IESProfile::Init.\n");
         return false;
     }
@@ -323,63 +294,90 @@ bool IESProfile::Init(ID3D12Device* pDevice, DescriptorPool* pPool,
     Term();
 
     m_pPoolSRV = pPool;
+    m_pDevice  = pDevice;
 
-    // IESプロファイルの読み込み
-    IESProfileData profileData;
-    if (!LoadIESProfile(path, profileData)) {
-        OutputDebugStringW(L"Failed to load IES profile data.\n");
-        return false;
-    }
-
-    // テクスチャのサイズの決定
-    int size = ComputeTextureSize(profileData);
-    if (size < 0) {
-        return false;
-    }
-
-    // テクセルを格納する配列の作成
-    auto w      = size;
-    auto h      = size;
-    auto pixels = BuildPixels(profileData, w, h);
-
-    // pixelsからテクスチャを作成
+    // Texture2DArrayの作成
     // リソースの生成
-    if (!m_texture.InitAsTexture2D(pDevice, w, h, DXGI_FORMAT_R32_FLOAT, 1,
-            D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_COPY_DEST)) {
+    if (!m_textureArray.InitAsTexture2DArray(m_pDevice, kWidth, kHeight,
+            DXGI_FORMAT_R32_FLOAT, kMaxIESProfiles, 1, D3D12_RESOURCE_FLAG_NONE,
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)) {
         return false;
     }
 
     // SRVインデックスの確保
     m_srv = m_pPoolSRV->Allocate();
+    if (!m_srv.IsValid()) {
+        OutputDebugStringW(
+            L"Failed to allocate SRV descriptor for IESProfile.\n");
+        return false;
+    }
 
     // SRVディスクリプタの設定
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.ViewDimension                   = D3D12_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Format                          = DXGI_FORMAT_R32_FLOAT;
-    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    srvDesc.Texture2D.MipLevels     = 1;
-    srvDesc.Texture2D.MostDetailedMip     = 0;
-    srvDesc.Texture2D.PlaneSlice          = 0;
-    srvDesc.Texture2D.ResourceMinLODClamp = 0;
+    srvDesc.ViewDimension            = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+    srvDesc.Format                   = DXGI_FORMAT_R32_FLOAT;
+    srvDesc.Shader4ComponentMapping  = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Texture2DArray.MipLevels = 1;
+    srvDesc.Texture2DArray.MostDetailedMip     = 0;
+    srvDesc.Texture2DArray.FirstArraySlice     = 0;
+    srvDesc.Texture2DArray.ArraySize           = kMaxIESProfiles;
+    srvDesc.Texture2DArray.PlaneSlice          = 0;
+    srvDesc.Texture2DArray.ResourceMinLODClamp = 0;
 
-    // SRVの生成
-    pDevice->CreateShaderResourceView(
-        m_texture.GetResource(), &srvDesc, m_srv.GetCPUHandle());
-
-    // ResourceUploadBatchでアップロード
-    D3D12_SUBRESOURCE_DATA subRes = {};
-    subRes.RowPitch               = w * sizeof(float);
-    subRes.SlicePitch             = h * subRes.RowPitch;
-    subRes.pData                  = pixels.data();
-
-    batch.Upload(m_texture.GetResource(), 0, &subRes, 1);
-    batch.Transition(m_texture.GetResource(), D3D12_RESOURCE_STATE_COPY_DEST,
-        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    m_pDevice->CreateShaderResourceView(
+        m_textureArray.GetResource(), &srvDesc, m_srv.GetCPUHandle());
 
     return true;
 }
 
-void IESProfile::Term() { m_pPoolSRV = nullptr; }
+void IESProfile::Term() {
+    m_pPoolSRV = nullptr;
+    m_pDevice  = nullptr;
+    m_count    = 0;
+    m_srv      = {};
+    m_textureArray.Term();
+}
+
+std::optional<uint32_t> IESProfile::CreateIESTexture(
+    const std::filesystem::path& path, DirectX::ResourceUploadBatch& batch) {
+    // テクスチャの最大数を超えた場合は何もしない
+    if (m_count >= kMaxIESProfiles) {
+        OutputDebugStringW(L"Maximum number of IES profiles reached.\n");
+        return std::nullopt;
+    }
+
+    // IESプロファイルの読み込み
+    IESProfileData profileData;
+    if (!LoadIESProfile(path, profileData)) {
+        OutputDebugStringW(L"Failed to load IES profile data.\n");
+        return std::nullopt;
+    }
+
+    // 角度サンプル数がテクスチャサイズを超えた場合
+    if (profileData.anglesV.size() > kWidth ||
+        profileData.anglesH.size() > kHeight) {
+        OutputDebugStringW(L"IES profile data exceeds texture size.\n");
+        return std::nullopt;
+    }
+
+    // テクセルを格納する配列の作成
+    auto pixels = BuildPixels(profileData, kWidth, kHeight);
+
+    D3D12_SUBRESOURCE_DATA subRes = {};
+    subRes.RowPitch               = kWidth * sizeof(float);
+    subRes.SlicePitch             = kHeight * subRes.RowPitch;
+    subRes.pData                  = pixels.data();
+
+    // 一時的にCOPY_DESTに遷移してアップロードし，PIXEL_SHADER_RESOURCEに戻す
+    auto* pRes = m_textureArray.GetResource();
+    batch.Transition(pRes, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+        D3D12_RESOURCE_STATE_COPY_DEST);
+    batch.Upload(pRes, m_count, &subRes, 1);
+    batch.Transition(pRes, D3D12_RESOURCE_STATE_COPY_DEST,
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+    return m_count++;  // 作成したテクスチャのインデックスを返す
+}
 
 D3D12_GPU_DESCRIPTOR_HANDLE IESProfile::GetSrvGpuHandle() const {
     if (m_srv.IsValid() && m_pPoolSRV) {

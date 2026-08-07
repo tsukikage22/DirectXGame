@@ -82,6 +82,8 @@ void TextureManager::BuildTexturesFromModelAsset(
         };
         Resolve(material.baseColorLocalTextureIndex, material.baseColorTexture);
         Resolve(material.normalLocalTextureIndex, material.normalTexture);
+        Resolve(material.metallicRoughnessLocalTextureIndex,
+            material.metallicRoughnessTexture);
         Resolve(material.occlusionLocalTextureIndex, material.occlusionTexture);
         Resolve(material.emissiveLocalTextureIndex, material.emissiveTexture);
     }
@@ -119,9 +121,10 @@ uint32_t TextureManager::CreateFromImageAsset(
 
 // 単色テクスチャの生成
 bool TextureManager::CreateSolidColorTexture(
-    DirectX::ResourceUploadBatch& batch, uint32_t color,
-    DescriptorPool* poolSRV, ShaderResourceTexture& outTexture) {
-    return outTexture.InitSolidColorRGBA8(m_pDevice, poolSRV, color, batch);
+    DirectX::ResourceUploadBatch& batch, uint8_t r, uint8_t g, uint8_t b,
+    uint8_t a, DescriptorPool* poolSRV, ShaderResourceTexture& outTexture) {
+    return outTexture.InitSolidColorRGBA8(
+        m_pDevice, poolSRV, r, g, b, a, batch);
 }
 
 // 指定したインデックスのテクスチャを取得
@@ -162,23 +165,35 @@ bool TextureManager::CreateDefaultTextures(
     m_pDefaultNormalFlatTexture = std::make_unique<ShaderResourceTexture>();
     m_pDefaultRmaTexture        = std::make_unique<ShaderResourceTexture>();
 
-    // 白色ベースカラー（1.0, 1.0, 1.0），A=0xFF, R=0xFF, G=0xFF, B=0xFF
+    // 白色ベースカラー（1.0, 1.0, 1.0），R=0xFF, G=0xFF, B=0xFF, A=0xFF
+    uint8_t r   = 0xFF;
+    uint8_t g   = 0xFF;
+    uint8_t b   = 0xFF;
+    uint8_t a   = 0xFF;
     bool result = CreateSolidColorTexture(
-        batch, 0xFFFFFFFF, m_pPoolAssetSRV, *m_pDefaultWhiteTexture);
+        batch, r, g, b, a, m_pPoolAssetSRV, *m_pDefaultWhiteTexture);
     if (!result) {
         return false;
     }
 
-    // 法線マップ（0.5, 0.5, 1.0），A=0xFF, R=0x80, G=0x80, B=0xFF
+    // 法線マップ（0.5, 0.5, 1.0），R=0x80, G=0x80, B=0xFF, A=0xFF
+    r      = 0x80;
+    g      = 0x80;
+    b      = 0xFF;
+    a      = 0xFF;
     result = CreateSolidColorTexture(
-        batch, 0xFF8080FF, m_pPoolAssetSRV, *m_pDefaultNormalFlatTexture);
+        batch, r, g, b, a, m_pPoolAssetSRV, *m_pDefaultNormalFlatTexture);
     if (!result) {
         return false;
     }
 
-    // RMAテクスチャ（1.0, 0.0, 1.0），A=0xFF, R=0xFF, G=0x00, B=0xFF
+    // RMAテクスチャ（1.0, 0.0, 1.0），R=0xFF, G=0x00, B=0xFF, A=0xFF
+    r      = 0xFF;
+    g      = 0x00;
+    b      = 0xFF;
+    a      = 0xFF;
     result = CreateSolidColorTexture(
-        batch, 0xFFFF00FF, m_pPoolAssetSRV, *m_pDefaultRmaTexture);
+        batch, r, g, b, a, m_pPoolAssetSRV, *m_pDefaultRmaTexture);
     if (!result) {
         return false;
     }

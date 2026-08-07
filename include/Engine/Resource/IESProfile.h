@@ -3,7 +3,9 @@
 #include <d3d12.h>
 #include <directxtk12/ResourceUploadBatch.h>
 
+#include <cstdint>
 #include <filesystem>
+#include <optional>
 #include <vector>
 
 #include "Engine/Core/ComPtr.h"
@@ -46,21 +48,33 @@ public:
     ~IESProfile();
 
     /// @brief 初期化処理
-    bool Init(ID3D12Device* pDevice, DescriptorPool* pPool,
-        std::filesystem::path path, DirectX::ResourceUploadBatch& batch);
+    bool Init(ID3D12Device* pDevice, DescriptorPool* pPool);
 
     /// @brief 終了処理
     void Term();
+
+    /// @brief IESProfileを読み込み，テクスチャを追加する
+    /// @return 作成したテクスチャのインデックス（Lightに渡す）
+    std::optional<uint32_t> CreateIESTexture(
+        const std::filesystem::path& path, DirectX::ResourceUploadBatch& batch);
 
     //------------------------------------------------
     // アクセサ
     //------------------------------------------------
     D3D12_GPU_DESCRIPTOR_HANDLE GetSrvGpuHandle() const;
+    uint32_t GetCount() const { return m_count; }
 
 private:
-    TextureResource m_texture;   // IESプロファイルのテクスチャ
-    DescriptorAllocation m_srv;  // SRVディスクリプタ
-    DescriptorPool* m_pPoolSRV;  // ディスクリプタプール
+    constexpr static uint32_t kMaxIESProfiles = 8;  // 最大IESプロファイル数
+    constexpr static uint32_t kWidth  = 256;  // テクスチャの幅 θ（垂直角）
+    constexpr static uint32_t kHeight = 128;  // テクスチャの高さ φ（水平角）
+
+    TextureResource m_textureArray;  // IESプロファイルのテクスチャ
+    DescriptorAllocation m_srv;      // SRVディスクリプタ
+    DescriptorPool* m_pPoolSRV;      // ディスクリプタプール
+    ID3D12Device* m_pDevice;         // デバイス
+
+    uint32_t m_count;  // 読み込まれたIESプロファイルの数
 
     // コピー禁止
     IESProfile(const IESProfile&)            = delete;

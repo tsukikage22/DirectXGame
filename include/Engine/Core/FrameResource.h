@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <d3d12.h>
 
@@ -7,7 +7,7 @@
 
 #include "Engine/Core/ComPtr.h"
 #include "Engine/Core/DescriptorPool.h"
-#include "Engine/Shader/LightingConstantsGPU.h"
+#include "Engine/Shader/LightBuffer.h"
 #include "Engine/Shader/SceneConstantsGPU.h"
 #include "Engine/Shader/TransformGPU.h"
 
@@ -19,7 +19,6 @@ public:
     /// @brief 初期化
     /// @return
     bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV);
-    // TODO: Transformの数を動的に変更できるようにする
 
     /// @brief 終了処理
     void Term();
@@ -41,16 +40,11 @@ public:
         return m_pCmdAllocator.Get();
     }
 
-    /// @brief TransformGPUの取得
-    std::vector<std::unique_ptr<TransformGPU>>& GetTransforms() {
-        return m_pTransforms;
-    }
-
     /// @brief SceneConstantsGPUの取得
     SceneConstantsGPU& GetSceneConstants() { return m_sceneConstants; }
 
-    /// @brief LightingConstantsGPUの取得
-    LightingConstantsGPU& GetLightingConstants() { return m_lightingConstants; }
+    /// @brief LightBufferの取得
+    LightBuffer& GetLightBuffer() { return m_lightBuffer; }
 
     /// @brief フェンス値の取得
     UINT64 GetFenceValue() const { return m_fenceValue; }
@@ -58,11 +52,9 @@ public:
 private:
     engine::ComPtr<ID3D12CommandAllocator>
         m_pCmdAllocator;  // コマンドアロケータ
-    std::vector<std::unique_ptr<TransformGPU>>
-        m_pTransforms;  // 各オブジェクトのワールド行列
 
-    SceneConstantsGPU m_sceneConstants;        // シーン定数
-    LightingConstantsGPU m_lightingConstants;  // ライティング定数
+    SceneConstantsGPU m_sceneConstants;  // シーン定数
+    LightBuffer m_lightBuffer;           // ライトバッファ
 
     UINT64 m_fenceValue = 0;  // フェンス値
     // このフレームを作成した時点のフェンス値を持つことで，

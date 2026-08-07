@@ -23,8 +23,8 @@ bool FrameResource::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV) {
         return false;
     }
 
-    // LightingConstants初期化
-    if (!m_lightingConstants.Init(pDevice, pPoolCBV)) {
+    // LightBuffer初期化
+    if (!m_lightBuffer.Init(pDevice, pPoolCBV)) {
         return false;
     }
 
@@ -38,9 +38,8 @@ void FrameResource::Term() {
     }
 
     // リソースの解放
-    m_pTransforms.clear();
     m_sceneConstants.Term();
-    m_lightingConstants.Term();
+    m_lightBuffer.Term();
     m_pCmdAllocator.Reset();
 }
 

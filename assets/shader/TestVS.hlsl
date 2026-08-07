@@ -1,7 +1,12 @@
+/// @file TestVS.hlsl
+/// @brief 頂点シェーダ
+
+#include "Common.hlsli"
+
 //===========================================
-// VS Input structure
+// Structures
 //===========================================
-// 入力頂点データ（Engine側のVertexBufferの構造（StandardVertex）に対応）
+/// @brief 頂点シェーダの入力構造体
 struct VSInput{
     float3 position : POSITION;     // 頂点座標
     float3 normal   : NORMAL;       // 頂点法線
@@ -10,58 +15,41 @@ struct VSInput{
     float4 color    : COLOR;        // 頂点カラー
 };
 
-//===========================================
-// VS Output structure
-//===========================================
-// ピクセルシェーダーへ渡すデータ
-struct VSOutput{
-    float4 position : SV_POSITION;      // 変換後頂点座標
-    float3 worldNormal : TEXCOORD0;     // ワールド座標系の法線
-    float2 texCoord : TEXCOORD1;        // テクスチャ座標
-    float3 worldPos : TEXCOORD2;        // ワールド座標系の頂点位置
-    float3 worldTangent : TEXCOORD3;    // 接線ベクトル
-    nointerpolation float handedness : TEXCOORD4;        // 接線空間の右手系/左手系の判定
+/// @brief ワールド変換行列構造体
+struct TransformConstants {
+    float4x4 world;
+    float4x4 worldInv;
 };
+
 
 //===========================================
 // constants buffer
 //===========================================
-// [b0] シーン定数（View, Projection行列）
-cbuffer SceneConstants: register(b0) {
-    float4x4 view;      // ビュー行列
-    float4x4 proj;      // プロジェクション行列
-    float3 cameraPos;   // カメラ位置（ワールド座標系）
-    float time;        // 経過時間（秒）
-};
-
 // [b1] ワールド変換行列
-cbuffer TransformConstants: register(b1) {
-    float4x4 world;
-    float4x4 worldInv;
-};
+ConstantBuffer<TransformConstants> g_transform: register(b1);
 
 VSOutput main(VSInput input) {
     VSOutput output;
 
     // 1. ローカル座標 -> ワールド座標変換
-    float4 worldPos = mul(float4(input.position, 1.0f), world);
+    float4 worldPos = mul(float4(input.position, 1.0f), g_transform.world);
     output.worldPos = worldPos.xyz;
 
     // 2. ワールド座標 -> ビュー座標変換
-    float4 viewPos = mul(worldPos, view);
+    float4 viewPos = mul(worldPos, g_scene.view);
 
     // 3. ビュー座標 -> 射影変換
-    output.position = mul(viewPos, proj);
+    output.position = mul(viewPos, g_scene.proj);
 
     // UV座標の受け渡し
     output.texCoord = input.texCoord;
 
     // 法線のワールド座標系への変換
-    float3 worldNormal = mul(input.normal, (float3x3)worldInv);
+    float3 worldNormal = mul(input.normal, (float3x3)g_transform.worldInv);
     output.worldNormal = normalize(worldNormal);
 
     // 接線ベクトルのワールド座標系への変換
-    float3 worldTangent = mul(input.tangent.xyz, (float3x3)world);
+    float3 worldTangent = mul(input.tangent.xyz, (float3x3)g_transform.world);
     output.worldTangent = normalize(worldTangent);
 
     // 接線空間の右手系/左手系の判定

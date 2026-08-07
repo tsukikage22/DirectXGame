@@ -45,8 +45,8 @@ public:
         const ImageAsset& image, DirectX::ResourceUploadBatch& batch);
 
     /// @brief 単色テクスチャの生成
-    bool CreateSolidColorTexture(DirectX::ResourceUploadBatch& batch,
-        uint32_t color, DescriptorPool* poolSRV,
+    bool CreateSolidColorTexture(DirectX::ResourceUploadBatch& batch, uint8_t r,
+        uint8_t g, uint8_t b, uint8_t a, DescriptorPool* poolSRV,
         ShaderResourceTexture& outTexture);
 
     /// @brief デフォルトテクスチャすべての生成

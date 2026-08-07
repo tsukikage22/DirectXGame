@@ -96,7 +96,7 @@ bool ShaderResourceTexture::InitFromImage(ID3D12Device* pDevice,
 }
 
 bool ShaderResourceTexture::InitSolidColorRGBA8(ID3D12Device* pDevice,
-    DescriptorPool* pPoolSRV, uint32_t color,
+    DescriptorPool* pPoolSRV, uint8_t r, uint8_t g, uint8_t b, uint8_t a,
     DirectX::ResourceUploadBatch& batch) {
     // 引数チェック
     if (!pDevice || !pPoolSRV) {
@@ -118,6 +118,7 @@ bool ShaderResourceTexture::InitSolidColorRGBA8(ID3D12Device* pDevice,
 
     // サブリソースデータの設定
     D3D12_SUBRESOURCE_DATA subresourceData = {};
+    const uint8_t color[4]                 = { r, g, b, a };
     subresourceData.pData                  = &color;
     subresourceData.RowPitch               = sizeof(uint32_t);
     subresourceData.SlicePitch             = sizeof(uint32_t);

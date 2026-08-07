@@ -8,6 +8,7 @@
 #include "BRDF.hlsli"
 #include "Tonemap.hlsli"
 #include "Lighting.hlsli"
+#include "Materials.hlsli"
 
 //==============================================================
 // Helper Functions
@@ -42,10 +43,10 @@ PSOutput main(VSOutput input) : SV_TARGET
     float aoTex = occlusionTexture.Sample(smp, input.texCoord).r;
 
     // テクスチャと定数からPBRパラメータを計算
-    float4 baseColor = baseColorTex * baseColorFactor;
-    float metallic = metallicRoughnessTex.b * metallicFactor;
-    float roughness = metallicRoughnessTex.r * roughnessFactor;
-    float ao = aoTex * occlusionFactor;
+    float4 baseColor = baseColorTex * g_material.baseColorFactor;
+    float metallic = metallicRoughnessTex.b * g_material.metallicFactor;
+    float roughness = metallicRoughnessTex.g * g_material.roughnessFactor;
+    float ao = aoTex * g_material.occlusionFactor;
 
     //==============================================
     // 法線ベクトルのワールド変換
@@ -60,80 +61,31 @@ PSOutput main(VSOutput input) : SV_TARGET
     // 法線ベクトルをワールド空間へ変換
     float3 N = normalize(mul(tangentSpaceNormal, TBN));
 
-    //==============================================
-    // 反射計算の準備
-    //==============================================
     // viewベクトルの計算
-    float3 V = normalize(cameraPos - input.worldPos);
-
-    // ライトベクトルの計算
-    float3 L;
-    if (lightType == 0)
-    {
-        // ディレクショナルライト
-        L = -lightForward;
-    }
-    else
-    {
-        // ポイントライトまたはスポットライト
-        L = normalize(lightPosition - input.worldPos);
-    }
-
-    // ハーフベクトルの計算
-    float3 H = normalize(L + V);
-
-    // 内積
-    float NV = saturate(dot(N, V));
-    float NL = saturate(dot(N, L));
-    float NH = saturate(dot(N, H));
-    float VH = saturate(dot(V, H));
+    float3 V = normalize(g_scene.cameraPos - input.worldPos);
 
     //==============================================
-    // 拡散反射の計算（正規化Lambertモデル）
-    //==============================================
-    float3 Kd = baseColor.rgb * (1.0f - metallic); // 拡散反射率
-    float3 diffuse = Kd * (1.0f / F_PI);
-
-    //==============================================
-    // 鏡面反射の計算
-    //==============================================
-    float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), baseColor.rgb, metallic);
-    float a = roughness * roughness;
-    float D = D_GGX(NH, a);
-    float G = G2_SmithCorrelated(NL, NV, a);
-    float3 Fr = SchlickFresnel(F0, VH);
-
-    float3 specular = D * G * Fr;
-
-    // 物体の色を反映した最終カラーの計算
-    float3 BRDF = diffuse + specular;
-
     // ライティング計算
-    float3 lit = float3(0.0f, 0.0f, 0.0f);
-    if (lightType == 0)
-    {
-        // ディレクショナルライト
-        lit = NL * lightColor * illuminance;
-    }
-    else if (lightType == 1)
-    {
-        // ポイントライト
-        lit = EvaluatePointLight(N, input.worldPos, lightPosition, lightColor * luminousFlux);
-    }
-    else if (lightType == 2)
-    {
-        // スポットライト
-        lit = EvaluateSpotLight(N, input.worldPos, lightPosition, lightForward,
-                                lightColor * luminousFlux, lightAngleScale, lightAngleOffset);
-    }
-    else if (lightType == 3) {
-        // フォトメトリックライト
-        lit = EvaluatePhotometricLight(N, input.worldPos, lightPosition, lightForward,
-                                       lightColor * luminousFlux);
+    //==============================================
+    float3 finalColor = float3(0.0f, 0.0f, 0.0f);
+    
+    // 光源の数だけループしてfinalColorに加算
+    for(uint i=0; i<g_scene.lightCount; i++) {
+        Light light = g_lightBuffer[i];
+
+        // 光源からライトベクトルと色付きの照度を取得
+        float3 L, E;
+        GetLightSample(light, input.worldPos, L, E);
+
+        // 内積計算
+        float NL = saturate(dot(N, L));
+
+        // BRDFの計算
+        float3 BRDF = EvaluateBRDF(N, V, L, baseColor.rgb, metallic, roughness);
+        finalColor += E * NL * BRDF;
     }
 
-    float3 finalColor = lit * BRDF;
-    finalColor = finalColor * exposure;
+    finalColor *= g_scene.exposure;
 
     // トーンマップの適用
     float3 toneMapped = GT_Tonemap(finalColor);

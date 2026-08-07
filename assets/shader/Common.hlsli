@@ -6,6 +6,17 @@
 #ifndef COMMON_HLSLI
 #define COMMON_HLSLI
 
+//==============================================================
+// レジスタ割り当て（ルートシグネチャと対応）
+//   b0 SceneConstants      … Common.hlsli
+//   b1 TransformConstants  … TestVS.hlsl
+//   b2 MaterialConstants   … Materials.hlsli
+//   b3 DisplayConstants    … Tonemap.hlsli
+//   t0-t4 / s0  PBRテクスチャ … Materials.hlsli
+//   t0 space1 / s1  IES     … Lighting.hlsli
+//   t0 space2  ライトバッファ … Lighting.hlsli
+//==============================================================
+
 //==============================================
 // Constant Values
 //==============================================
@@ -13,8 +24,9 @@ static const float F_PI = 3.14159265359f; // 円周率
 static const float MIN_DIST = 0.01f;      // 光源との最小距離（距離減衰計算用）
 
 //==============================================================
-// VS Output structure
+// Structures
 //==============================================================
+/// @brief 頂点シェーダーの出力構造体
 struct VSOutput
 {
     float4 position : SV_POSITION;    // 変換後頂点座標
@@ -25,81 +37,27 @@ struct VSOutput
     nointerpolation float handedness : TEXCOORD4;     // 接線空間の右手系/左手系の判定
 };
 
-//==============================================================
-// PS Output structure
-//==============================================================
+/// @brief ピクセルシェーダーの出力構造体
 struct PSOutput
 {
     float4 color : SV_TARGET; // 出力カラー
 };
 
+/// @brief シーン定数構造体
+struct SceneConstants
+{
+    float4x4 view;        // ビュー行列
+    float4x4 proj;        // プロジェクション行列
+    float3 cameraPos;     // カメラ位置（ワールド座標系）
+    float time;           // 経過時間（秒）
+    float exposure;       // 露出
+    uint lightCount;      // ライトの数
+};
+
 //==============================================================
-// Constants buffer
+// Resource Bindings
 //==============================================================
 // [b0] シーン定数（View, Projection行列）
-cbuffer SceneConstants : register(b0) {
-    float4x4 view;    // ビュー行列
-    float4x4 proj;    // プロジェクション行列
-    float3 cameraPos; // カメラ位置（ワールド座標系）
-    float time;       // 経過時間（秒）
-    float exposure;   // 露出
-};
-
-// [b2] マテリアル定数
-cbuffer MaterialConstants : register(b2) {
-    float4 baseColorFactor; // ベースカラー
-    float metallicFactor;
-    float roughnessFactor;
-    float3 emissiveFactor;
-    float occlusionFactor;
-};
-
-// [b3] ライティング定数
-cbuffer LightingConstants : register(b3) {
-    uint lightType;          // 0: 平行光源, 1: 点光源, 2: スポット光源
-    float3 lightPosition;    // 位置（点光源/スポット光源用）
-    float3 lightForward;     // 方向（平行光源/スポット光源用）
-    float luminousFlux;      // 光束 [lm]（平行光源以外）
-    float illuminance;       // 照度 [lx]（平行光源用）
-    float3 lightColor;       // 色
-    float lightAngleScale;   // スポットライトの角度減衰係数（スポット光源用）
-    float lightAngleOffset;  // スポットライトの角度オフセット（スポット光源用）
-    float lightInvSqrRadius; // 距離の二乗の逆数（点光源/スポット光源用）
-};
-
-// [b4] ディスプレイ定数
-cbuffer DisplayConstants : register(b4) {
-    float maxLuminance;
-    float minLuminance;
-    float paperWhiteNits;
-    float maxFullFrameLuminance;
-};
-
-//==============================================================
-// Textures and Samplers
-//==============================================================
-// [t0] ベースカラーテクスチャ
-Texture2D<float4> baseColorTexture : register(t0);
-
-// [t1] metallic-roughness
-Texture2D<float4> metallicRoughnessTexture : register(t1);
-
-// [t2] normal map
-Texture2D<float4> normalTexture : register(t2);
-
-// [t3] emissive map
-Texture2D<float4> emissiveTexture : register(t3);
-
-// [t4] occlusion map
-Texture2D<float4> occlusionTexture : register(t4);
-
-// [s0] サンプラー
-SamplerState smp : register(s0);
-
-// [t0, space1] IESプロファイルテクスチャ
-Texture2D<float4> IESMap : register(t0, space1);
-
-// [s1] IESプロファイル用サンプラー
-SamplerState IESSmp : register(s1);
+ConstantBuffer<SceneConstants> g_scene: register(b0);
 
 #endif // COMMON_HLSLI
