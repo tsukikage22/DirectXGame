@@ -25,6 +25,8 @@ void Game::Init(Engine* pEngine) {
     m_pCameraController->Init(
         &m_pEngine->GetCamera(), &m_pEngine->GetInputSystem());
 
+    m_pEngine->GetCamera().SetExposure(2.8f, 1.0f / 30.0f, 800.0f);
+
     // モデルのロード
     auto loader = m_pEngine->CreateAssetLoadScope();
     std::filesystem::path path;
@@ -46,7 +48,7 @@ void Game::Init(Engine* pEngine) {
         lightHandle  = m_pEngine->GetScene().SpawnLight(LightType::Directional);
         auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
         pLight->GetTransform().SetRotation(90.0f, 0.0f, 0.0f);
-        pLight->SetIlluminance(1.5f);
+        pLight->SetIlluminance(100000.0f);
         pLight->SetColor({ 1.0f, 1.0f, 1.0f });
     }
     */
@@ -57,7 +59,7 @@ void Game::Init(Engine* pEngine) {
         lightHandle  = m_pEngine->GetScene().SpawnLight(LightType::Point);
         auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
         pLight->GetTransform().SetPosition({ 5.0f, 5.0f, 0.0f });
-        pLight->SetIntensity(100.0f);
+        pLight->SetLuminousFlux(4000.0f);
         pLight->SetRange(10.0f);
         pLight->SetColor({ 1.0f, 1.0f, 1.0f });
     }
@@ -70,7 +72,7 @@ void Game::Init(Engine* pEngine) {
         auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
         pLight->GetTransform().SetPosition({ 0.0f, 5.0f, 0.0f });
         pLight->GetTransform().SetRotation(90.0f, 0.0f, 0.0f);
-        pLight->SetIntensity(100.0f);
+        pLight->SetLuminousFlux(4000.0f);
         pLight->SetRange(10.0f);
         pLight->SetColor({ 1.0f, 1.0f, 1.0f });
         pLight->SetSpotAngles(5.0f, 15.0f);
@@ -83,14 +85,14 @@ void Game::Init(Engine* pEngine) {
         lightHandle  = m_pEngine->GetScene().SpawnLight(LightType::Point);
         auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
         pLight->GetTransform().SetPosition({ 5.0f, 5.0f, 0.0f });
-        pLight->SetIntensity(100.0f);
+        pLight->SetLuminousFlux(4000.0f);
         pLight->SetRange(10.0f);
         pLight->SetColor({ 1.0f, 0.0f, 0.0f });
 
         lightHandle = m_pEngine->GetScene().SpawnLight(LightType::Point);
         pLight      = m_pEngine->GetScene().GetLight(lightHandle);
         pLight->GetTransform().SetPosition({ -5.0f, 5.0f, 0.0f });
-        pLight->SetIntensity(100.0f);
+        pLight->SetLuminousFlux(4000.0f);
         pLight->SetRange(10.0f);
         pLight->SetColor({ 0.0f, 0.0f, 1.0f });
     }
@@ -109,7 +111,7 @@ void Game::Init(Engine* pEngine) {
         pLight->GetTransform().SetPosition({ 3.0f, 3.0f, 0.0f });
         pLight->GetTransform().SetRotation(90.0f, 0.0f, 0.0f);
         pLight->SetColor({ 1.0f, 1.0f, 1.0f });
-        pLight->SetIntensity(10.0f);
+        pLight->SetLuminousFlux(9000.0f);
         pLight->SetIESIndex(iesIndex.value());
 
         std::optional<uint32_t> iesIndex2;
@@ -122,7 +124,7 @@ void Game::Init(Engine* pEngine) {
         pLight->GetTransform().SetPosition({ -3.0f, 3.0f, 0.0f });
         pLight->GetTransform().SetRotation(90.0f, 0.0f, 0.0f);
         pLight->SetColor({ 1.0f, 1.0f, 1.0f });
-        pLight->SetIntensity(10.0f);
+        pLight->SetLuminousFlux(9000.0f);
         pLight->SetIESIndex(iesIndex2.value());
     }
 }
