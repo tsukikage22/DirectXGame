@@ -6,6 +6,7 @@
 #include <DirectXMath.h>
 
 #include <cstdint>
+#include <optional>
 
 #include "Engine/Scene/Transform.h"
 #include "Engine/Shader/ShaderConstants.h"
@@ -26,6 +27,7 @@ public:
     /// @brief ライトの有効/無効を切り替える
     void ToggleLight() { m_enabled = !m_enabled; }
 
+    /// @brief ライトの情報をシェーダー用の構造体に変換する
     shader::LightConstants ToShaderConstants() const;
 
     //================================
@@ -50,7 +52,12 @@ public:
     /// @param color
     void SetColor(const DirectX::XMFLOAT3& color);
 
+    /// @brief スポットライトの内側角度と外側角度を設定する
+    /// @param innerAngleDeg 内側角度（度）
+    /// @param outerAngleDeg 外側角度（度）
     void SetSpotAngles(float innerAngleDeg, float outerAngleDeg);
+
+    void SetIESIndex(uint32_t index);
 
     LightType GetType() const;
 
@@ -76,4 +83,7 @@ private:
     // スポットライト用パラメータ
     float m_innerAngleDeg;  // スポットライトの内側角度（度）
     float m_outerAngleDeg;  // スポットライトの外側角度（度）
+
+    // フォトメトリックライト用パラメータ
+    std::optional<uint32_t> m_iesIndex;  // IESプロファイルのインデックス
 };

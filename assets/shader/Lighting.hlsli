@@ -41,10 +41,10 @@ struct Light {
 StructuredBuffer<Light> g_lightBuffer : register(t0, space2);
 
 // [t0, space1] IESプロファイルテクスチャ
-Texture2D<float4> IESMap : register(t0, space1);
+Texture2DArray<float4> g_IESMaps : register(t0, space1);
 
 // [s1] IESプロファイル用サンプラー
-SamplerState IESSmp : register(s1);
+SamplerState g_IESSmp : register(s1);
 
 //==============================================================
 // Functions
@@ -86,7 +86,8 @@ float GetAngleAttenuation(
 //--------------------------------------------------------------
 float GetIESProfileAttenuation(
     float3 lightDir,        // ワールド座標から光源へのベクトル
-    float3 lightForward     // 正規化したライトベクトル
+    float3 lightForward,    // 正規化したライトベクトル
+    float iesIndex         // Texture2DArrayのインデックス
 ) {
     // IESプロファイルテクスチャのUV座標を計算
     // U座標は光源の照射方向と面からライトへの角度の正規化
@@ -96,10 +97,10 @@ float GetIESProfileAttenuation(
     float tangentAngle = atan2(lightDir.y, lightDir.x);
     float phiCoord = (tangentAngle / F_PI) * 0.5f + 0.5f; // [0,1]に正規化
 
-    float2 texCoord = float2(thetaCoord, phiCoord);
+    float3 texCoord = float3(thetaCoord, phiCoord, iesIndex);
 
     // IESプロファイルテクスチャから正規化された光度をサンプリング
-    return IESMap.SampleLevel(IESSmp, texCoord, 0).r;
+    return g_IESMaps.SampleLevel(g_IESSmp, texCoord, 0).r;
 }
 
 
@@ -126,7 +127,7 @@ void GetLightSample(Light light, float3 worldPos, out float3 L, out float3 E) {
     }
     else if (light.type == LIGHT_TYPE_PHOTOMETRIC)  // フォトメトリックライトの場合も個別の減衰が必要
     {
-        att *= GetIESProfileAttenuation(L, light.forward);
+        att *= GetIESProfileAttenuation(L, light.forward, light.iesIndex);
     }
     E = light.intensity * light.color * att;
 

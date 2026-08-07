@@ -9,9 +9,10 @@
 #include "Engine/Engine.h"
 
 #include <array>
+#include <cstdint>
 
 #include "Engine/Core/DxDebug.h"
-#include "Engine/Resource/ModelLoadScope.h"
+#include "Engine/Resource/AssetLoadScope.h"
 
 ////////////////////////////////////////////
 // Engine class
@@ -472,18 +473,8 @@ bool Engine::InitApp() {
             return false;
         }
 
-        // IESプロファイルのロード
-        // パスの取得
-        std::filesystem::path iesPath;
-        if (!AssetPath().GetAssetPath(L"ies/TopPost.IES", iesPath)) {
-            OutputDebugStringW(L"Error: IES profile not found.\n");
-            MessageBoxW(
-                nullptr, L"Failed to find IES profile file.", L"Error", MB_OK);
-            return false;
-        }
         // IESProfileの初期化
-        if (!m_IESProfile.Init(
-                m_pDevice.Get(), m_pPoolCBV_SRV_UAV, iesPath, batch)) {
+        if (!m_IESProfile.Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV)) {
             MessageBoxW(
                 nullptr, L"Failed to initialize IESProfile.", L"Error", MB_OK);
             return false;
@@ -647,15 +638,15 @@ void Engine::TermApp() {
     m_pCmdList.Reset();
 }
 
-ModelLoadScope Engine::CreateModelLoadScope() {
+AssetLoadScope Engine::CreateAssetLoadScope() {
     // ResourceUploadBatchのBegin
     auto batch =
         std::make_unique<DirectX::ResourceUploadBatch>(m_pDevice.Get());
     batch->Begin();
 
     // ModelLoadScopeの初期化
-    return ModelLoadScope(
-        std::move(batch), m_CommandQueue, m_modelLoader, m_Scene);
+    return AssetLoadScope(
+        std::move(batch), m_CommandQueue, m_modelLoader, m_Scene, m_IESProfile);
 }
 
 //=============================================

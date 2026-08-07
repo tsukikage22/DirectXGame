@@ -77,7 +77,7 @@ struct DisplayInfo {
 };
 
 // 前方宣言
-class ModelLoadScope;
+class AssetLoadScope;
 
 ////////////////////////////////////////////
 // Engine class
@@ -105,7 +105,7 @@ public:
     void Present();
 
     /// @brief モデルロード用オブジェクトの作成
-    ModelLoadScope CreateModelLoadScope();
+    AssetLoadScope CreateAssetLoadScope();
 
     //==================================================================
     // アクセサ

@@ -3,8 +3,8 @@
 #include <DirectXMath.h>
 
 #include "Engine/Engine.h"
+#include "Engine/Resource/AssetLoadScope.h"
 #include "Engine/Resource/AssetPath.h"
-#include "Engine/Resource/ModelLoadScope.h"
 #include "Engine/Scene/GameObject.h"
 #include "Engine/Scene/Scene.h"
 #include "Game/CameraController.h"
@@ -26,7 +26,7 @@ void Game::Init(Engine* pEngine) {
         &m_pEngine->GetCamera(), &m_pEngine->GetInputSystem());
 
     // モデルのロード
-    auto loader = m_pEngine->CreateModelLoadScope();
+    auto loader = m_pEngine->CreateAssetLoadScope();
     std::filesystem::path path;
     AssetPath().GetAssetPath(L"model/TextureSphere.glb", path);
     m_earthModel = loader.LoadModel(path);
@@ -34,6 +34,8 @@ void Game::Init(Engine* pEngine) {
     m_appleModel = loader.LoadModel(path);
     AssetPath().GetAssetPath(L"model/Katana.glb", path);
     m_katanaModel = loader.LoadModel(path);
+    AssetPath().GetAssetPath(L"model/Plane.glb", path);
+    m_planeModel = loader.LoadModel(path);
 
     // ライトの作成
     engine::LightHandle lightHandle;
@@ -76,6 +78,7 @@ void Game::Init(Engine* pEngine) {
     */
 
     // 2 point lights
+    /*
     {
         lightHandle  = m_pEngine->GetScene().SpawnLight(LightType::Point);
         auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
@@ -90,6 +93,37 @@ void Game::Init(Engine* pEngine) {
         pLight->SetIntensity(100.0f);
         pLight->SetRange(10.0f);
         pLight->SetColor({ 0.0f, 0.0f, 1.0f });
+    }
+    */
+
+    // 2 photometric lights
+    {
+        // IESプロファイルのロード
+        std::optional<uint32_t> iesIndex;
+        AssetPath().GetAssetPath(L"ies/TopPost.IES", path);
+        iesIndex = loader.LoadIESProfile(path);
+        assert(iesIndex.has_value() && "Failed to load IES profile.");
+
+        lightHandle  = m_pEngine->GetScene().SpawnLight(LightType::Photometric);
+        auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
+        pLight->GetTransform().SetPosition({ 3.0f, 3.0f, 0.0f });
+        pLight->GetTransform().SetRotation(90.0f, 0.0f, 0.0f);
+        pLight->SetColor({ 1.0f, 1.0f, 1.0f });
+        pLight->SetIntensity(10.0f);
+        pLight->SetIESIndex(iesIndex.value());
+
+        std::optional<uint32_t> iesIndex2;
+        AssetPath().GetAssetPath(L"ies/Bollard.IES", path);
+        iesIndex2 = loader.LoadIESProfile(path);
+        assert(iesIndex2.has_value() && "Failed to load IES profile.");
+
+        lightHandle = m_pEngine->GetScene().SpawnLight(LightType::Photometric);
+        pLight      = m_pEngine->GetScene().GetLight(lightHandle);
+        pLight->GetTransform().SetPosition({ -3.0f, 3.0f, 0.0f });
+        pLight->GetTransform().SetRotation(90.0f, 0.0f, 0.0f);
+        pLight->SetColor({ 1.0f, 1.0f, 1.0f });
+        pLight->SetIntensity(10.0f);
+        pLight->SetIESIndex(iesIndex2.value());
     }
 }
 
@@ -128,6 +162,19 @@ void Game::Tick(float deltaTime) {
         } else {
             m_pEngine->GetScene().DespawnObject(m_katanaObject);
             m_katanaObject = {};
+        }
+    }
+
+    if (m_pInputSystem->WasKeyPressed('4')) {
+        if (!m_planeObject.IsValid()) {
+            m_planeObject = m_pEngine->GetScene().SpawnObject(m_planeModel);
+            m_pEngine->GetScene()
+                .GetObject(m_planeObject)
+                ->GetTransform()
+                .SetPosition({ 0.0f, -1.0f, 0.0f });
+        } else {
+            m_pEngine->GetScene().DespawnObject(m_planeObject);
+            m_planeObject = {};
         }
     }
 }

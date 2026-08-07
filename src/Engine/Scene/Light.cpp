@@ -29,7 +29,6 @@ shader::LightConstants Light::ToShaderConstants() const {
     lc.color                  = m_color;
     lc.intensity              = m_intensity;
     lc.invSqrRadius           = 1.0f / (m_range * m_range);
-    lc.iesIndex               = 0;  // IESプロファイルは未対応
 
     // スポットライトの角度減衰係数とオフセットを計算
     // angleScaleは，ライトベクトルと照射方向のなす角がouterで0，innerで1となる線形補間
@@ -40,6 +39,13 @@ shader::LightConstants Light::ToShaderConstants() const {
         lc.angleScale  = 1.0f / std::max(cosInner - cosOuter, 1e-6f);
         lc.angleOffset = -cosOuter * lc.angleScale;
     }
+
+    // IESプロファイルのインデックスを設定
+    if (m_type == LightType::Photometric) {
+        assert(m_iesIndex.has_value() && "IES profile index is not set.");
+        lc.iesIndex = m_iesIndex.value();
+    }
+
     return lc;
 }
 
@@ -94,6 +100,8 @@ void Light::SetSpotAngles(float innerAngleDeg, float outerAngleDeg) {
     m_outerAngleDeg = std::min(std::max(innerAngleDeg, outerAngleDeg), 90.0f);
     m_innerAngleDeg = innerAngleDeg;
 }
+
+void Light::SetIESIndex(uint32_t index) { m_iesIndex = index; }
 
 Transform& Light::GetTransform() { return m_transform; }
 
