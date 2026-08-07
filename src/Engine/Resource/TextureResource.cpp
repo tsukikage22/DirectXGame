@@ -65,6 +65,52 @@ bool TextureResource::InitAsTexture2D(ID3D12Device* pDevice, UINT width,
     m_width     = width;
     m_height    = height;
     m_mipLevels = mipLevels;
+    m_arraySize = 1;  // Texture2Dの場合は配列サイズは1
+
+    return true;
+}
+
+/// @brief 新規テクスチャ配列をDEFAULTヒープ上に作成
+bool TextureResource::InitAsTexture2DArray(ID3D12Device* pDevice, UINT width,
+    UINT height, DXGI_FORMAT format, UINT16 arraySize, UINT mipLevels,
+    D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES initState,
+    const D3D12_CLEAR_VALUE* pClearValue) {
+    // 引数チェック
+    if (pDevice == nullptr || width == 0 || height == 0 || arraySize == 0) {
+        return false;
+    }
+
+    // ヒーププロパティの設定
+    D3D12_HEAP_PROPERTIES prop = {};
+    prop.Type                  = D3D12_HEAP_TYPE_DEFAULT;
+    prop.CPUPageProperty       = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    prop.MemoryPoolPreference  = D3D12_MEMORY_POOL_UNKNOWN;
+    prop.CreationNodeMask      = 1;
+    prop.VisibleNodeMask       = 1;
+
+    // リソースディスクリプタの設定
+    D3D12_RESOURCE_DESC desc = {};
+    desc.Dimension           = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+    desc.Alignment           = 0;
+    desc.Width               = static_cast<UINT64>(width);
+    desc.Height              = height;
+    desc.DepthOrArraySize    = arraySize;
+    desc.MipLevels           = mipLevels;
+    desc.Format              = format;
+    desc.SampleDesc.Count    = 1;
+    desc.SampleDesc.Quality  = 0;
+    desc.Layout              = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+    desc.Flags               = flags;
+
+    // リソースの生成
+    CHECK_HR(pDevice,
+        pDevice->CreateCommittedResource(&prop, D3D12_HEAP_FLAG_NONE, &desc,
+            initState, pClearValue, IID_PPV_ARGS(m_pResource.GetAddressOf())));
+
+    m_width     = width;
+    m_height    = height;
+    m_mipLevels = mipLevels;
+    m_arraySize = arraySize;
 
     return true;
 }

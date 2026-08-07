@@ -31,6 +31,12 @@ public:
         D3D12_RESOURCE_STATES initState,
         const D3D12_CLEAR_VALUE* pClearValue = nullptr);
 
+    /// @brief 新規テクスチャ配列をDEFAULTヒープ上に作成
+    bool InitAsTexture2DArray(ID3D12Device* pDevice, UINT width, UINT height,
+        DXGI_FORMAT format, UINT16 arraySize, UINT mipLevels,
+        D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES initState,
+        const D3D12_CLEAR_VALUE* pClearValue = nullptr);
+
     /// @brief リソースの解放
     void Term();
 
@@ -51,6 +57,7 @@ private:
     uint32_t m_width;                            // テクスチャ幅
     uint32_t m_height;                           // テクスチャ高さ
     uint32_t m_mipLevels;                        // ミップレベル数
+    uint32_t m_arraySize;  // 配列サイズ（Texture2DArray用）
 
     TextureResource(const TextureResource&)            = delete;
     TextureResource& operator=(const TextureResource&) = delete;
