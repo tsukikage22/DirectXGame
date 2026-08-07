@@ -28,6 +28,7 @@ float3 SchlickFresnel(float3 f0, float cosTheta) {
 // D(h) = (a^2) / (π * ((N·H)^2 * (a^2 -1) +1)^2 )
 //--------------------------------------------------------------
 float D_GGX(float NH, float alpha) {
+    alpha = max(alpha, 1e-3f); // alphaが0になるのを防ぐ
     float a2 = alpha * alpha;
     float f = (NH * NH) * (a2 - 1.0f) + 1.0f;
 
