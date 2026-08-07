@@ -1,5 +1,7 @@
 #include "Engine/Scene/Camera.h"
 
+#include <cmath>
+
 using namespace DirectX;
 
 Camera::Camera()
@@ -35,4 +37,25 @@ XMFLOAT4X4 Camera::GetProjectionMatrix() {
         DirectX::XMMatrixPerspectiveFovLH(m_fovYRad, m_aspect, m_nearZ, m_farZ);
     DirectX::XMStoreFloat4x4(&m_projMatrix, projMatrix);
     return m_projMatrix;
+}
+
+// 露出パラメータの設定
+void Camera::SetExposure(float aperture, float shutterSpeed, float iso) {
+    m_aperture     = aperture;
+    m_shutterSpeed = shutterSpeed;
+    m_iso          = iso;
+}
+
+// EV100の計算
+float Camera::ComputeEV100() const {
+    // EV100 = log2((apeature^2) / shutterSpeed * 100 / iso)
+    return std::log2(
+        (m_aperture * m_aperture) / m_shutterSpeed * 100.0f / m_iso);
+}
+
+// 露出の計算
+float Camera::ComputeExposure() const {
+    float ev100    = ComputeEV100();
+    float exposure = 1.0f / (1.2f * std::pow(2.0f, ev100));
+    return exposure;
 }

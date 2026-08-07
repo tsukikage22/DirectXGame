@@ -31,6 +31,18 @@ public:
     /// @param farZ
     void SetFarZ(float farZ) { m_farZ = farZ; };
 
+    /// @brief 露出パラメータの設定
+    /// @param aperture
+    /// @param shutterSpeed
+    /// @param iso
+    void SetExposure(float aperture, float shutterSpeed, float iso);
+
+    /// @brief EV100の計算
+    float ComputeEV100() const;
+
+    /// @brief 露出の計算
+    float ComputeExposure() const;
+
     //================================
     // 行列の計算
     //================================
@@ -50,6 +62,11 @@ private:
     float m_aspect;           // アスペクト比
     float m_nearZ = 1.0f;     // 描画範囲（最小）
     float m_farZ  = 1000.0f;  // 描画範囲（最大）
+
+    // 露出パラメータ
+    float m_aperture     = 2.8f;          // 絞り値
+    float m_shutterSpeed = 1.0f / 30.0f;  // シャッタースピード
+    float m_iso          = 100.0f;        // ISO感度
 
     // 行列
     DirectX::XMFLOAT4X4 m_viewMatrix;  // ビュー行列

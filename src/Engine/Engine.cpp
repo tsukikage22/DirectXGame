@@ -126,11 +126,11 @@ void Engine::Update() {
     DirectX::XMStoreFloat4x4(
         &sc.projection, DirectX::XMMatrixTranspose(projMat));
 
-    // カメラ位置・時間・露出の設定
+    // カメラ位置・時間・ライト数・露出の設定
     sc.cameraPosition = m_Camera.GetTransform().GetPosition();
     sc.time           = static_cast<float>(GetTickCount64()) / 1000.0f;
-    sc.exposure       = 3.0f;
     sc.lightCount     = count;
+    sc.exposure       = m_Camera.ComputeExposure();
 
     m_FrameResources[m_FrameIndex].GetSceneConstants().Update(sc);
 }
