@@ -181,6 +181,13 @@ void Engine::Render() {
                 // このメッシュが使うマテリアルを取得
                 uint32_t materialID = mesh->GetMaterialID();
 
+                // マテリアルが存在しない場合は描画しない
+                if (materialID >= materials.size() ||
+                    materials[materialID] == nullptr) {
+                    assert(false && "Mesh has no valid material.");
+                    continue;
+                }
+
                 // マテリアルをバインド
                 if (materialID < materials.size()) {
                     // [b2] MaterialConstants (マテリアル単位)
