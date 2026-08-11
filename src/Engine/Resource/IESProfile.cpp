@@ -2,6 +2,7 @@
 
 #include <DirectXMath.h>
 
+#include <algorithm>
 #include <fstream>
 
 #include "Engine/Core/DescriptorPool.h"
@@ -100,7 +101,6 @@ bool LoadIESProfile(
     }
 
     outProfileData.maxCandela = 0.0f;
-    float candelaSum          = 0.0f;
 
     // 光度値の読み込み
     outProfileData.candela.resize(angleCountV * angleCountH);
@@ -112,10 +112,8 @@ bool LoadIESProfile(
             outProfileData.candela[h * angleCountV + v] = candela;
             outProfileData.maxCandela =
                 DirectX::XMMax(outProfileData.maxCandela, candela);
-            candelaSum += candela;
         }
     }
-    outProfileData.aveCandela = candelaSum / (angleCountV * angleCountH);
 
     stream.close();
 
@@ -227,14 +225,13 @@ float Interpolate(
 
 /// @brief IESProfileのカンデラ値からテクセルへの変換
 std::vector<float> BuildPixels(
-    const IESProfileData& profileData, int w, int h) {
+    const IESProfileData& profileData, int w, int h, float& outMeanCandela) {
     // カンデラ値を格納する配列の作成
     std::vector<float> pixels(w * h, 0.0f);  // テクセル
 
     // カンデラ値の補間と正規化に使うための値の計算
-    auto invW   = 1.0f / float(w);
-    auto invH   = 1.0f / float(h);
-    auto invAve = 1.0f / profileData.aveCandela;
+    auto invW = 1.0f / float(w);
+    auto invH = 1.0f / float(h);
 
     // profileDataに格納された水平角の最大値
     auto lastH = profileData.anglesH.back();
@@ -247,25 +244,50 @@ std::vector<float> BuildPixels(
         // profileDataには90度までや180度までの水平角しかない場合があるため、360度に対応させるための処理を行う
         // 配光が対象であることを前提とした処理であることに注意
         if (lastH > 0.0f) {
-            angleH = j * invH * 360.0f;
+            angleH = (j + 0.5f) * invH * 360.0f;
             angleH = fmod(angleH, 2.0f * lastH);
             if (angleH > lastH) {
                 angleH = lastH * 2.0f - angleH;
             }
         }
 
+        // 補間関数を使い，テクセル配列をカンデラ値で埋める
         for (auto i = 0; i < w; i++) {
-            // テクスチャの横方向iを0~180度の垂直角に対応させる
+            // テクスチャの横方向iを0~180度の垂直角に対応させる=垂直角のコサイン
             // iを-1~1の範囲に変換し，acosで角度に戻している
-            auto rad    = i * invW * 2.0f - 1.0f;
-            auto angleV = DirectX::XMConvertToDegrees(acos(rad));
+            // 1テクセルが担う立体角を一定にするため，テクスチャの横方向を垂直角のコサインに線形にする
+            // また，各テクセルが左端でなく中央で角度をサンプリングするように0.5を足している
+            //  （サンプラーはテクセルの中心をサンプリングするため）
+            auto cosTheta = (i + 0.5f) * invW * 2.0f - 1.0f;
+            auto angleV   = DirectX::XMConvertToDegrees(acos(cosTheta));
 
             // 補間関数を呼び出してカンデラ値を求める
-            // 平均値を使った正規化
-            auto cd = invAve * Interpolate(angleV, angleH, profileData);
+            auto cd = Interpolate(angleV, angleH, profileData);
 
             // データ格納
             pixels[j * w + i] = cd;
+        }
+    }
+
+    // 全球平均光度の計算
+    // 横軸がcosθ，縦軸がφに線形なので，このグリッドは
+    // 立体角 dΩ = d(cosθ)dφ について等間隔である．
+    // よって単純平均がそのまま (1/4π)∫I dΩ = Φ/(4π) になる
+    double sum = 0.0f;
+    for (int j = 0; j < h; j++) {
+        for (int i = 0; i < w; i++) {
+            sum += pixels[j * w + i];
+        }
+    }
+    outMeanCandela = static_cast<float>(sum / (w * h));
+
+    // 平均光度で正規化
+    assert(
+        outMeanCandela > 0.0f && "Average candela is zero, cannot normalize.");
+    float invAve = 1.0f / (std::max)(outMeanCandela, 1e-6f);
+    for (int j = 0; j < h; j++) {
+        for (int i = 0; i < w; i++) {
+            pixels[j * w + i] *= invAve;
         }
     }
 
@@ -361,7 +383,9 @@ std::optional<uint32_t> IESProfile::CreateIESTexture(
     }
 
     // テクセルを格納する配列の作成
-    auto pixels = BuildPixels(profileData, kWidth, kHeight);
+    float meanCandela = 0.0f;
+    auto pixels       = BuildPixels(profileData, kWidth, kHeight, meanCandela);
+    profileData.meanCandela = meanCandela;
 
     D3D12_SUBRESOURCE_DATA subRes = {};
     subRes.RowPitch               = kWidth * sizeof(float);

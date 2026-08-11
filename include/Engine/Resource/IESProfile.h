@@ -38,8 +38,8 @@ struct IESProfileData {
     std::vector<float> anglesH;  // 水平角
     std::vector<float> candela;  // カンデラ値
 
-    float maxCandela;  // 最大カンデラ値
-    float aveCandela;  // 平均カンデラ値
+    float maxCandela;   // 最大カンデラ値
+    float meanCandela;  // 全球平均光度[cd] 立体角で重み付けした平均
 };
 
 class IESProfile {
