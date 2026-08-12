@@ -30,10 +30,22 @@ public:
     void SetRotation(float pitch, float yaw, float roll);
 
     /// @brief ワールド座標系での回転操作
-    void XM_CALLCONV RotateWorld(DirectX::FXMVECTOR axis, float angleDeg);
+    void RotateWorld(const DirectX::XMFLOAT3& axis, float angleDeg);
 
     /// @brief ローカル座標系での回転操作
-    void XM_CALLCONV RotateLocal(DirectX::FXMVECTOR axis, float angleDeg);
+    void RotateLocal(const DirectX::XMFLOAT3& axis, float angleDeg);
+
+    /// @brief 指定した座標の方向を向く
+    /// @param target 注視点のワールド座標
+    /// @param upHint 上方向ベクトルのヒント
+    void LookAt(const DirectX::XMFLOAT3& target,
+        const DirectX::XMFLOAT3& upHint = engine::kUp);
+
+    /// @brief 指定したベクトルの方向を向く
+    /// @param direction 注視方向ベクトル
+    /// @param upHint 上方向ベクトルのヒント
+    void LookTo(const DirectX::XMFLOAT3& direction,
+        const DirectX::XMFLOAT3& upHint = engine::kUp);
 
     /// @brief ローカル前方向の取得
     DirectX::XMFLOAT3 GetForward() const;
