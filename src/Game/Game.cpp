@@ -65,19 +65,27 @@ void Game::Init(Engine* pEngine) {
     }
     */
 
-    // Spot
-    /*
+    // 2 Spot lights
+
     {
         lightHandle  = m_pEngine->GetScene().SpawnLight(LightType::Spot);
         auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
-        pLight->GetTransform().SetPosition({ 0.0f, 5.0f, 0.0f });
-        pLight->GetTransform().SetRotation(90.0f, 0.0f, 0.0f);
+        pLight->GetTransform().SetPosition({ 3.0f, 3.0f, 0.0f });
+        pLight->GetTransform().LookAt({ 0.0f, 0.0f, 0.0f });
         pLight->SetLuminousFlux(4000.0f);
         pLight->SetRange(10.0f);
         pLight->SetColor({ 1.0f, 1.0f, 1.0f });
-        pLight->SetSpotAngles(5.0f, 15.0f);
+        pLight->SetSpotAngles(30.0f, 45.0f);
+
+        lightHandle = m_pEngine->GetScene().SpawnLight(LightType::Spot);
+        pLight      = m_pEngine->GetScene().GetLight(lightHandle);
+        pLight->GetTransform().SetPosition({ -3.0f, 3.0f, 0.0f });
+        pLight->GetTransform().LookAt({ 0.0f, 0.0f, 0.0f });
+        pLight->SetLuminousFlux(4000.0f);
+        pLight->SetRange(10.0f);
+        pLight->SetColor({ 1.0f, 1.0f, 1.0f });
+        pLight->SetSpotAngles(30.0f, 45.0f);
     }
-    */
 
     // 2 point lights
     /*
@@ -99,6 +107,7 @@ void Game::Init(Engine* pEngine) {
     */
 
     // 2 photometric lights
+    /*
     {
         // IESプロファイルのロード
         std::optional<uint32_t> iesIndex;
@@ -127,6 +136,7 @@ void Game::Init(Engine* pEngine) {
         pLight->SetLuminousFlux(9000.0f);
         pLight->SetIESIndex(iesIndex2.value());
     }
+    */
 }
 
 void Game::Tick(float deltaTime) {
