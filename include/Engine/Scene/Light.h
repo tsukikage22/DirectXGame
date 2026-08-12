@@ -19,6 +19,45 @@ enum class LightType : uint32_t {
     Photometric   // フォトメトリックライト
 };
 
+//================================
+// Light Desc Structures
+//================================
+struct DirectionalLightDesc {
+    DirectX::XMFLOAT3 direction = { 0.0f, -1.0f, 0.0f };  // ライトの方向
+    DirectX::XMFLOAT3 color     = { 1.0f, 1.0f, 1.0f };   // ライトの色
+    float illuminance           = 100000.0f;              // 照度[lx]
+};
+
+struct PointLightDesc {
+    DirectX::XMFLOAT3 position = { 0.0f, 0.0f, 0.0f };  // ライトの位置
+    DirectX::XMFLOAT3 color    = { 1.0f, 1.0f, 1.0f };  // ライトの色
+    float luminousFlux         = 10000.0f;              // 光束[lm]
+    float range                = 30.0f;                 // 影響範囲
+};
+
+struct SpotLightDesc {
+    DirectX::XMFLOAT3 position  = { 0.0f, 0.0f, 0.0f };   // ライトの位置
+    DirectX::XMFLOAT3 direction = { 0.0f, -1.0f, 0.0f };  // ライトの方向
+    DirectX::XMFLOAT3 color     = { 1.0f, 1.0f, 1.0f };   // ライトの色
+    float luminousFlux          = 10000.0f;               // 光束[lm]
+    float range                 = 30.0f;                  // 影響範囲
+    float innerAngleDeg         = 30.0f;                  // 内側角度（度）
+    float outerAngleDeg         = 45.0f;                  // 外側角度（度）
+};
+
+struct PhotometricLightDesc {
+    DirectX::XMFLOAT3 position  = { 0.0f, 0.0f, 0.0f };   // ライトの位置
+    DirectX::XMFLOAT3 direction = { 0.0f, -1.0f, 0.0f };  // ライトの方向
+    DirectX::XMFLOAT3 color     = { 1.0f, 1.0f, 1.0f };   // ライトの色
+    float luminousFlux          = 10000.0f;               // 光束[lm]
+    float range                 = 30.0f;                  // 影響範囲
+    std::optional<uint32_t> iesIndex =
+        std::nullopt;  // IESプロファイルのインデックス
+};
+
+//================================
+// Light class
+//================================
 class Light {
 public:
     Light(LightType type);
