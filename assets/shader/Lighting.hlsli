@@ -55,8 +55,8 @@ SamplerState g_IESSmp : register(s1);
 float GetDistanceAttenuation(float3 unnormalizedLightVec, float invSqrRadius) {
     float sqrDist = dot(unnormalizedLightVec, unnormalizedLightVec);
     float invSqr = 1.0f / (max(sqrDist, MIN_DIST * MIN_DIST));
-    float window = saturate(1.0f - sqrDist * invSqrRadius);
-    return invSqr * window * window; // 二乗で滑らかにする
+    float window = saturate(1.0f - ((sqrDist * invSqrRadius) * (sqrDist * invSqrRadius)));
+    return invSqr * window * window;  
 }
 
 //---------------------------------------------------------------
