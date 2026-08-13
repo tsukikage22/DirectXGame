@@ -9,6 +9,9 @@
 #include "Common.hlsli"
 #include "Display.hlsli"
 
+// scRGBは 1.0 = 80nit と定義されている
+static const float SC_RGB_WHITE_NITS = 80.0f;
+
 //==============================================================
 // Functions
 //==============================================================
@@ -60,6 +63,16 @@ float3 GT_Tonemap(float3 color) {
 
     // 色の再構成
     return toneMappedMaxCol * color / maxCol;
+}
+
+//--------------------------------------------------------------
+// トーンマップ結果（1.0 = paper white）をscRGBに変換する
+//--------------------------------------------------------------
+float3 ToScRGB(float3 color) {
+    // トーンマップの結果は，上限が maxLuminance/paperWhiteNits，1.0がpaperWhiteに相当するが，
+    // scRGBでは 1.0 = 80nit と定義されているため，paperWhiteNitsを使ってscRGBに変換する必要がある
+    // paperWhiteNits / SC_RGB_WHITE_NITS(80)  を掛けることで scRGBに変換できる
+    return color * g_display.paperWhiteNits / SC_RGB_WHITE_NITS;
 }
 
 #endif // TONEMAP_HLSLI

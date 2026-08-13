@@ -90,6 +90,9 @@ PSOutput main(VSOutput input) : SV_TARGET
     // トーンマップの適用
     float3 toneMapped = GT_Tonemap(finalColor);
 
+    // scRGBに変換
+    toneMapped = ToScRGB(toneMapped);
+
     output.color = float4(toneMapped, baseColor.a);
 
     return output;
