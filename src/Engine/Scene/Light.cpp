@@ -4,19 +4,40 @@
 #include <cassert>
 #include <cmath>
 
-Light::Light(LightType type)
-    : m_type(type),
-      m_range(100.0f),
-      m_color({ 1.0f, 1.0f, 1.0f }),
-      m_enabled(true),
-      m_innerAngleDeg(15.0f),
-      m_outerAngleDeg(30.0f) {
-    // ライトの種類に応じて初期値を設定
-    if (type == LightType::Directional) {
-        m_intensity = 10000.0f;  // 照度[lx]
-    } else {
-        m_intensity = 100.0f;  // 光度[cd]
-    }
+Light::Light(const DirectionalLightDesc& desc)
+    : m_type(LightType::Directional) {
+    SetColor(desc.color);
+    SetIlluminance(desc.illuminance);
+    m_transform.LookTo(desc.direction);
+}
+
+Light::Light(const PointLightDesc& desc) : m_type(LightType::Point) {
+    SetRange(desc.range);
+    SetColor(desc.color);
+    SetLuminousFlux(desc.luminousFlux);
+    m_transform.SetPosition(desc.position);
+}
+
+Light::Light(const SpotLightDesc& desc) : m_type(LightType::Spot) {
+    SetSpotAngles(desc.innerAngleDeg, desc.outerAngleDeg);
+    SetRange(desc.range);
+    SetColor(desc.color);
+    SetLuminousFlux(desc.luminousFlux);
+    m_transform.SetPosition(desc.position);
+    m_transform.LookTo(desc.direction);
+}
+
+Light::Light(const PhotometricLightDesc& desc)
+    : m_type(LightType::Photometric) {
+    assert(desc.iesIndex.has_value() &&
+           "IES index must be provided for photometric lights.");
+
+    SetIESIndex(desc.iesIndex.value());
+    SetRange(desc.range);
+    SetColor(desc.color);
+    SetLuminousFlux(desc.luminousFlux);
+    m_transform.SetPosition(desc.position);
+    m_transform.LookTo(desc.direction);
 }
 
 Light::~Light() {}

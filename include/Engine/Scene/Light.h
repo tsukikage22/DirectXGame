@@ -60,7 +60,11 @@ struct PhotometricLightDesc {
 //================================
 class Light {
 public:
-    Light(LightType type);
+    explicit Light(const DirectionalLightDesc& desc);
+    explicit Light(const PointLightDesc& desc);
+    explicit Light(const SpotLightDesc& desc);
+    explicit Light(const PhotometricLightDesc& desc);
+
     ~Light();
 
     /// @brief ライトの有効/無効を切り替える
@@ -113,15 +117,15 @@ private:
     LightType m_type;  // ライトの種類
 
     // ライトの汎用パラメータ
-    float m_intensity;          // 光の強さ（平行光源はlx，ほかはcd）
-    float m_range;              // 範囲
-    DirectX::XMFLOAT3 m_color;  // 色
-    Transform m_transform;      // ライトの位置・方向を保持するTransform
-    bool m_enabled;             // ライトの有効/無効
+    float m_intensity         = 0.0f;   // 光の強さ（平行光源はlx，ほかはcd）
+    float m_range             = 30.0f;  // 範囲
+    DirectX::XMFLOAT3 m_color = { 1.0f, 1.0f, 1.0f };  // 色
+    Transform m_transform;  // ライトの位置・方向を保持するTransform
+    bool m_enabled = true;  // ライトの有効/無効
 
     // スポットライト用パラメータ
-    float m_innerAngleDeg;  // スポットライトの内側角度（度）
-    float m_outerAngleDeg;  // スポットライトの外側角度（度）
+    float m_innerAngleDeg = 15.0f;  // スポットライトの内側角度（度）
+    float m_outerAngleDeg = 30.0f;  // スポットライトの外側角度（度）
 
     // フォトメトリックライト用パラメータ
     std::optional<uint32_t> m_iesIndex;  // IESプロファイルのインデックス

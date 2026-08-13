@@ -63,50 +63,20 @@ void Scene::DespawnObject(engine::ObjectHandle handle) {
 // ライトの作成
 engine::LightHandle Scene::SpawnDirectionalLight(
     const DirectionalLightDesc& desc) {
-    auto pLight = std::make_unique<Light>(LightType::Directional);
-    pLight->SetColor(desc.color);
-    pLight->SetIlluminance(desc.illuminance);
-    pLight->GetTransform().LookTo(desc.direction);
-    engine::LightHandle handle = m_lightMap.Insert(std::move(pLight));
-    return handle;
+    return m_lightMap.Insert(std::make_unique<Light>(desc));
 }
 
 engine::LightHandle Scene::SpawnPointLight(const PointLightDesc& desc) {
-    auto pLight = std::make_unique<Light>(LightType::Point);
-    pLight->SetColor(desc.color);
-    pLight->SetLuminousFlux(desc.luminousFlux);
-    pLight->SetRange(desc.range);
-    pLight->GetTransform().SetPosition(desc.position);
-    engine::LightHandle handle = m_lightMap.Insert(std::move(pLight));
-    return handle;
+    return m_lightMap.Insert(std::make_unique<Light>(desc));
 }
 
 engine::LightHandle Scene::SpawnSpotLight(const SpotLightDesc& desc) {
-    auto pLight = std::make_unique<Light>(LightType::Spot);
-    pLight->SetColor(desc.color);
-    pLight->SetRange(desc.range);
-    pLight->SetSpotAngles(desc.innerAngleDeg, desc.outerAngleDeg);
-    pLight->SetLuminousFlux(desc.luminousFlux);
-    pLight->GetTransform().SetPosition(desc.position);
-    pLight->GetTransform().LookTo(desc.direction);
-    engine::LightHandle handle = m_lightMap.Insert(std::move(pLight));
-    return handle;
+    return m_lightMap.Insert(std::make_unique<Light>(desc));
 }
 
 engine::LightHandle Scene::SpawnPhotometricLight(
     const PhotometricLightDesc& desc) {
-    assert(desc.iesIndex.has_value() &&
-           "IES index must be provided for photometric lights.");
-
-    auto pLight = std::make_unique<Light>(LightType::Photometric);
-    pLight->SetColor(desc.color);
-    pLight->SetLuminousFlux(desc.luminousFlux);
-    pLight->SetRange(desc.range);
-    pLight->GetTransform().SetPosition(desc.position);
-    pLight->GetTransform().LookTo(desc.direction);
-    pLight->SetIESIndex(desc.iesIndex.value());
-    engine::LightHandle handle = m_lightMap.Insert(std::move(pLight));
-    return handle;
+    return m_lightMap.Insert(std::make_unique<Light>(desc));
 }
 
 // ライトの削除
