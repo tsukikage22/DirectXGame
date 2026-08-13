@@ -381,3 +381,6 @@ assets/model
 
 #Ignore ies files
 assets/ies
+
+external/**/x64/
+external/**/*.obj

@@ -4,6 +4,7 @@
 
 #include "Engine/Input/IInputReceiver.h"
 #include "Engine/Input/IWindowEventListener.h"
+#include "backends/imgui_impl_win32.h"
 
 namespace /* anonymous */ {
 /// @brief ウィンドウプロシージャ
