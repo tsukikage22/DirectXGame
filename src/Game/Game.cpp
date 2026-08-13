@@ -40,74 +40,55 @@ void Game::Init(Engine* pEngine) {
     m_planeModel = loader.LoadModel(path);
 
     // ライトの作成
-    engine::LightHandle lightHandle;
 
     // Directional
     /*
     {
-        lightHandle  = m_pEngine->GetScene().SpawnLight(LightType::Directional);
-        auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
-        pLight->GetTransform().SetRotation(90.0f, 0.0f, 0.0f);
-        pLight->SetIlluminance(100000.0f);
-        pLight->SetColor({ 1.0f, 1.0f, 1.0f });
-    }
-    */
-
-    // Point
-    /*
-    {
-        lightHandle  = m_pEngine->GetScene().SpawnLight(LightType::Point);
-        auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
-        pLight->GetTransform().SetPosition({ 5.0f, 5.0f, 0.0f });
-        pLight->SetLuminousFlux(4000.0f);
-        pLight->SetRange(10.0f);
-        pLight->SetColor({ 1.0f, 1.0f, 1.0f });
+        m_pEngine->GetScene().SpawnDirectionalLight({
+            .direction   = { 0.0f, -1.0f, 0.0f },
+            .color       = { 1.0f, 1.0f, 1.0f },
+            .illuminance = 100000.0f,
+        });
     }
     */
 
     // 2 Spot lights
-
+    /*
     {
-        lightHandle  = m_pEngine->GetScene().SpawnLight(LightType::Spot);
+        lightHandle  = m_pEngine->GetScene().SpawnSpotLight({
+            .position = { 3.0f, 3.0f, 0.0f },
+        });
         auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
-        pLight->GetTransform().SetPosition({ 3.0f, 3.0f, 0.0f });
         pLight->GetTransform().LookAt({ 0.0f, 0.0f, 0.0f });
-        pLight->SetLuminousFlux(4000.0f);
-        pLight->SetRange(10.0f);
-        pLight->SetColor({ 1.0f, 1.0f, 1.0f });
-        pLight->SetSpotAngles(30.0f, 45.0f);
 
-        lightHandle = m_pEngine->GetScene().SpawnLight(LightType::Spot);
+        lightHandle = m_pEngine->GetScene().SpawnSpotLight({
+            .position = { -3.0f, 3.0f, 0.0f },
+        });
         pLight      = m_pEngine->GetScene().GetLight(lightHandle);
-        pLight->GetTransform().SetPosition({ -3.0f, 3.0f, 0.0f });
         pLight->GetTransform().LookAt({ 0.0f, 0.0f, 0.0f });
-        pLight->SetLuminousFlux(4000.0f);
-        pLight->SetRange(10.0f);
-        pLight->SetColor({ 1.0f, 1.0f, 1.0f });
-        pLight->SetSpotAngles(30.0f, 45.0f);
     }
+    */
 
     // 2 point lights
     /*
     {
-        lightHandle  = m_pEngine->GetScene().SpawnLight(LightType::Point);
-        auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
-        pLight->GetTransform().SetPosition({ 5.0f, 5.0f, 0.0f });
-        pLight->SetLuminousFlux(4000.0f);
-        pLight->SetRange(10.0f);
-        pLight->SetColor({ 1.0f, 0.0f, 0.0f });
+        m_pEngine->GetScene().SpawnPointLight({
+            .position     = { 3.0f, 3.0f, 0.0f },
+            .color        = { 1.0f, 0.0f, 0.0f },
+            .luminousFlux = 100000.0f,
+            .range        = 20.0f,
+        });
 
-        lightHandle = m_pEngine->GetScene().SpawnLight(LightType::Point);
-        pLight      = m_pEngine->GetScene().GetLight(lightHandle);
-        pLight->GetTransform().SetPosition({ -5.0f, 5.0f, 0.0f });
-        pLight->SetLuminousFlux(4000.0f);
-        pLight->SetRange(10.0f);
-        pLight->SetColor({ 0.0f, 0.0f, 1.0f });
+        m_pEngine->GetScene().SpawnPointLight({
+            .position     = { -3.0f, 3.0f, 0.0f },
+            .color        = { 0.0f, 0.0f, 1.0f },
+            .luminousFlux = 100000.0f,
+            .range        = 20.0f,
+        });
     }
     */
 
     // 2 photometric lights
-    /*
     {
         // IESプロファイルのロード
         std::optional<uint32_t> iesIndex;
@@ -115,28 +96,27 @@ void Game::Init(Engine* pEngine) {
         iesIndex = loader.LoadIESProfile(path);
         assert(iesIndex.has_value() && "Failed to load IES profile.");
 
-        lightHandle  = m_pEngine->GetScene().SpawnLight(LightType::Photometric);
-        auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
-        pLight->GetTransform().SetPosition({ 3.0f, 3.0f, 0.0f });
-        pLight->GetTransform().SetRotation(90.0f, 0.0f, 0.0f);
-        pLight->SetColor({ 1.0f, 1.0f, 1.0f });
-        pLight->SetLuminousFlux(9000.0f);
-        pLight->SetIESIndex(iesIndex.value());
+        m_pEngine->GetScene().SpawnPhotometricLight({
+            .position     = { 3.0f, 3.0f, 0.0f },
+            .direction    = { 0.0f, -1.0f, 0.0f },
+            .luminousFlux = 9000.0f,
+            .range        = 20.0f,
+            .iesIndex     = iesIndex.value(),
+        });
 
         std::optional<uint32_t> iesIndex2;
         AssetPath().GetAssetPath(L"ies/Bollard.IES", path);
         iesIndex2 = loader.LoadIESProfile(path);
         assert(iesIndex2.has_value() && "Failed to load IES profile.");
 
-        lightHandle = m_pEngine->GetScene().SpawnLight(LightType::Photometric);
-        pLight      = m_pEngine->GetScene().GetLight(lightHandle);
-        pLight->GetTransform().SetPosition({ -3.0f, 3.0f, 0.0f });
-        pLight->GetTransform().SetRotation(90.0f, 0.0f, 0.0f);
-        pLight->SetColor({ 1.0f, 1.0f, 1.0f });
-        pLight->SetLuminousFlux(9000.0f);
-        pLight->SetIESIndex(iesIndex2.value());
+        m_pEngine->GetScene().SpawnPhotometricLight({
+            .position     = { -3.0f, 3.0f, 0.0f },
+            .direction    = { 0.0f, -1.0f, 0.0f },
+            .luminousFlux = 9000.0f,
+            .range        = 20.0f,
+            .iesIndex     = iesIndex2.value(),
+        });
     }
-    */
 }
 
 void Game::Tick(float deltaTime) {

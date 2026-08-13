@@ -1,6 +1,7 @@
 #include "Engine/Scene/Scene.h"
 
 #include <algorithm>
+#include <cassert>
 
 Scene::Scene()  = default;
 Scene::~Scene() = default;
@@ -60,10 +61,22 @@ void Scene::DespawnObject(engine::ObjectHandle handle) {
 }
 
 // ライトの作成
-engine::LightHandle Scene::SpawnLight(LightType type) {
-    auto pLight                = std::make_unique<Light>(type);
-    engine::LightHandle handle = m_lightMap.Insert(std::move(pLight));
-    return handle;
+engine::LightHandle Scene::SpawnDirectionalLight(
+    const DirectionalLightDesc& desc) {
+    return m_lightMap.Insert(std::make_unique<Light>(desc));
+}
+
+engine::LightHandle Scene::SpawnPointLight(const PointLightDesc& desc) {
+    return m_lightMap.Insert(std::make_unique<Light>(desc));
+}
+
+engine::LightHandle Scene::SpawnSpotLight(const SpotLightDesc& desc) {
+    return m_lightMap.Insert(std::make_unique<Light>(desc));
+}
+
+engine::LightHandle Scene::SpawnPhotometricLight(
+    const PhotometricLightDesc& desc) {
+    return m_lightMap.Insert(std::make_unique<Light>(desc));
 }
 
 // ライトの削除

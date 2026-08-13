@@ -37,7 +37,10 @@ public:
     void DespawnObject(engine::ObjectHandle handle);
 
     /// @brief ライトの作成
-    engine::LightHandle SpawnLight(LightType type);
+    engine::LightHandle SpawnDirectionalLight(const DirectionalLightDesc& desc);
+    engine::LightHandle SpawnPointLight(const PointLightDesc& desc);
+    engine::LightHandle SpawnSpotLight(const SpotLightDesc& desc);
+    engine::LightHandle SpawnPhotometricLight(const PhotometricLightDesc& desc);
 
     /// @brief ライトの削除
     void DespawnLight(engine::LightHandle handle);
