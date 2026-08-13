@@ -327,5 +327,8 @@
     <None Include="..\assets\shader\Materials.hlsli">
       <Filter>リソース ファイル</Filter>
     </None>
+    <None Include="..\assets\shader\Display.hlsli">
+      <Filter>リソース ファイル</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -7,22 +7,7 @@
 #define TONEMAP_HLSLI
 
 #include "Common.hlsli"
-
-//=============================================================
-// Structure
-//=============================================================
-struct DisplayConstants {
-    float maxLuminance;
-    float minLuminance;
-    float paperWhiteNits;
-    float maxFullFrameLuminance;
-};
-
-//==============================================================
-// Resource Bindings
-//==============================================================
-// [b3] ディスプレイ定数
-ConstantBuffer<DisplayConstants> g_display: register(b3);
+#include "Display.hlsli"
 
 //==============================================================
 // Functions

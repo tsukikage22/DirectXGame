@@ -196,6 +196,7 @@
   <ItemGroup>
     <None Include="..\assets\shader\BRDF.hlsli" />
     <None Include="..\assets\shader\Common.hlsli" />
+    <None Include="..\assets\shader\Display.hlsli" />
     <None Include="..\assets\shader\Lighting.hlsli" />
     <None Include="..\assets\shader\Materials.hlsli" />
     <None Include="..\assets\shader\Tonemap.hlsli" />
