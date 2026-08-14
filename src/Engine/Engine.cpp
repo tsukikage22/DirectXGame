@@ -43,6 +43,9 @@ bool Engine::Initialize(HWND hWnd, uint32_t width, uint32_t height) {
 
 // 終了処理
 void Engine::Shutdown() {
+    // GPUの処理が完了するまで待機
+    m_CommandQueue.Flush();
+
     // アプリケーション固有の終了処理
     TermApp();
 
