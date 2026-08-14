@@ -56,6 +56,7 @@ void ConstantBuffer::Term() {
 
     m_pPool       = nullptr;
     m_pMappedData = nullptr;
+    m_allocation  = DescriptorAllocation{};
 }
 
 // 定数バッファの更新

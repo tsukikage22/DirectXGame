@@ -56,6 +56,7 @@ void LightBuffer::Term() {
     m_buffer.Term();
     m_pPool       = nullptr;
     m_pMappedData = nullptr;
+    m_allocation  = DescriptorAllocation{};
 }
 
 uint32_t LightBuffer::Update(

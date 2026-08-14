@@ -42,5 +42,6 @@ bool DepthTarget::Init(ID3D12Device* pDevice, DescriptorPool* pPoolDSV,
 
 void DepthTarget::Term() {
     m_Target.Term();
-    m_pPoolDSV = nullptr;
+    m_DSVAllocation = DescriptorAllocation{};
+    m_pPoolDSV      = nullptr;
 }

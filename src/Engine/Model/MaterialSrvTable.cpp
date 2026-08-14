@@ -84,8 +84,8 @@ bool MaterialSrvTable::Init(ID3D12Device* pDevice, DescriptorPool* pPoolSRV,
 }
 
 void MaterialSrvTable::Term() {
-    // 連続領域のプールからの解放はデストラクタによって行われるのでやらない
     m_pPoolSRV = nullptr;
+    m_SRVbase  = DescriptorAllocation{};
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE MaterialSrvTable::GetBaseGPUHandle() const {
