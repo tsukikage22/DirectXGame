@@ -129,6 +129,29 @@ private:
     static constexpr DXGI_FORMAT kDepthBufferFormat = DXGI_FORMAT_D32_FLOAT;
 
     //==============================================================
+    // Inner Class
+    //==============================================================
+    /// @brief ウィンドウイベント用の内部クラス
+    class WindowEventAdapter : public IWindowEventListener {
+    public:
+        explicit WindowEventAdapter(Engine* pEngine) : m_pEngine(pEngine) {}
+
+        /// @brief ウィンドウ移動時の処理
+        void OnWindowMoved() override;
+
+        void OnDisplayChanged() override;
+
+    private:
+        Engine* m_pEngine;
+    };
+
+    /// @brief ImGui用のディスクリプタアロケータ
+    struct ImGuiSrvAllocator {
+        DescriptorPool* pPool;
+        std::unordered_map<SIZE_T, DescriptorAllocation> allocations;
+    };
+
+    //==============================================================
     // private variables
     //==============================================================
     engine::ComPtr<ID3D12Device> m_pDevice;                // デバイス
@@ -171,6 +194,10 @@ private:
 
     HWND m_hWnd;  // ウィンドウハンドル
 
+    WindowEventAdapter m_WindowEventAdapter{ this };
+
+    ImGuiSrvAllocator m_ImGuiSrvAllocator;  // ImGui用ディスクリプタアロケータ
+
     /////////////////////////////////////////////////////////////////////////
     // private methods
     /////////////////////////////////////////////////////////////////////////
@@ -187,23 +214,4 @@ private:
 
     /// @brief モニター変更チェック
     bool IsMonitorChanged(HWND hWnd);
-
-    //==============================================================
-    // Inner Class
-    //==============================================================
-    /// @brief ウィンドウイベント用の内部クラス
-    class WindowEventAdapter : public IWindowEventListener {
-    public:
-        explicit WindowEventAdapter(Engine* pEngine) : m_pEngine(pEngine) {}
-
-        /// @brief ウィンドウ移動時の処理
-        void OnWindowMoved() override;
-
-        void OnDisplayChanged() override;
-
-    private:
-        Engine* m_pEngine;
-    };
-
-    WindowEventAdapter m_WindowEventAdapter{ this };
 };

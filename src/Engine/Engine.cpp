@@ -96,6 +96,12 @@ void Engine::BeginFrame() {
     // ビューポートの設定
     m_pCmdList->RSSetViewports(1, &m_Viewport);
     m_pCmdList->RSSetScissorRects(1, &m_ScissorRect);
+
+    // 6. ImGui描画開始
+    ImGui_ImplDX12_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+    ImGui::ShowDemoWindow();  // デモウィンドウの表示
 }
 
 // ゲームロジック・シーン定数・transform更新
@@ -218,6 +224,12 @@ void Engine::Render() {
                     mesh->GetIndexCount(), 1, 0, 0, 0);
             }
         });
+    }
+
+    // ImGui描画
+    {
+        ImGui::Render();
+        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), m_pCmdList.Get());
     }
 }
 
@@ -623,6 +635,57 @@ bool Engine::InitApp() {
         }
     }
 
+    // ImGuiの初期化
+    {
+        // ImGuiのコンテキストを作成
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |=
+            ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+
+        // ImGuiのバックエンドを初期化
+        ImGui_ImplDX12_InitInfo info = {};
+        info.Device                  = m_pDevice.Get();
+        info.CommandQueue            = m_CommandQueue.GetD3DQueue();
+        info.NumFramesInFlight       = config::kFrameCount;
+        info.RTVFormat               = kBackBufferFormat;
+
+        // SRVディスクリプタプールの割り当てと解放
+        info.SrvDescriptorHeap    = m_pPoolCBV_SRV_UAV->GetHeap();
+        m_ImGuiSrvAllocator.pPool = m_pPoolCBV_SRV_UAV;
+        info.UserData =
+            &m_ImGuiSrvAllocator;  // UserDataにpoolとallocationsを渡す
+
+        info.SrvDescriptorAllocFn =  // ディスクリプタの割り当て関数
+            [](ImGui_ImplDX12_InitInfo* im_info,
+                D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu,
+                D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu) {
+                ImGuiSrvAllocator* pAllocator =
+                    static_cast<ImGuiSrvAllocator*>(im_info->UserData);
+
+                DescriptorAllocation alloc = pAllocator->pPool->Allocate();
+                *out_cpu                   = alloc.GetCPUHandle();
+                *out_gpu                   = alloc.GetGPUHandle();
+
+                // ハンドルをキーにallocationを保持
+                pAllocator->allocations.emplace(out_cpu->ptr, std::move(alloc));
+            };
+
+        info.SrvDescriptorFreeFn =  // ディスクリプタの解放関数
+            [](ImGui_ImplDX12_InitInfo* im_info,
+                D3D12_CPU_DESCRIPTOR_HANDLE cpu,
+                D3D12_GPU_DESCRIPTOR_HANDLE gpu) {
+                ImGuiSrvAllocator* pAllocator =
+                    static_cast<ImGuiSrvAllocator*>(im_info->UserData);
+                // CPUハンドルをキーにしてallocationを解放
+                pAllocator->allocations.erase(cpu.ptr);
+            };
+
+        ImGui_ImplDX12_Init(&info);
+        ImGui_ImplWin32_Init(m_hWnd);
+    }
+
     return true;
 }
 
@@ -632,6 +695,11 @@ void Engine::TermApp() {
 
     // シーンの破棄
     m_Scene.Term();
+
+    // ImGuiの終了処理
+    ImGui_ImplDX12_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
 
     // テクスチャプールの解放
     m_TextureManager.Term();

@@ -384,3 +384,5 @@ assets/ies
 
 external/**/x64/
 external/**/*.obj
+
+imgui.ini

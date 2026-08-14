@@ -6,9 +6,18 @@
 #include "Engine/Input/IWindowEventListener.h"
 #include "backends/imgui_impl_win32.h"
 
+// ImGui用のウィンドウプロシージャハンドラ
+extern LRESULT ImGui_ImplWin32_WndProcHandler(
+    HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 namespace /* anonymous */ {
 /// @brief ウィンドウプロシージャ
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    // ImGuiのウィンドウプロシージャハンドラを呼び出す
+    if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam)) {
+        return true;
+    }
+
     auto instance =
         reinterpret_cast<Window*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
