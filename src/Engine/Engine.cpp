@@ -102,6 +102,11 @@ void Engine::BeginFrame() {
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
     ImGui::ShowDemoWindow();  // デモウィンドウの表示
+
+    // 7. Input Systemの更新
+    ImGuiIO& io = ImGui::GetIO();
+    m_InputSystem.SetUICaptureState(
+        io.WantCaptureMouse, io.WantCaptureKeyboard);
 }
 
 // ゲームロジック・シーン定数・transform更新

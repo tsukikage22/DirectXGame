@@ -39,6 +39,14 @@ public:
     void OnMouseDown(Button b) override;
     void OnMouseUp(Button b) override;
 
+    //==================================
+    // アクセサ
+    //==================================
+    void SetUICaptureState(bool wantCaptureMouse, bool wantCaptureKeyboard) {
+        m_ImGuiWantCaptureMouse    = wantCaptureMouse;
+        m_ImGuiWantCaptureKeyboard = wantCaptureKeyboard;
+    };
+
 private:
     // キーボード状態
     std::array<bool, 256> m_KeyCur{};   // 現在のキー状態
@@ -58,4 +66,8 @@ private:
         std::array<bool, static_cast<size_t>(Button::Count)>
             buttonPrev{};  // 前フレームのボタン状態
     } m_Mouse;
+
+    // ImGuiの入力状態
+    bool m_ImGuiWantCaptureMouse    = false;
+    bool m_ImGuiWantCaptureKeyboard = false;
 };
