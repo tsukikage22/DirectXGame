@@ -83,7 +83,7 @@ void Engine::BeginFrame() {
     // 5. レンダーターゲットとビューポートの設定・クリア
     // レンダーターゲットの設定
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle =
-        m_ColorTarget[m_FrameIndex].GetCPUHandle();
+        m_ColorTarget[m_FrameIndex].GetRTVCPUHandle();
     D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_DepthTarget.GetCPUHandle();
     m_pCmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
 
