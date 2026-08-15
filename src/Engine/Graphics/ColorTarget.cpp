@@ -50,7 +50,7 @@ bool ColorTarget::Init(ID3D12Device* pDevice, DescriptorPool* pPoolRTV,
     clearValue.Color[0] = 0.0f;
     clearValue.Color[1] = 0.0f;
     clearValue.Color[2] = 0.0f;
-    clearValue.Color[3] = 1.0f;
+    clearValue.Color[3] = 0.0f;
 
     // テクスチャリソースの作成
     if (!m_Target.InitAsTexture2D(pDevice, width, height, format, 1,
