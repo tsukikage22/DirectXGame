@@ -1,9 +1,17 @@
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
 
+#include <algorithm>
+#include <cassert>
+
 #include "Engine/Core/DxDebug.h"
 
+GraphicsPipelineBuilder::GraphicsPipelineBuilder() : m_pPipelineState() {
+    // デフォルトのパイプライン設定を行う
+    SetDefault();
+}
+
 // デフォルトのパイプライン設定
-GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDefault() {
+void GraphicsPipelineBuilder::SetDefault() {
     // ラスタライザステートの設定
     D3D12_RASTERIZER_DESC RSdesc = {};
     RSdesc.FillMode              = D3D12_FILL_MODE_SOLID;
@@ -56,8 +64,6 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDefault() {
     m_PSOdesc.NumRenderTargets      = 1;
     m_PSOdesc.SampleDesc.Count      = 1;
     m_PSOdesc.SampleDesc.Quality    = 0;
-
-    return *this;
 }
 
 // ルートシグニチャの設定
@@ -94,41 +100,69 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetInputLayout(
     return *this;
 }
 
-// RTVフォーマットの設定
-GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetRTVFormat(
-    DXGI_FORMAT format) {
-    m_PSOdesc.RTVFormats[0] = format;
+// 全RTに指定したBlendModeを設定する
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetBlendState(
+    BlendMode blendMode) {
+    for (auto& target : m_PSOdesc.BlendState.RenderTarget) {
+        target = MakeRenderTargetBlendDesc(blendMode);
+    }
     return *this;
 }
 
-// DSVフォーマットの設定
-GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDSVFormat(
-    DXGI_FORMAT format) {
-    m_PSOdesc.DSVFormat = format;
+// RTLayout定数からPSOの設定を行う
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetRenderTargetLayout(
+    const RenderTargetLayout& layout) {
+    m_PSOdesc.NumRenderTargets = layout.numRenderTargets;
+    std::copy(layout.rtvFormats.begin(), layout.rtvFormats.end(),
+        m_PSOdesc.RTVFormats);
+    m_PSOdesc.DSVFormat          = layout.dsvFormat;
+    m_PSOdesc.SampleDesc.Count   = layout.sampleCount;
+    m_PSOdesc.SampleDesc.Quality = 0;
+
+    // 深度テストの有無の設定
+    const bool hasDSV = (layout.dsvFormat != DXGI_FORMAT_UNKNOWN);
+    m_PSOdesc.DepthStencilState.DepthEnable = hasDSV;
+    m_PSOdesc.DepthStencilState.DepthWriteMask =
+        hasDSV ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+
     return *this;
 }
 
 // パイプラインステートの生成
 bool GraphicsPipelineBuilder::Build(ID3D12Device* pDevice) {
     // 頂点シェーダーとピクセルシェーダーが設定されているか
-    if (m_PSOdesc.VS.pShaderBytecode == nullptr ||
-        m_PSOdesc.PS.pShaderBytecode == nullptr) {
-        return false;
-    }
+    assert(m_PSOdesc.VS.pShaderBytecode != nullptr &&
+           m_PSOdesc.PS.pShaderBytecode != nullptr &&
+           "Vertex shader and pixel shader must be set before building the "
+           "pipeline state.");
 
     // ルートシグニチャが設定されているか
-    if (m_PSOdesc.pRootSignature == nullptr) {
-        return false;
-    }
+    assert(m_PSOdesc.pRootSignature != nullptr &&
+           "Root signature must be set before building the pipeline state.");
 
-    // レンダーターゲットのフォーマットが設定されているか
-    if (m_PSOdesc.NumRenderTargets == 0) {
-        return false;
-    }
+    // 深度を使う場合はDSVフォーマットが設定されているか
+    const bool depthUsed = m_PSOdesc.DepthStencilState.DepthEnable ||
+                           m_PSOdesc.DepthStencilState.StencilEnable;
+    const bool hasDSV    = (m_PSOdesc.DSVFormat != DXGI_FORMAT_UNKNOWN);
+    assert(!depthUsed ||
+           hasDSV && "DSV format is required when depth or stencil is enabled");
 
     // パイプラインステートの生成
     CHECK_HR(pDevice, pDevice->CreateGraphicsPipelineState(&m_PSOdesc,
                           IID_PPV_ARGS(m_pPipelineState.GetAddressOf())));
 
     return true;
+}
+
+void BeginPass(ID3D12GraphicsCommandList* pCmdList,
+    const RenderTargetLayout& layout,
+    const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles,
+    const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle) {
+    // DSVフォーマットが設定されている場合はDSVハンドルがnullptrでないことを確認
+    assert((layout.dsvFormat == DXGI_FORMAT_UNKNOWN || pDSVHandle != nullptr) &&
+           "DSV handle must be provided if DSV format is set.");
+
+    // レンダーターゲットと深度ステンシルを設定
+    pCmdList->OMSetRenderTargets(
+        layout.numRenderTargets, pRTVHandles, FALSE, pDSVHandle);
 }

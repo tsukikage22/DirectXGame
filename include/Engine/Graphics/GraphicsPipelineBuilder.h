@@ -3,19 +3,66 @@
 
 #include <d3d12.h>
 
+#include <array>
 #include <vector>
 
 #include "Engine/Core/ComPtr.h"
 
+enum class BlendMode {
+    Opaque,              // 不透明（既定）
+    AlphaBlend,          // ストレートアルファ合成
+    PremultipliedAlpha,  // 乗算アルファ合成
+    Additive,            // 加算合成
+};
+
+/// @brief レンダーターゲットのレイアウト
+struct RenderTargetLayout {
+    // RTとDSのフォーマット，サンプル数は複数の場所で使用するため，ここでまとめて管理する
+    std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>
+        rtvFormats{};
+    UINT numRenderTargets = 1;                    // RTの数
+    DXGI_FORMAT dsvFormat = DXGI_FORMAT_UNKNOWN;  // DSVのフォーマット
+    UINT sampleCount      = 1;                    // サンプル数
+};
+
+// ジオメトリパス：HDRバッファ＋深度
+inline constexpr RenderTargetLayout kGeometryLayout = {
+    { DXGI_FORMAT_R16G16B16A16_FLOAT },  // RTフォーマット
+    1,                                   // RTの数
+    DXGI_FORMAT_D32_FLOAT,               // DSVフォーマット
+    1                                    // サンプル数
+};
+
+// ImGui用オフスクリーンパス：ガンマ空間＋深度なし
+inline constexpr RenderTargetLayout kImGuiLayout = {
+    { DXGI_FORMAT_R8G8B8A8_UNORM },  // RTフォーマット
+    1,                               // RTの数
+    DXGI_FORMAT_UNKNOWN,             // DSVフォーマット
+    1                                // サンプル数
+};
+
+// 最終合成パス：scRGB＋深度なし
+inline constexpr RenderTargetLayout kCompositeLayout = {
+    { DXGI_FORMAT_R16G16B16A16_FLOAT },  // RTフォーマット
+    1,                                   // RTの数
+    DXGI_FORMAT_UNKNOWN,                 // DSVフォーマット
+    1                                    // サンプル数
+};
+
+/// @brief RTLayout定数からSetRenderTargetsを呼び出す
+/// @param pCmdList コマンドリスト
+/// @param layout RTLayout定数
+/// @param pRTVHandles RTVハンドルの配列
+/// @param pDSVHandle DSVハンドル
+void BeginPass(ID3D12GraphicsCommandList* pCmdList,
+    const RenderTargetLayout& layout,
+    const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles,
+    const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle);
+
 class GraphicsPipelineBuilder {
 public:
-    GraphicsPipelineBuilder()  = default;
+    GraphicsPipelineBuilder();
     ~GraphicsPipelineBuilder() = default;
-
-    /// @brief
-    /// デフォルトのパイプライン設定を行う(ラスタライザステートとブレンドステート)
-    /// @return
-    GraphicsPipelineBuilder& SetDefault();
 
     /// @brief ルートシグニチャを設定する
     /// @param pRootSignature
@@ -40,8 +87,14 @@ public:
     GraphicsPipelineBuilder& SetInputLayout(
         const std::vector<D3D12_INPUT_ELEMENT_DESC>& elements);
 
-    GraphicsPipelineBuilder& SetRTVFormat(DXGI_FORMAT format);
-    GraphicsPipelineBuilder& SetDSVFormat(DXGI_FORMAT format);
+    /// @brief 全RTに指定したBlendModeを設定する
+    /// @param blendMode ブレンドモード
+    GraphicsPipelineBuilder& SetBlendState(BlendMode blendMode);
+
+    /// @brief RTLayout定数からPSOの設定を行う
+    /// @param layout レンダーターゲットのレイアウト
+    GraphicsPipelineBuilder& SetRenderTargetLayout(
+        const RenderTargetLayout& layout);
 
     bool Build(ID3D12Device* pDevice);
 
@@ -50,6 +103,11 @@ public:
     ID3D12PipelineState* Get() const { return m_pPipelineState.Get(); }
 
 private:
+    /// @brief
+    /// デフォルトのパイプライン設定を行う(ラスタライザステートとブレンドステート)
+    /// @return
+    void SetDefault();
+
     engine::ComPtr<ID3D12PipelineState> m_pPipelineState;
 
     std::vector<D3D12_INPUT_ELEMENT_DESC> m_InputElements;
@@ -61,3 +119,51 @@ private:
     GraphicsPipelineBuilder(GraphicsPipelineBuilder&&)                 = delete;
     GraphicsPipelineBuilder& operator=(GraphicsPipelineBuilder&&)      = delete;
 };
+
+/// @brief ブレンド設定のプリセットを作成する
+/// @param blendMode ブレンドモード
+/// @return 設定されたD3D12_RENDER_TARGET_BLEND_DESC
+constexpr D3D12_RENDER_TARGET_BLEND_DESC MakeRenderTargetBlendDesc(
+    BlendMode blendMode) {
+    D3D12_RENDER_TARGET_BLEND_DESC desc = {};
+    desc.BlendEnable                    = (blendMode != BlendMode::Opaque);
+    desc.LogicOpEnable                  = FALSE;
+    desc.SrcBlend                       = D3D12_BLEND_ONE;
+    desc.DestBlend                      = D3D12_BLEND_ZERO;
+    desc.BlendOp                        = D3D12_BLEND_OP_ADD;
+    desc.SrcBlendAlpha                  = D3D12_BLEND_ONE;
+    desc.DestBlendAlpha                 = D3D12_BLEND_ZERO;
+    desc.BlendOpAlpha                   = D3D12_BLEND_OP_ADD;
+    desc.LogicOp                        = D3D12_LOGIC_OP_NOOP;
+    desc.RenderTargetWriteMask          = D3D12_COLOR_WRITE_ENABLE_ALL;
+
+    switch (blendMode) {
+        case BlendMode::AlphaBlend:
+            desc.SrcBlend      = D3D12_BLEND_SRC_ALPHA;
+            desc.DestBlend     = D3D12_BLEND_INV_SRC_ALPHA;
+            desc.SrcBlendAlpha = D3D12_BLEND_ONE;
+            desc.DestBlendAlpha =
+                D3D12_BLEND_INV_SRC_ALPHA;  // アルファ値も考慮する場合
+            break;
+
+        case BlendMode::PremultipliedAlpha:
+            desc.SrcBlend      = D3D12_BLEND_ONE;
+            desc.DestBlend     = D3D12_BLEND_INV_SRC_ALPHA;
+            desc.SrcBlendAlpha = D3D12_BLEND_ONE;
+            desc.DestBlendAlpha =
+                D3D12_BLEND_INV_SRC_ALPHA;  // アルファ値も考慮する場合
+            break;
+
+        case BlendMode::Additive:
+            desc.SrcBlend       = D3D12_BLEND_SRC_ALPHA;
+            desc.DestBlend      = D3D12_BLEND_ONE;
+            desc.SrcBlendAlpha  = D3D12_BLEND_ONE;
+            desc.DestBlendAlpha = D3D12_BLEND_ONE;  // アルファ値も考慮する場合
+            break;
+
+        default:
+            break;
+    }
+
+    return desc;
+}

@@ -85,7 +85,7 @@ void Engine::BeginFrame() {
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle =
         m_ColorTarget[m_FrameIndex].GetRTVCPUHandle();
     D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_DepthTarget.GetCPUHandle();
-    m_pCmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+    BeginPass(m_pCmdList.Get(), kGeometryLayout, &rtvHandle, &dsvHandle);
 
     // レンダーターゲットのクリア
     const float clearColor[] = { 0.25f, 0.25f, 0.25f, 1.0f };
@@ -605,13 +605,12 @@ bool Engine::InitApp() {
 
         // グラフィックスパイプラインステートの設定
         GraphicsPipelineBuilder pipelineBuilder;
-        pipelineBuilder.SetDefault()
-            .SetRootSignature(m_pRootSignature.Get())
+        pipelineBuilder.SetRootSignature(m_pRootSignature.Get())
             .SetVertexShader(vsBlob.Get())
             .SetPixelShader(psBlob.Get())
             .SetInputLayout(StandardVertex::GetInputLayout())
-            .SetRTVFormat(kBackBufferFormat)
-            .SetDSVFormat(kDepthBufferFormat);
+            .SetBlendState(BlendMode::Opaque)
+            .SetRenderTargetLayout(kGeometryLayout);
 
         if (!pipelineBuilder.Build(m_pDevice.Get())) {
             MessageBoxW(nullptr, L"Failed to build graphics pipeline state.",
