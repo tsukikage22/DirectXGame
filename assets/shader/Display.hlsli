@@ -7,6 +7,12 @@
 #define DISPLAY_HLSLI
 
 //=============================================================
+// Constants
+//=============================================================
+// scRGBは 1.0 = 80nit と定義されている
+static const float SC_RGB_WHITE_NITS = 80.0f;
+
+//=============================================================
 // Structure
 //=============================================================
 struct DisplayConstants {
@@ -21,5 +27,18 @@ struct DisplayConstants {
 //==============================================================
 // [b3] ディスプレイ定数
 ConstantBuffer<DisplayConstants> g_display: register(b3);
+
+//==============================================================
+// Functions
+//==============================================================
+//--------------------------------------------------------------
+// 1.0をpaper whiteとして正規化された色値をscRGBに変換する
+//--------------------------------------------------------------
+float3 ToScRGB(float3 color) {
+    // トーンマップの結果は，上限が maxLuminance/paperWhiteNits，1.0がpaperWhiteに相当するが，
+    // scRGBでは 1.0 = 80nit と定義されているため，paperWhiteNitsを使ってscRGBに変換する必要がある
+    // paperWhiteNits / SC_RGB_WHITE_NITS(80)  を掛けることで scRGBに変換できる
+    return color * g_display.paperWhiteNits / SC_RGB_WHITE_NITS;
+}
 
 #endif // DISPLAY_HLSLI

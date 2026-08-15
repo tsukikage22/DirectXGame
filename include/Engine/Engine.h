@@ -197,6 +197,10 @@ private:
     WindowEventAdapter m_WindowEventAdapter{ this };
 
     ImGuiSrvAllocator m_ImGuiSrvAllocator;  // ImGui用ディスクリプタアロケータ
+    ColorTarget m_UIRenderTarget;           // UI用レンダーターゲット
+    engine::ComPtr<ID3D12RootSignature>
+        m_pUIRootSignature;                        // UI用ルートシグネチャ
+    engine::ComPtr<ID3D12PipelineState> m_pUIPSO;  // UI用パイプラインステート
 
     /////////////////////////////////////////////////////////////////////////
     // private methods

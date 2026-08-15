@@ -233,8 +233,65 @@ void Engine::Render() {
 
     // ImGui描画
     {
+        // UI用レンダーターゲットのリソースバリアの設定
+        D3D12_RESOURCE_BARRIER barrier = {};
+        barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+        barrier.Transition.pResource   = m_UIRenderTarget.GetResource();
+        barrier.Transition.Subresource =
+            D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        barrier.Transition.StateBefore =
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+        barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        m_pCmdList->ResourceBarrier(1, &barrier);
+
+        // UI用レンダーターゲットの設定
+        auto rtvHandle = m_UIRenderTarget.GetRTVCPUHandle();
+        BeginPass(m_pCmdList.Get(), kImGuiLayout, &rtvHandle, nullptr);
+
+        // レンダーターゲットのクリア
+        const float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+        m_pCmdList->ClearRenderTargetView(
+            m_UIRenderTarget.GetRTVCPUHandle(), clearColor, 0, nullptr);
+
+        // ImGuiの描画
         ImGui::Render();
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), m_pCmdList.Get());
+
+        // UI用レンダーターゲットをSRVに戻す
+        barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        barrier.Transition.StateAfter =
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+        m_pCmdList->ResourceBarrier(1, &barrier);
+    }
+
+    // シーン描画とUI描画の合成
+    {
+        // レンダーターゲットの設定
+        auto rtvHandle = m_ColorTarget[m_FrameIndex].GetRTVCPUHandle();
+        BeginPass(m_pCmdList.Get(), kCompositeLayout, &rtvHandle, nullptr);
+
+        // ルートシグネチャとパイプラインステートの設定
+        m_pCmdList->SetGraphicsRootSignature(m_pUIRootSignature.Get());
+        m_pCmdList->SetPipelineState(m_pUIPSO.Get());
+
+        // CBVとしてDisplayConstantsを設定
+        m_pCmdList->SetGraphicsRootConstantBufferView(
+            0, m_DisplayConstantsGPU.GetGPUAddress());
+
+        // ディスクリプタヒープの設定
+        ID3D12DescriptorHeap* pHeaps[] = { m_pPoolCBV_SRV_UAV->GetHeap() };
+        m_pCmdList->SetDescriptorHeaps(1, pHeaps);
+        m_pCmdList->SetGraphicsRootDescriptorTable(
+            1, m_UIRenderTarget.GetSRVGPUHandle());
+
+        // ビューポートの設定
+        m_pCmdList->RSSetViewports(1, &m_Viewport);
+        m_pCmdList->RSSetScissorRects(1, &m_ScissorRect);
+
+        // 描画
+        m_pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        m_pCmdList->DrawInstanced(3, 1, 0, 0);  // フルスクリーン三角形を描画
     }
 }
 
@@ -423,6 +480,15 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         m_ScissorRect.bottom = height;
     }
 
+    // UI用レンダーターゲットの作成
+    {
+        if (!m_UIRenderTarget.Init(m_pDevice.Get(), m_pPoolRTV,
+                m_pPoolCBV_SRV_UAV, width, height,
+                DXGI_FORMAT_R8G8B8A8_UNORM)) {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -437,6 +503,9 @@ void Engine::TermD3D() {
 
     // 深度ステンシルビューの解放
     m_DepthTarget.Term();
+
+    // UI用レンダーターゲットの解放
+    m_UIRenderTarget.Term();
 
     // ディスクリプタプールの破棄
     delete m_pPoolCBV_SRV_UAV;
@@ -653,7 +722,7 @@ bool Engine::InitApp() {
         info.Device                  = m_pDevice.Get();
         info.CommandQueue            = m_CommandQueue.GetD3DQueue();
         info.NumFramesInFlight       = config::kFrameCount;
-        info.RTVFormat               = kBackBufferFormat;
+        info.RTVFormat               = DXGI_FORMAT_R8G8B8A8_UNORM;
 
         // SRVディスクリプタプールの割り当てと解放
         info.SrvDescriptorHeap    = m_pPoolCBV_SRV_UAV->GetHeap();
@@ -690,6 +759,64 @@ bool Engine::InitApp() {
         ImGui_ImplWin32_Init(m_hWnd);
     }
 
+    // UI合成用PSO，ルートシグネチャの作成
+    {
+        // シェーダのパスを取得
+        std::filesystem::path vsPath;
+        std::filesystem::path psPath;
+        AssetPath assetPath;
+        if (!assetPath.GetAssetPath(L"shader/UI_VS.cso", vsPath) ||
+            !assetPath.GetAssetPath(L"shader/UI_PS.cso", psPath)) {
+            MessageBoxW(
+                nullptr, L"Failed to find shader files.", L"Error", MB_OK);
+            return false;
+        }
+
+        // シェーダの読み込み
+        engine::ComPtr<ID3DBlob> vsBlob;
+        engine::ComPtr<ID3DBlob> psBlob;
+        CHECK_HR(m_pDevice.Get(),
+            D3DReadFileToBlob(vsPath.c_str(), vsBlob.GetAddressOf()));
+        CHECK_HR(m_pDevice.Get(),
+            D3DReadFileToBlob(psPath.c_str(), psBlob.GetAddressOf()));
+
+        // ルートシグネチャの生成
+        auto rsBuilder = RootSignatureBuilder{};
+        std::vector<D3D12_DESCRIPTOR_RANGE1> range;
+        range.push_back(
+            rsBuilder.CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0,
+                D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE));
+        // ルートシグネチャの構成
+        // [b3] Display Constants (Root CBV)
+        // [t0] UI Texture (Descriptor Table SRV)
+        rsBuilder
+            .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL,
+                D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
+            .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL);
+
+        if (!rsBuilder.Build(m_pDevice.Get())) {
+            MessageBoxW(nullptr, L"Failed to build UI root signature.",
+                L"Error", MB_OK);
+            return false;
+        }
+        m_pUIRootSignature = rsBuilder.Get();
+
+        // パイプラインステートの生成
+        auto psoBuilder = GraphicsPipelineBuilder{};
+        psoBuilder.SetRootSignature(m_pUIRootSignature.Get())
+            .SetVertexShader(vsBlob.Get())
+            .SetPixelShader(psBlob.Get())
+            .SetBlendState(BlendMode::PremultipliedAlpha)
+            .SetRenderTargetLayout(kCompositeLayout);
+
+        if (!psoBuilder.Build(m_pDevice.Get())) {
+            MessageBoxW(nullptr, L"Failed to build UI pipeline state.",
+                L"Error", MB_OK);
+            return false;
+        }
+        m_pUIPSO = psoBuilder.Get();
+    }
+
     return true;
 }
 
@@ -708,11 +835,11 @@ void Engine::TermApp() {
     // テクスチャプールの解放
     m_TextureManager.Term();
 
-    // パイプラインステートの解放
+    // PSO，RootSignatureの破棄
     m_pPSO.Reset();
-
-    // ルートシグニチャの解放
     m_pRootSignature.Reset();
+    m_pUIPSO.Reset();
+    m_pUIRootSignature.Reset();
 
     // フレームリソースの解放
     for (int i = 0; i < config::kFrameCount; i++) {
