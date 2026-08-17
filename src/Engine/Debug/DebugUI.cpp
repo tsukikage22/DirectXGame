@@ -81,12 +81,11 @@ void DebugUI::BeginFrame(InputSystem& input, Camera& camera) {
     input.SetUICaptureState(io.WantCaptureMouse, io.WantCaptureKeyboard);
 
     // デバッグGUIの作成
-    // FPS表示
-    if (ImGui::Begin("Debug")) {
-        ImGui::Text(
-            "%.1f FPS (%.3f ms/frame)", io.Framerate, 1000.0f / io.Framerate);
-    }
-    ImGui::End();
+    // FPS表示UI
+    DrawFPSPanel();
+
+    // 露出調整UI
+    DrawExposurePanel(camera);
 
     // 描画データの確定
     ImGui::Render();
@@ -120,4 +119,69 @@ void DebugUI::Render(
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
     barrier.Transition.StateAfter  = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
     pCmdList->ResourceBarrier(1, &barrier);
+}
+
+// FPS表示UIの描画
+void DebugUI::DrawFPSPanel() {
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Debug")) {
+        ImGui::Text(
+            "%.1f FPS (%.3f ms/frame)", io.Framerate, 1000.0f / io.Framerate);
+    }
+    ImGui::End();
+}
+
+// 露出調整UIの描画
+void DebugUI::DrawExposurePanel(Camera& camera) {
+    // 露出調整パネル
+    ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Exposure")) {
+        float ev100 = camera.ComputeEV100();  // 現在のEV100を取得
+
+        // EV100のスライダー
+        bool changed =
+            ImGui::SliderFloat("EV100", &ev100, -6.0f, 17.0f, "%.2f");
+
+        // EV100を固定値に設定するボタン
+        if (ImGui::SmallButton("Sunny 16")) {  // 晴天の昼間
+            ev100   = 15.0f;
+            changed = true;
+        }
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Indoor")) {  // 室内
+            ev100   = 8.0f;
+            changed = true;
+        }
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Night")) {  // 夜景
+            ev100   = -2.0f;
+            changed = true;
+        }
+
+        // シャッタースピードを固定するか絞り値を固定するかの選択
+        if (ImGui::RadioButton("Fix Shutter Speed", m_fixShutterSpeed)) {
+            m_fixShutterSpeed = true;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Fix Aperture", !m_fixShutterSpeed)) {
+            m_fixShutterSpeed = false;
+        }
+
+        // EV100が変更された場合はシャッタースピードを更新
+        if (changed) {
+            camera.ApplyEV100(ev100, m_fixShutterSpeed);
+        }
+
+        // 露出パラメータの表示
+        ImGui::Text("Aperture: f/%.1f", camera.GetAperture());
+        float ss = camera.GetShutterSpeed();
+        if (ss >= 1.0f) {
+            ImGui::Text("Shutter Speed: %.1f s", ss);
+        } else {
+            ImGui::Text("Shutter Speed: 1/%.0f s", 1.0f / ss);
+        }
+        ImGui::Text("Exposure: %.3e", camera.ComputeExposure());
+    }
+    ImGui::End();
 }

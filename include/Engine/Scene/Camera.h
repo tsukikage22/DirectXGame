@@ -43,6 +43,11 @@ public:
     /// @brief 露出の計算
     float ComputeExposure() const;
 
+    /// @brief EV100を指定して露出パラメータを更新する
+    /// @param ev100 EV100
+    /// @param fixShutterSpeed trueの場合はシャッタースピードを固定
+    void ApplyEV100(float ev100, bool fixShutterSpeed);
+
     //================================
     // 行列の計算
     //================================
@@ -56,7 +61,16 @@ public:
     Transform& GetTransform() { return m_transform; }
     const Transform& GetTransform() const { return m_transform; }
 
+    float GetAperture() const { return m_aperture; }
+    float GetShutterSpeed() const { return m_shutterSpeed; }
+
 private:
+    /// @brief シャッタースピードを固定し，EV100を指定して絞り値を計算する
+    float ComputeAperture(float ev100) const;
+
+    /// @brief 絞り値を固定し，EV100を指定してシャッタースピードを計算する
+    float ComputeShutterSpeed(float ev100) const;
+
     Transform m_transform;    // 位置や姿勢
     float m_fovYRad;          // 垂直視野角（ラジアン）
     float m_aspect;           // アスペクト比

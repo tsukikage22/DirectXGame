@@ -59,3 +59,25 @@ float Camera::ComputeExposure() const {
     float exposure = 1.0f / (1.2f * std::pow(2.0f, ev100));
     return exposure;
 }
+
+// シャッタースピードを固定し，EV100を指定して絞り値を計算する
+float Camera::ComputeAperture(float ev100) const {
+    // aperture = sqrt(shutterSpeed * 2^EV100 * iso / 100)
+    return std::sqrt(m_shutterSpeed * std::pow(2.0f, ev100) * m_iso / 100.0f);
+}
+
+// 絞り値を固定し，EV100を指定してシャッタースピードを計算する
+float Camera::ComputeShutterSpeed(float ev100) const {
+    // shutterSpeed = (aperture^2) / (2^EV100 * iso / 100)
+    return (m_aperture * m_aperture) / (std::pow(2.0f, ev100) * m_iso / 100.0f);
+}
+
+// EV100を指定して露出パラメータを更新する
+void Camera::ApplyEV100(float ev100, bool fixShutterSpeed) {
+    if (fixShutterSpeed) {
+        m_aperture = ComputeAperture(ev100);
+
+    } else {
+        m_shutterSpeed = ComputeShutterSpeed(ev100);
+    }
+}

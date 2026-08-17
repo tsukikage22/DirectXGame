@@ -51,10 +51,23 @@ private:
     };
 
     //=========================================
+    // private methods
+    //=========================================
+    /// @brief FPS表示UIの描画
+    void DrawFPSPanel();
+
+    /// @brief 露出調整UIの描画
+    /// @param camera Cameraの参照
+    void DrawExposurePanel(Camera& camera);
+
+    //=========================================
     // private variables
     //=========================================
     // ImGui用のディスクリプタアロケータ
     ImGuiSrvAllocator m_ImGuiSrvAllocator;
+
+    // 露出調整パネルのパラメータ
+    bool m_fixShutterSpeed = true;  // シャッタースピード固定か絞り値固定か
 
     // コピー禁止
     DebugUI(const DebugUI&)            = delete;
