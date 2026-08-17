@@ -98,6 +98,10 @@ public:
     /// @brief ライトの色を設定する．色度のみを扱うため内部で正規化を行う．
     void SetColor(const DirectX::XMFLOAT3& color);
 
+    /// @brief 色温度からライトの色を設定する
+    /// @param temperature 色温度[K]，4000K～15000Kの範囲で設定することを想定
+    void SetColorFromTemperature(float temperature);
+
     /// @brief ライトの有効/無効を切り替える
     void ToggleLight() { m_enabled = !m_enabled; }
 

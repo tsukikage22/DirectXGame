@@ -122,6 +122,33 @@ void Light::SetColor(const DirectX::XMFLOAT3& color) {
         m_color.z / maxComponent };
 }
 
+void Light::SetColorFromTemperature(float temperature) {
+    // 色温度からxy色度への変換
+    float x, y;
+    if (temperature <= 7000.0f) {
+        x = -4.6070e9f / (temperature * temperature * temperature) +
+            2.9678e6f / (temperature * temperature) + 0.09911e3f / temperature +
+            0.244063f;
+    } else {
+        x = -2.0064e9f / (temperature * temperature * temperature) +
+            1.9018e6f / (temperature * temperature) + 0.24748e3f / temperature +
+            0.237040f;
+    }
+    y = -3.000f * x * x + 2.870f * x - 0.275f;
+
+    // xy色度からXYZ色度への変換
+    float Y = 1.0f;  // 明度は1.0に固定
+    float X = (Y / y) * x;
+    float Z = (Y / y) * (1.0f - x - y);
+
+    // XYZ色度からsRGBへの変換
+    float r = 3.2404542f * X - 1.5371385f * Y - 0.4985314f * Z;
+    float g = -0.9692660f * X + 1.8760108f * Y + 0.0415560f * Z;
+    float b = 0.0556434f * X - 0.2040259f * Y + 1.0572252f * Z;
+
+    m_color = { r, g, b };
+}
+
 //================================
 // Spot light parameter
 //================================
