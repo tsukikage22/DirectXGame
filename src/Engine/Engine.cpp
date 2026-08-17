@@ -95,7 +95,7 @@ void Engine::BeginFrame() {
     m_pCmdList->RSSetViewports(1, &m_Viewport);
     m_pCmdList->RSSetScissorRects(1, &m_ScissorRect);
 
-    m_DebugUI.BeginFrame(m_InputSystem, m_Camera);
+    m_DebugUI.BeginFrame(m_InputSystem, m_Camera, m_Scene);
 }
 
 // ゲームロジック・シーン定数・transform更新

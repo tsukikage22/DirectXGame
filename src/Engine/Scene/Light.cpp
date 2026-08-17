@@ -123,6 +123,10 @@ void Light::SetColor(const DirectX::XMFLOAT3& color) {
 }
 
 void Light::SetColorFromTemperature(float temperature) {
+    // 色温度の範囲を制限
+    assert((temperature >= 4000.0f && temperature <= 15000.0f) &&
+           "Color temperature should be in the range of 4000K to 15000K.");
+
     // 色温度からxy色度への変換
     float x, y;
     if (temperature <= 7000.0f) {
@@ -146,7 +150,7 @@ void Light::SetColorFromTemperature(float temperature) {
     float g = -0.9692660f * X + 1.8760108f * Y + 0.0415560f * Z;
     float b = 0.0556434f * X - 0.2040259f * Y + 1.0572252f * Z;
 
-    m_color = { r, g, b };
+    SetColor({ r, g, b });
 }
 
 //================================

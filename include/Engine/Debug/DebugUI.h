@@ -13,6 +13,7 @@
 class InputSystem;
 class Camera;
 class ColorTarget;
+class Scene;
 
 class DebugUI {
 public:
@@ -33,7 +34,7 @@ public:
     /// @brief デバッグUIのフレーム開始時の処理
     /// @param input InputSystemの参照
     /// @param camera Cameraの参照
-    void BeginFrame(InputSystem& input, Camera& camera);
+    void BeginFrame(InputSystem& input, Camera& camera, Scene& scene);
 
     /// @brief デバッグUIのレンダリング
     /// @param uiTarget UI用レンダーターゲット
@@ -59,6 +60,10 @@ private:
     /// @brief 露出調整UIの描画
     /// @param camera Cameraの参照
     void DrawExposurePanel(Camera& camera);
+
+    /// @brief ライト調整UIの描画
+    /// @param scene Sceneの参照
+    void DrawLightPanel(Scene& scene);
 
     //=========================================
     // private variables
