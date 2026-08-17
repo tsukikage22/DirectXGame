@@ -227,7 +227,7 @@ void DebugUI::DrawLightPanel(Scene& scene) {
                 float color[3] = { light.GetColor().x, light.GetColor().y,
                     light.GetColor().z };
                 float h, s, v;
-                // HSVに変換．Valueは変更対象ではなく常に1
+                // HSVに変換．
                 ImGui::ColorConvertRGBtoHSV(
                     color[0], color[1], color[2], h, s, v);
 

@@ -107,19 +107,26 @@ void Light::SetRange(float range) { m_range = std::max(range, 1e-3f); }
 
 void Light::SetColor(const DirectX::XMFLOAT3& color) {
     m_color = color;
-    // 負の値を許容しない
+    // 負の値を許容しない（色域外の色は簡易的にクリップする）
     m_color.x = std::max(m_color.x, 0.0f);
     m_color.y = std::max(m_color.y, 0.0f);
     m_color.z = std::max(m_color.z, 0.0f);
-    // 最大成分で正規化する
-    float maxComponent = std::max({ m_color.x, m_color.y, m_color.z });
-    if (maxComponent <= 1e-6f) {
+
+    // 相対輝度（Rec.709）で正規化する
+    // intensityは視感度で重み付けされた量なので，
+    // 色度を変えても明るさが保たれるように正規化する必要がある
+    constexpr DirectX::XMFLOAT3 kRec709Luminance = { 0.2126f, 0.7152f,
+        0.0722f };
+    float luminance = m_color.x * kRec709Luminance.x +
+                      m_color.y * kRec709Luminance.y +
+                      m_color.z * kRec709Luminance.z;
+    if (luminance < 1e-6f) {
         assert(false && "Light color must not be black");
         m_color = { 1.0f, 1.0f, 1.0f };
         return;
     }
-    m_color = { m_color.x / maxComponent, m_color.y / maxComponent,
-        m_color.z / maxComponent };
+    m_color = { m_color.x / luminance, m_color.y / luminance,
+        m_color.z / luminance };
 }
 
 void Light::SetColorFromTemperature(float temperature) {
