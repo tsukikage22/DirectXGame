@@ -24,6 +24,7 @@
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/FrameResource.h"
 #include "Engine/Core/GenHandle.h"
+#include "Engine/Debug/DebugUI.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Graphics/DepthTarget.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
@@ -127,6 +128,8 @@ private:
     static constexpr DXGI_FORMAT kBackBufferFormat =
         DXGI_FORMAT_R16G16B16A16_FLOAT;
     static constexpr DXGI_FORMAT kDepthBufferFormat = DXGI_FORMAT_D32_FLOAT;
+    static constexpr DXGI_FORMAT kUIRenderTargetFormat =
+        DXGI_FORMAT_R8G8B8A8_UNORM;
 
     //==============================================================
     // Inner Class
@@ -196,11 +199,11 @@ private:
 
     WindowEventAdapter m_WindowEventAdapter{ this };
 
-    ImGuiSrvAllocator m_ImGuiSrvAllocator;  // ImGui用ディスクリプタアロケータ
-    ColorTarget m_UIRenderTarget;           // UI用レンダーターゲット
+    ColorTarget m_UIRenderTarget;  // UI用レンダーターゲット
     engine::ComPtr<ID3D12RootSignature>
         m_pUIRootSignature;                        // UI用ルートシグネチャ
     engine::ComPtr<ID3D12PipelineState> m_pUIPSO;  // UI用パイプラインステート
+    DebugUI m_DebugUI;                             // デバッグUI
 
     /////////////////////////////////////////////////////////////////////////
     // private methods

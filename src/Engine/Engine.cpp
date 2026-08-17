@@ -12,10 +12,8 @@
 #include <cstdint>
 
 #include "Engine/Core/DxDebug.h"
+#include "Engine/Debug/DebugUI.h"
 #include "Engine/Resource/AssetLoadScope.h"
-#include "backends/imgui_impl_dx12.h"
-#include "backends/imgui_impl_win32.h"
-#include "imgui.h"
 
 ////////////////////////////////////////////
 // Engine class
@@ -97,16 +95,7 @@ void Engine::BeginFrame() {
     m_pCmdList->RSSetViewports(1, &m_Viewport);
     m_pCmdList->RSSetScissorRects(1, &m_ScissorRect);
 
-    // 6. ImGui描画開始
-    ImGui_ImplDX12_NewFrame();
-    ImGui_ImplWin32_NewFrame();
-    ImGui::NewFrame();
-    ImGui::ShowDemoWindow();  // デモウィンドウの表示
-
-    // 7. Input Systemの更新
-    ImGuiIO& io = ImGui::GetIO();
-    m_InputSystem.SetUICaptureState(
-        io.WantCaptureMouse, io.WantCaptureKeyboard);
+    m_DebugUI.BeginFrame(m_InputSystem, m_Camera);
 }
 
 // ゲームロジック・シーン定数・transform更新
@@ -231,39 +220,8 @@ void Engine::Render() {
         });
     }
 
-    // ImGui描画
-    {
-        // UI用レンダーターゲットのリソースバリアの設定
-        D3D12_RESOURCE_BARRIER barrier = {};
-        barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-        barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-        barrier.Transition.pResource   = m_UIRenderTarget.GetResource();
-        barrier.Transition.Subresource =
-            D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-        barrier.Transition.StateBefore =
-            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-        barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-        m_pCmdList->ResourceBarrier(1, &barrier);
-
-        // UI用レンダーターゲットの設定
-        auto rtvHandle = m_UIRenderTarget.GetRTVCPUHandle();
-        BeginPass(m_pCmdList.Get(), kImGuiLayout, &rtvHandle, nullptr);
-
-        // レンダーターゲットのクリア
-        const float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-        m_pCmdList->ClearRenderTargetView(
-            m_UIRenderTarget.GetRTVCPUHandle(), clearColor, 0, nullptr);
-
-        // ImGuiの描画
-        ImGui::Render();
-        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), m_pCmdList.Get());
-
-        // UI用レンダーターゲットをSRVに戻す
-        barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-        barrier.Transition.StateAfter =
-            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-        m_pCmdList->ResourceBarrier(1, &barrier);
-    }
+    // デバッグUIの描画
+    m_DebugUI.Render(m_UIRenderTarget, m_pCmdList.Get());
 
     // シーン描画とUI描画の合成
     {
@@ -483,8 +441,7 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
     // UI用レンダーターゲットの作成
     {
         if (!m_UIRenderTarget.Init(m_pDevice.Get(), m_pPoolRTV,
-                m_pPoolCBV_SRV_UAV, width, height,
-                DXGI_FORMAT_R8G8B8A8_UNORM)) {
+                m_pPoolCBV_SRV_UAV, width, height, kUIRenderTargetFormat)) {
             return false;
         }
     }
@@ -547,7 +504,8 @@ bool Engine::InitApp() {
         // ModelLoaderの初期化
         if (!m_modelLoader.Init(
                 m_pDevice.Get(), m_pPoolCBV_SRV_UAV, &m_TextureManager)) {
-            assert(false && "Failed to initialize ModelLoader.");
+            MessageBoxW(
+                nullptr, L"Failed to initialize ModelLoader.", L"Error", MB_OK);
             return false;
         }
 
@@ -709,54 +667,10 @@ bool Engine::InitApp() {
     }
 
     // ImGuiの初期化
-    {
-        // ImGuiのコンテキストを作成
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO();
-        io.ConfigFlags |=
-            ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-
-        // ImGuiのバックエンドを初期化
-        ImGui_ImplDX12_InitInfo info = {};
-        info.Device                  = m_pDevice.Get();
-        info.CommandQueue            = m_CommandQueue.GetD3DQueue();
-        info.NumFramesInFlight       = config::kFrameCount;
-        info.RTVFormat               = DXGI_FORMAT_R8G8B8A8_UNORM;
-
-        // SRVディスクリプタプールの割り当てと解放
-        info.SrvDescriptorHeap    = m_pPoolCBV_SRV_UAV->GetHeap();
-        m_ImGuiSrvAllocator.pPool = m_pPoolCBV_SRV_UAV;
-        info.UserData =
-            &m_ImGuiSrvAllocator;  // UserDataにpoolとallocationsを渡す
-
-        info.SrvDescriptorAllocFn =  // ディスクリプタの割り当て関数
-            [](ImGui_ImplDX12_InitInfo* im_info,
-                D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu,
-                D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu) {
-                ImGuiSrvAllocator* pAllocator =
-                    static_cast<ImGuiSrvAllocator*>(im_info->UserData);
-
-                DescriptorAllocation alloc = pAllocator->pPool->Allocate();
-                *out_cpu                   = alloc.GetCPUHandle();
-                *out_gpu                   = alloc.GetGPUHandle();
-
-                // ハンドルをキーにallocationを保持
-                pAllocator->allocations.emplace(out_cpu->ptr, std::move(alloc));
-            };
-
-        info.SrvDescriptorFreeFn =  // ディスクリプタの解放関数
-            [](ImGui_ImplDX12_InitInfo* im_info,
-                D3D12_CPU_DESCRIPTOR_HANDLE cpu,
-                D3D12_GPU_DESCRIPTOR_HANDLE gpu) {
-                ImGuiSrvAllocator* pAllocator =
-                    static_cast<ImGuiSrvAllocator*>(im_info->UserData);
-                // CPUハンドルをキーにしてallocationを解放
-                pAllocator->allocations.erase(cpu.ptr);
-            };
-
-        ImGui_ImplDX12_Init(&info);
-        ImGui_ImplWin32_Init(m_hWnd);
+    if (!m_DebugUI.Init(m_pDevice.Get(), m_CommandQueue.GetD3DQueue(),
+            kUIRenderTargetFormat, m_pPoolCBV_SRV_UAV, m_hWnd)) {
+        MessageBoxW(nullptr, L"Failed to initialize ImGui.", L"Error", MB_OK);
+        return false;
     }
 
     // UI合成用PSO，ルートシグネチャの作成
@@ -827,13 +741,11 @@ void Engine::TermApp() {
     // シーンの破棄
     m_Scene.Term();
 
-    // ImGuiの終了処理
-    ImGui_ImplDX12_Shutdown();
-    ImGui_ImplWin32_Shutdown();
-    ImGui::DestroyContext();
-
     // テクスチャプールの解放
     m_TextureManager.Term();
+
+    // デバッグUIの終了処理
+    m_DebugUI.Term();
 
     // PSO，RootSignatureの破棄
     m_pPSO.Reset();

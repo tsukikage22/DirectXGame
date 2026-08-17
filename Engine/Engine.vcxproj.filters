@@ -58,6 +58,12 @@
     <Filter Include="External/ImGui">
       <UniqueIdentifier>{fbf5210f-e671-4468-b83e-2c7729d31bb6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\Debug">
+      <UniqueIdentifier>{34c6dd9d-73ba-4c61-85be-0766ca88987a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Debug">
+      <UniqueIdentifier>{7587abc2-4ca1-402f-b20f-9018c9de91ba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Engine\Core\DescriptorPool.h">
@@ -225,6 +231,9 @@
     <ClInclude Include="..\external\imgui\backends\imgui_impl_win32.h">
       <Filter>External/ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Engine\Debug\DebugUI.h">
+      <Filter>ヘッダー ファイル\Debug</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\Engine\Engine.cpp">
@@ -349,6 +358,9 @@
     </ClCompile>
     <ClCompile Include="..\external\imgui\backends\imgui_impl_win32.cpp">
       <Filter>External/ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Engine\Debug\DebugUI.cpp">
+      <Filter>ソース ファイル\Debug</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
