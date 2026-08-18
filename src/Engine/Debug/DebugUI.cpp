@@ -9,6 +9,7 @@
 #include "Engine/Scene/Camera.h"
 #include "Engine/Scene/Light.h"
 #include "Engine/Scene/Scene.h"
+#include "Engine/Shader/ShaderConstants.h"
 #include "backends/imgui_impl_dx12.h"
 #include "backends/imgui_impl_win32.h"
 #include "imgui.h"
@@ -94,6 +95,9 @@ void DebugUI::BeginFrame(InputSystem& input, Camera& camera, Scene& scene) {
     // ライト調整UI
     DrawLightPanel(scene);
 
+    // デバッグビューUI
+    DrawDebugViewPanel();
+
     // 描画データの確定
     ImGui::Render();
 }
@@ -132,7 +136,7 @@ void DebugUI::Render(
 void DebugUI::DrawFPSPanel() {
     ImGuiIO& io = ImGui::GetIO();
     ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Debug")) {
+    if (ImGui::Begin("Stats")) {
         ImGui::Text(
             "%.1f FPS (%.3f ms/frame)", io.Framerate, 1000.0f / io.Framerate);
     }
@@ -300,8 +304,9 @@ void DebugUI::DrawLightPanel(Scene& scene) {
                     }
                 }
 
-                // ライト位置の調整
+                // ライト位置と範囲の調整（平行光源以外）
                 if (type != LightType::Directional) {
+                    // 位置
                     float pos[3];
                     pos[0] = light.GetTransform().GetPosition().x;
                     pos[1] = light.GetTransform().GetPosition().y;
@@ -310,10 +315,8 @@ void DebugUI::DrawLightPanel(Scene& scene) {
                         light.GetTransform().SetPosition(
                             { pos[0], pos[1], pos[2] });
                     }
-                }
 
-                // ライトの範囲の調整（平行光源以外）
-                if (type != LightType::Directional) {
+                    // 範囲
                     float range = light.GetRange();
                     if (ImGui::SliderFloat("Range", &range, 0.1f, 100.0f,
                             "%.2f", ImGuiSliderFlags_Logarithmic)) {
@@ -337,6 +340,16 @@ void DebugUI::DrawLightPanel(Scene& scene) {
             }
             ImGui::PopID();  // ライトごとのIDをポップ
         });
+    }
+    ImGui::End();
+}
+
+void DebugUI::DrawDebugViewPanel() {
+    if (ImGui::Begin("DebugView")) {
+        // デバッグビュー選択用ラジオボタンの表示
+        for (int i = 0; i < IM_ARRAYSIZE(shader::kDebugViewNames); ++i) {
+            ImGui::RadioButton(shader::kDebugViewNames[i], &m_debugView, i);
+        }
     }
     ImGui::End();
 }

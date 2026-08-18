@@ -52,6 +52,7 @@ struct SceneConstants
     float time;           // 経過時間（秒）
     float exposure;       // 露出
     uint lightCount;      // ライトの数
+    uint debugView;       // 表示モード
 };
 
 //==============================================================

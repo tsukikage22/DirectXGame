@@ -102,8 +102,6 @@ void Engine::BeginFrame() {
 // GPUバッファへの書き込み
 void Engine::Update() {
     // 定数バッファの中身(行列やマテリアル情報)の更新
-    // シーン定数の更新
-    shader::SceneConstants sc = {};
 
     // シーン内の全ゲームオブジェクトのtransformを更新
     m_Scene.ForEachObject(
@@ -118,10 +116,12 @@ void Engine::Update() {
         }
         lights[count++] = light.ToShaderConstants();
     });
-
     uint32_t uploadedCount =  // バッファにコピーされたライトの数
         m_FrameResources[m_FrameIndex].GetLightBuffer().Update(
             lights.data(), count);
+
+    // シーン定数の更新
+    shader::SceneConstants sc{};
 
     // ビュー行列・射影行列を転置して格納
     DirectX::XMFLOAT4X4 view       = m_Camera.GetViewMatrix();
@@ -132,23 +132,24 @@ void Engine::Update() {
     DirectX::XMStoreFloat4x4(
         &sc.projection, DirectX::XMMatrixTranspose(projMat));
 
-    // カメラ位置・時間・ライト数・露出の設定
+    // カメラ位置・時間・ライト数・露出・デバッグビューの設定
     sc.cameraPosition = m_Camera.GetTransform().GetPosition();
     sc.time           = static_cast<float>(GetTickCount64()) / 1000.0f;
-    sc.lightCount     = count;
+    sc.lightCount     = uploadedCount;  // 実際にアップロードされたライトの数
     sc.exposure       = m_Camera.ComputeExposure();
+    sc.debugView      = static_cast<uint32_t>(m_DebugUI.GetDebugView());
 
     m_FrameResources[m_FrameIndex].GetSceneConstants().Update(sc);
 }
 
 // 描画コマンドの記録
 void Engine::Render() {
-    // パイプライン設定
-    m_pCmdList->SetGraphicsRootSignature(m_pRootSignature.Get());
-    m_pCmdList->SetPipelineState(m_pPSO.Get());
-
-    // 描画処理
+    // シーン描画処理
     {
+        // パイプライン設定
+        m_pCmdList->SetGraphicsRootSignature(m_pRootSignature.Get());
+        m_pCmdList->SetPipelineState(m_pPSO.Get());
+
         ID3D12DescriptorHeap* ppHeaps = { m_pPoolCBV_SRV_UAV->GetHeap() };
         m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
 

@@ -33,10 +33,12 @@ private:
     engine::ModelHandle m_appleModel;
     engine::ModelHandle m_katanaModel;
     engine::ModelHandle m_planeModel;
+    engine::ModelHandle m_normalTestModel;
 
     engine::ObjectHandle
         m_earthObject;  // シーン内のゲームオブジェクトのハンドル
     engine::ObjectHandle m_appleObject;
     engine::ObjectHandle m_katanaObject;
     engine::ObjectHandle m_planeObject;
+    engine::ObjectHandle m_normalTestObject;
 };

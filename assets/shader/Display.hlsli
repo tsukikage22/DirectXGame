@@ -41,4 +41,15 @@ float3 ToScRGB(float3 color) {
     return color * g_display.paperWhiteNits / SC_RGB_WHITE_NITS;
 }
 
+//---------------------------------------------------------------
+// sRGB -> Linear変換
+//---------------------------------------------------------------
+float3 SRGBToLinear(float3 srgb) {
+    // 0.04045以下の値は12.92で割る
+    float3 lo = srgb / 12.92f;
+    // 0.04045より大きい値は変換式に従って計算する
+    float3 hi = pow((srgb + 0.055f) / 1.055f, 2.4f);
+    return lerp(lo, hi, step(0.04045f, srgb));
+}
+
 #endif // DISPLAY_HLSLI

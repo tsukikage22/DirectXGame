@@ -41,6 +41,10 @@ public:
     /// @param pCmdList コマンドリスト
     void Render(ColorTarget& uiTarget, ID3D12GraphicsCommandList* pCmdList);
 
+    /// @brief デバッグビューの種類の取得
+    /// @return
+    int GetDebugView() const { return m_debugView; }
+
 private:
     //=========================================
     // Inner Class
@@ -65,6 +69,8 @@ private:
     /// @param scene Sceneの参照
     void DrawLightPanel(Scene& scene);
 
+    void DrawDebugViewPanel();
+
     //=========================================
     // private variables
     //=========================================
@@ -73,6 +79,9 @@ private:
 
     // 露出調整パネルのパラメータ
     bool m_fixShutterSpeed = true;  // シャッタースピード固定か絞り値固定か
+
+    // デバッグビューの種類
+    int m_debugView = 0;
 
     // コピー禁止
     DebugUI(const DebugUI&)            = delete;

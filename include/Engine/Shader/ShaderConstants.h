@@ -8,6 +8,26 @@
 
 namespace shader {
 
+/// @brief デバッグビューの種類
+enum class DebugView : uint32_t {
+    FinalColor = 0,  // 最終結果
+    BaseColor  = 1,  // baseColor
+    Normal     = 2,  // 法線
+    Roughness  = 3,  // roughness
+    Metallic   = 4,  // metallic
+    AO         = 5,  // Ambient Occlusion
+    size       = 6
+};
+
+// デバッグビューの名前
+constexpr const char* kDebugViewNames[] = { "Final Color", "Base Color",
+    "Normal", "Roughness", "Metallic", "AO" };
+
+// DebugViewとNamesの整合性チェック
+static_assert(
+    std::size(kDebugViewNames) == static_cast<size_t>(DebugView::size),
+    "Mismatch between debug view names and enum size");
+
 //================================
 // フレーム毎に更新する定数
 //================================
@@ -20,7 +40,8 @@ struct SceneConstants {
     float time;                        // ゲーム時間
     float exposure;                    // 露出調整値
     uint32_t lightCount;               // ライトの数
-    float _padding[2];                 // 16バイトアラインメント用
+    uint32_t debugView;                // 表示モード DebugViewの値を格納
+    float _padding;                    // 16バイトアラインメント用
 };
 static_assert(sizeof(SceneConstants) % 16 == 0, "Must be 16-byte aligned");
 
