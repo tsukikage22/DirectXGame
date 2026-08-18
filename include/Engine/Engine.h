@@ -58,6 +58,9 @@
 #pragma comment(lib, "DirectXTK12.lib")
 #pragma comment(lib, "DirectXTex.lib")
 
+namespace scene_rs {
+// ルートシグネチャ内でのルートパラメータ番号
+// Addxxxの呼び出し順と一致させる
 enum RootParam {
     CBV_Scene      = 0,  // b0
     CBV_Transform  = 1,  // b1
@@ -67,6 +70,15 @@ enum RootParam {
     SRV_IESProfile = 5,  // t0, space1
     SRV_Lights     = 6,  // t0, space2
 };
+
+}  // namespace scene_rs
+
+namespace ui_rs {
+enum RootParam {
+    CBV_Display = 0,  // b3
+    SRV_UI      = 1,  // t0
+};
+}  // namespace ui_rs
 
 /// @brief ディスプレイ情報
 struct DisplayInfo {

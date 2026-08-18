@@ -154,19 +154,23 @@ void Engine::Render() {
         m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
 
         // [b0] SceneConstants (共通)
-        m_pCmdList->SetGraphicsRootConstantBufferView(RootParam::CBV_Scene,
+        m_pCmdList->SetGraphicsRootConstantBufferView(
+            scene_rs::RootParam::CBV_Scene,
             m_FrameResources[m_FrameIndex].GetSceneConstants().GetGPUAddress());
 
         // [b3] DisplayConstants (共通)
         m_pCmdList->SetGraphicsRootConstantBufferView(
-            RootParam::CBV_Display, m_DisplayConstantsGPU.GetGPUAddress());
+            scene_rs::RootParam::CBV_Display,
+            m_DisplayConstantsGPU.GetGPUAddress());
 
         // [t0, space1] IESプロファイルテクスチャ (共通)
         m_pCmdList->SetGraphicsRootDescriptorTable(
-            RootParam::SRV_IESProfile, m_IESProfile.GetSrvGpuHandle());
+            scene_rs::RootParam::SRV_IESProfile,
+            m_IESProfile.GetSrvGpuHandle());
 
         // [t0, space2] Light StructuredBuffer (共通)
-        m_pCmdList->SetGraphicsRootDescriptorTable(RootParam::SRV_Lights,
+        m_pCmdList->SetGraphicsRootDescriptorTable(
+            scene_rs::RootParam::SRV_Lights,
             m_FrameResources[m_FrameIndex].GetLightBuffer().GetGPUHandle());
 
         // PrimitiveTopologyの指定
@@ -176,7 +180,7 @@ void Engine::Render() {
         m_Scene.ForEachObject([&](GameObject& obj) {
             // [b1] TransformConstants (モデル単位)
             m_pCmdList->SetGraphicsRootConstantBufferView(
-                RootParam::CBV_Transform,
+                scene_rs::RootParam::CBV_Transform,
                 obj.GetTransformGPU(m_FrameIndex).GetGPUAddress());
 
             // 各メッシュを描画
@@ -199,12 +203,12 @@ void Engine::Render() {
                 if (materialID < materials.size()) {
                     // [b2] MaterialConstants (マテリアル単位)
                     m_pCmdList->SetGraphicsRootConstantBufferView(
-                        RootParam::CBV_Material,
+                        scene_rs::RootParam::CBV_Material,
                         materials[materialID]->GetConstantBufferGPUAddress());
 
                     // [t0-t4] PBR Textures
                     m_pCmdList->SetGraphicsRootDescriptorTable(
-                        RootParam::SRV_Texture,
+                        scene_rs::RootParam::SRV_Texture,
                         materials[materialID]->GetSrvTableBaseGPUHandle());
                 }
 
@@ -236,13 +240,14 @@ void Engine::Render() {
 
         // CBVとしてDisplayConstantsを設定
         m_pCmdList->SetGraphicsRootConstantBufferView(
-            0, m_DisplayConstantsGPU.GetGPUAddress());
+            ui_rs::RootParam::CBV_Display,
+            m_DisplayConstantsGPU.GetGPUAddress());
 
         // ディスクリプタヒープの設定
         ID3D12DescriptorHeap* pHeaps[] = { m_pPoolCBV_SRV_UAV->GetHeap() };
         m_pCmdList->SetDescriptorHeaps(1, pHeaps);
         m_pCmdList->SetGraphicsRootDescriptorTable(
-            1, m_UIRenderTarget.GetSRVGPUHandle());
+            ui_rs::RootParam::SRV_UI, m_UIRenderTarget.GetSRVGPUHandle());
 
         // ビューポートの設定
         m_pCmdList->RSSetViewports(1, &m_Viewport);
@@ -551,7 +556,7 @@ bool Engine::InitApp() {
         RootSignatureBuilder builder;
 
         // SRVのレンジを作成
-        // [t0-t4] PBR Textures (Descriptor Table SRV)
+        // [t0-t4, space0] PBR Textures (Descriptor Table SRV)
         std::vector<D3D12_DESCRIPTOR_RANGE1> range;
         range.push_back(
             RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
@@ -583,12 +588,12 @@ bool Engine::InitApp() {
         builder
             .SetFlags(
                 D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)
-            .AddCBV(RootParam::CBV_Scene, 0, D3D12_SHADER_VISIBILITY_ALL,
+            .AddCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL,
                 D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
-            .AddCBV(RootParam::CBV_Transform, 0, D3D12_SHADER_VISIBILITY_VERTEX,
+            .AddCBV(1, 0, D3D12_SHADER_VISIBILITY_VERTEX,
                 D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
-            .AddCBV(RootParam::CBV_Material, 0, D3D12_SHADER_VISIBILITY_PIXEL)
-            .AddCBV(RootParam::CBV_Display, 0, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddCBV(2, 0, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(iesRange, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(lightRange, D3D12_SHADER_VISIBILITY_PIXEL)
@@ -696,14 +701,14 @@ bool Engine::InitApp() {
             D3DReadFileToBlob(psPath.c_str(), psBlob.GetAddressOf()));
 
         // ルートシグネチャの生成
+        // ルートシグネチャの構成
+        // [b3] Display Constants (Root CBV)
+        // [t0] UI Texture (Descriptor Table SRV)
         auto rsBuilder = RootSignatureBuilder{};
         std::vector<D3D12_DESCRIPTOR_RANGE1> range;
         range.push_back(
             rsBuilder.CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0,
                 D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE));
-        // ルートシグネチャの構成
-        // [b3] Display Constants (Root CBV)
-        // [t0] UI Texture (Descriptor Table SRV)
         rsBuilder
             .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL,
                 D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
