@@ -11,6 +11,7 @@
 #include "Engine/Core/RetireQueue.h"
 #include "Engine/Core/SlotMap.h"
 #include "Engine/Model/Model.h"
+#include "Engine/Scene/Camera.h"
 #include "Engine/Scene/GameObject.h"
 #include "Engine/Scene/Light.h"
 #include "Engine/Shader/TransformGPU.h"
@@ -74,6 +75,9 @@ public:
     /// @brief ハンドルに対応するライトの取得
     Light* GetLight(engine::LightHandle handle);
 
+    /// @brief シーンのカメラを取得する
+    Camera& GetCamera() { return m_camera; }
+
 private:
     //==============================================================
     // メンバ変数
@@ -89,6 +93,9 @@ private:
         m_modelMap;  // モデルのスロットマップ
     SlotMap<std::unique_ptr<Light>, engine::LightTag>
         m_lightMap;  // ライトのスロットマップ
+
+    // カメラ
+    Camera m_camera;  // シーンのカメラ
 
     // 遅延解放キュー
     RetireQueue<std::unique_ptr<GameObject>> m_retireQueue;
