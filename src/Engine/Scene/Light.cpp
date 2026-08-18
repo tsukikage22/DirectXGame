@@ -160,6 +160,21 @@ void Light::SetColorFromTemperature(float temperature) {
     SetColor({ r, g, b });
 }
 
+const char* Light::GetTypeName() const {
+    switch (m_type) {
+        case LightType::Directional:
+            return "Directional";
+        case LightType::Point:
+            return "Point";
+        case LightType::Spot:
+            return "Spot";
+        case LightType::Photometric:
+            return "Photometric";
+        default:
+            return "Unknown";
+    }
+}
+
 //================================
 // Spot light parameter
 //================================

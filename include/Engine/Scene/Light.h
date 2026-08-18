@@ -108,6 +108,8 @@ public:
     /// @brief ライトの有効/無効を切り替える
     void ToggleLight() { m_enabled = !m_enabled; }
 
+    const char* GetTypeName() const;
+
     LightType GetType() const { return m_type; }
     float GetIntensity() const { return m_intensity; }
     float GetRange() const { return m_range; }

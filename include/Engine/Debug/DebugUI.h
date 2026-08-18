@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include "Engine/Core/DescriptorAllocation.h"
+#include "Engine/Scene/Light.h"
 
 // 前方宣言
 class InputSystem;
@@ -49,6 +50,7 @@ private:
     //=========================================
     // Inner Class
     //=========================================
+
     /// @brief ImGui用のディスクリプタアロケータ
     struct ImGuiSrvAllocator {
         DescriptorPool* pPool;
@@ -58,6 +60,7 @@ private:
     //=========================================
     // private methods
     //=========================================
+
     /// @brief FPS表示UIの描画
     void DrawFPSPanel();
 
@@ -69,6 +72,7 @@ private:
     /// @param scene Sceneの参照
     void DrawLightPanel(Scene& scene);
 
+    /// @brief デバッグビューUIの描画
     void DrawDebugViewPanel();
 
     //=========================================

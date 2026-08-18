@@ -7,12 +7,139 @@
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
 #include "Engine/Input/InputSystem.h"
 #include "Engine/Scene/Camera.h"
-#include "Engine/Scene/Light.h"
 #include "Engine/Scene/Scene.h"
 #include "Engine/Shader/ShaderConstants.h"
 #include "backends/imgui_impl_dx12.h"
 #include "backends/imgui_impl_win32.h"
 #include "imgui.h"
+
+namespace /* anonymous */ {
+
+/// @brief ライトの色を編集するUIの描画
+/// @param light
+void DrawLightColorEditor(Light& light) {
+    // ライトの色の調整
+    float color[3] = { light.GetColor().x, light.GetColor().y,
+        light.GetColor().z };
+    float h, s, v;
+    // HSVに変換．
+    ImGui::ColorConvertRGBtoHSV(color[0], color[1], color[2], h, s, v);
+
+    bool changedColor = false;
+    changedColor |= ImGui::SliderFloat("Hue", &h, 0.0f, 1.0f);
+    changedColor |= ImGui::SliderFloat("Saturation", &s, 0.0f, 1.0f);
+    if (changedColor) {
+        float r, g, b;
+        ImGui::ColorConvertHSVtoRGB(h, s, 1.0f, r, g, b);
+        light.SetColor({ r, g, b });
+    }
+
+    // 色温度の調整
+    float temp       = 5500.0f;
+    bool changedTemp = false;
+    if (ImGui::SmallButton("Daylight (5500K)")) {
+        temp        = 5500.0f;
+        changedTemp = true;
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Blue Sky (10000K)")) {
+        temp        = 10000.0f;
+        changedTemp = true;
+    }
+    if (changedTemp) {
+        light.SetColorFromTemperature(temp);
+    }
+}
+
+/// @brief ライトの明るさを編集するUIの描画
+/// @param light
+void DrawLightIntensityEditor(Light& light) {
+    if (light.GetType() == LightType::Directional) {
+        // 平行光源の場合は照度[lx]を設定する
+        float illuminance = light.GetIntensity();
+        if (ImGui::SliderFloat("Illuminance", &illuminance, 100.0f, 150000.0f,
+                "%.3f", ImGuiSliderFlags_Logarithmic)) {
+            light.SetIlluminance(illuminance);
+        }
+    } else {
+        // 平行光源以外の場合は光度[cd]を設定する
+        float intensity = light.GetIntensity();
+        if (ImGui::SliderFloat("Intensity", &intensity, 1.0f, 1000000.0f,
+                "%.3f", ImGuiSliderFlags_Logarithmic)) {
+            light.SetIntensity(intensity);
+        }
+    }
+}
+
+/// @brief ライトの向きを編集するUIの描画
+/// @param light
+void DrawLightDirectionEditor(Light& light) {
+    // ライトの方向の調整，方位角と仰角で操作する
+    // 方位角と仰角の計算
+    if (light.GetType() != LightType::Point) {
+        float azimuth, elevation, horizontal;
+        Transform& transform = light.GetTransform();
+        float forward[3] = { transform.GetForward().x, transform.GetForward().y,
+            transform.GetForward().z };
+        azimuth          = std::atan2(forward[0], forward[2]);
+        horizontal =
+            std::sqrt(forward[0] * forward[0] + forward[2] * forward[2]);
+        elevation = std::atan2(forward[1], horizontal);
+
+        bool changedDirection = false;
+        changedDirection |=
+            ImGui::SliderAngle("Azimuth", &azimuth, -180.0f, 180.0f);
+        changedDirection |=
+            ImGui::SliderAngle("Elevation", &elevation, -89.0f, 89.0f);
+        if (changedDirection) {
+            // 方位角と仰角から方向ベクトルを計算
+            float x = std::sin(azimuth) * std::cos(elevation);
+            float y = std::sin(elevation);
+            float z = std::cos(azimuth) * std::cos(elevation);
+            light.GetTransform().LookTo({ x, y, z });
+        }
+    }
+}
+
+/// @brief ライトの位置と範囲を編集するUIの描画
+/// @param light
+void DrawLightPlacementEditor(Light& light) {
+    // 平行光源は省く
+    if (light.GetType() != LightType::Directional) {
+        // 位置
+        float pos[3];
+        pos[0] = light.GetTransform().GetPosition().x;
+        pos[1] = light.GetTransform().GetPosition().y;
+        pos[2] = light.GetTransform().GetPosition().z;
+        if (ImGui::DragFloat3("Position", pos, 0.1f)) {
+            light.GetTransform().SetPosition({ pos[0], pos[1], pos[2] });
+        }
+
+        // 範囲
+        float range = light.GetRange();
+        if (ImGui::SliderFloat("Range", &range, 0.1f, 100.0f, "%.2f",
+                ImGuiSliderFlags_Logarithmic)) {
+            light.SetRange(range);
+        }
+    }
+}
+
+/// @brief スポットライトのスポット角度を編集するUIの描画
+/// @param light
+void DrawLightSpotAngleEditor(Light& light) {
+    if (light.GetType() == LightType::Spot) {
+        float innerAngle = light.GetInnerAngle();
+        float outerAngle = light.GetOuterAngle();
+        if (ImGui::SliderFloat("Inner Angle", &innerAngle, 0.0f, 90.0f)) {
+            light.SetSpotAngles(innerAngle, outerAngle);
+        }
+        if (ImGui::SliderFloat("Outer Angle", &outerAngle, 0.0f, 90.0f)) {
+            light.SetSpotAngles(innerAngle, outerAngle);
+        }
+    }
+}
+
+}  // namespace
 
 // ImGuiの初期化
 bool DebugUI::Init(ID3D12Device* pDevice, ID3D12CommandQueue* pCommandQueue,
@@ -135,8 +262,7 @@ void DebugUI::Render(
 // FPS表示UIの描画
 void DebugUI::DrawFPSPanel() {
     ImGuiIO& io = ImGui::GetIO();
-    ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Stats")) {
+    if (ImGui::Begin("Stats", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Text(
             "%.1f FPS (%.3f ms/frame)", io.Framerate, 1000.0f / io.Framerate);
     }
@@ -146,8 +272,7 @@ void DebugUI::DrawFPSPanel() {
 // 露出調整UIの描画
 void DebugUI::DrawExposurePanel(Camera& camera) {
     // 露出調整パネル
-    ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Exposure")) {
+    if (ImGui::Begin("Exposure", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         float ev100 = camera.ComputeEV100();  // 現在のEV100を取得
 
         // EV100のスライダー
@@ -198,23 +323,15 @@ void DebugUI::DrawExposurePanel(Camera& camera) {
 }
 
 void DebugUI::DrawLightPanel(Scene& scene) {
-    ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiCond_FirstUseEver);
+    const ImGuiViewport* vp = ImGui::GetMainViewport();
+    ImGui::SetNextWindowSizeConstraints(
+        ImVec2(320.0f, 0.0f), ImVec2(FLT_MAX, vp->WorkSize.y * 0.8f));
     if (ImGui::Begin("Light")) {
         // すべてのライトに対してUIを描画する
         scene.ForEachLight([&](Light& light) {
             LightType type = light.GetType();  // ライトの種類を取得
-            const char* typeName;
-            if (type == LightType::Directional) {
-                typeName = "Directional Light";
-            } else if (type == LightType::Point) {
-                typeName = "Point Light";
-            } else if (type == LightType::Spot) {
-                typeName = "Spot Light";
-            } else if (type == LightType::Photometric) {
-                typeName = "Photometric Light";
-            } else {
-                typeName = "Unknown Light";
-            }
+            const char* typeName =
+                light.GetTypeName();  // ライトの種類の名前を取得
 
             ImGui::PushID(&light);  // ライトごとにIDをプッシュ
             if (ImGui::CollapsingHeader(
@@ -228,115 +345,19 @@ void DebugUI::DrawLightPanel(Scene& scene) {
                 }
 
                 // ライトの色の調整
-                float color[3] = { light.GetColor().x, light.GetColor().y,
-                    light.GetColor().z };
-                float h, s, v;
-                // HSVに変換．
-                ImGui::ColorConvertRGBtoHSV(
-                    color[0], color[1], color[2], h, s, v);
-
-                bool changedColor = false;
-                changedColor |= ImGui::SliderFloat("Hue", &h, 0.0f, 1.0f);
-                changedColor |=
-                    ImGui::SliderFloat("Saturation", &s, 0.0f, 1.0f);
-                if (changedColor) {
-                    float r, g, b;
-                    ImGui::ColorConvertHSVtoRGB(h, s, 1.0f, r, g, b);
-                    light.SetColor({ r, g, b });
-                }
-
-                // 色温度の調整
-                float temp       = 5500.0f;
-                bool changedTemp = false;
-                if (ImGui::SmallButton("Daylight (5500K)")) {
-                    temp        = 5500.0f;
-                    changedTemp = true;
-                }
-                ImGui::SameLine();
-                if (ImGui::SmallButton("Blue Sky (10000K)")) {
-                    temp        = 10000.0f;
-                    changedTemp = true;
-                }
-                if (changedTemp) {
-                    light.SetColorFromTemperature(temp);
-                }
+                DrawLightColorEditor(light);
 
                 // ライトの明るさの調整
-                if (type == LightType::Directional) {
-                    // 平行光源の場合は照度[lx]を設定する
-                    float illuminance = light.GetIntensity();
-                    if (ImGui::SliderFloat("Illuminance", &illuminance, 100.0f,
-                            150000.0f, "%.3f", ImGuiSliderFlags_Logarithmic)) {
-                        light.SetIlluminance(illuminance);
-                    }
-                } else {
-                    // 平行光源以外の場合は光度[cd]を設定する
-                    float intensity = light.GetIntensity();
-                    if (ImGui::SliderFloat("Intensity", &intensity, 1.0f,
-                            1000000.0f, "%.3f", ImGuiSliderFlags_Logarithmic)) {
-                        light.SetIntensity(intensity);
-                    }
-                }
+                DrawLightIntensityEditor(light);
 
-                // ライトの方向の調整，方位角と仰角で操作する
-                // 方位角と仰角の計算
-                if (type != LightType::Point) {
-                    float azimuth, elevation, horizontal;
-                    float forward[3] = { light.GetTransform().GetForward().x,
-                        light.GetTransform().GetForward().y,
-                        light.GetTransform().GetForward().z };
-                    azimuth          = std::atan2(forward[0], forward[2]);
-                    horizontal       = std::sqrt(
-                        forward[0] * forward[0] + forward[2] * forward[2]);
-                    elevation = std::atan2(forward[1], horizontal);
-
-                    bool changedDirection = false;
-                    changedDirection |= ImGui::SliderAngle(
-                        "Azimuth", &azimuth, -180.0f, 180.0f);
-                    changedDirection |= ImGui::SliderAngle(
-                        "Elevation", &elevation, -89.0f, 89.0f);
-                    if (changedDirection) {
-                        // 方位角と仰角から方向ベクトルを計算
-                        float x = std::sin(azimuth) * std::cos(elevation);
-                        float y = std::sin(elevation);
-                        float z = std::cos(azimuth) * std::cos(elevation);
-                        light.GetTransform().LookTo({ x, y, z });
-                    }
-                }
+                // ライトの方向の調整，方位角と仰角で操作する（点光源以外）
+                DrawLightDirectionEditor(light);
 
                 // ライト位置と範囲の調整（平行光源以外）
-                if (type != LightType::Directional) {
-                    // 位置
-                    float pos[3];
-                    pos[0] = light.GetTransform().GetPosition().x;
-                    pos[1] = light.GetTransform().GetPosition().y;
-                    pos[2] = light.GetTransform().GetPosition().z;
-                    if (ImGui::DragFloat3("Position", pos, 0.1f)) {
-                        light.GetTransform().SetPosition(
-                            { pos[0], pos[1], pos[2] });
-                    }
-
-                    // 範囲
-                    float range = light.GetRange();
-                    if (ImGui::SliderFloat("Range", &range, 0.1f, 100.0f,
-                            "%.2f", ImGuiSliderFlags_Logarithmic)) {
-                        light.SetRange(range);
-                    }
-                }
+                DrawLightPlacementEditor(light);
 
                 // inner Angle, outer Angleの調整（Spotのみ）
-                if (type == LightType::Spot) {
-                    float innerAngle = light.GetInnerAngle();
-                    float outerAngle = light.GetOuterAngle();
-                    if (ImGui::SliderFloat(
-                            "Inner Angle", &innerAngle, 0.0f, 90.0f)) {
-                        light.SetSpotAngles(innerAngle, outerAngle);
-                    }
-                    if (ImGui::SliderFloat(
-                            "Outer Angle", &outerAngle, 0.0f, 90.0f)) {
-                        light.SetSpotAngles(innerAngle, outerAngle);
-                    }
-                }
+                DrawLightSpotAngleEditor(light);
             }
             ImGui::PopID();  // ライトごとのIDをポップ
         });
@@ -345,7 +366,7 @@ void DebugUI::DrawLightPanel(Scene& scene) {
 }
 
 void DebugUI::DrawDebugViewPanel() {
-    if (ImGui::Begin("DebugView")) {
+    if (ImGui::Begin("DebugView", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         // デバッグビュー選択用ラジオボタンの表示
         for (int i = 0; i < IM_ARRAYSIZE(shader::kDebugViewNames); ++i) {
             ImGui::RadioButton(shader::kDebugViewNames[i], &m_debugView, i);
