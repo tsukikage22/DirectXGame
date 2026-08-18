@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <memory>
 #include <mutex>
 #include <vector>
 
@@ -33,16 +34,16 @@ public:
     ~DescriptorPool();
 
     /////////////////////////////////////////////////////////////////////////////
-    /// @brief ディスクリプタヒープの生成
-    /// @param[in] pDevice デバイス
-    /// @param[in] desc ディスクリプタヒープの設定
-    /// @param[out] outPool プールの格納先
-    /// @retval true 成功
-    /// @retval false 失敗
+    /// @brief ディスクリプタプールの生成
+    /// @param pDevice デバイス
+    /// @param type ディスクリプタヒープの種類
+    /// @param flags ディスクリプタヒープのフラグ
+    /// @param capacity プールのサイズ
+    /// @return ディスクリプタプールのインスタンス（失敗時はnullptr）
     /////////////////////////////////////////////////////////////////////////////
-    static bool Create(ID3D12Device* pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type,
-        D3D12_DESCRIPTOR_HEAP_FLAGS flags, uint32_t capacity,
-        DescriptorPool** outPool);
+    static std::unique_ptr<DescriptorPool> Create(ID3D12Device* pDevice,
+        D3D12_DESCRIPTOR_HEAP_TYPE type, D3D12_DESCRIPTOR_HEAP_FLAGS flags,
+        uint32_t capacity);
 
     /////////////////////////////////////////////////////////////////////////////
     /// @brief ディスクリプタプールへの割り当て

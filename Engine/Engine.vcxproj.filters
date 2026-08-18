@@ -234,6 +234,9 @@
     <ClInclude Include="..\include\Engine\Debug\DebugUI.h">
       <Filter>ヘッダー ファイル\Debug</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Engine\Core\GraphicsDevice.h">
+      <Filter>ヘッダー ファイル\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\Engine\Engine.cpp">
@@ -361,6 +364,9 @@
     </ClCompile>
     <ClCompile Include="..\src\Engine\Debug\DebugUI.cpp">
       <Filter>ソース ファイル\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Engine\Core\GraphicsDevice.cpp">
+      <Filter>ソース ファイル\Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
