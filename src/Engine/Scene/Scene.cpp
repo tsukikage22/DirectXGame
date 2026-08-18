@@ -3,12 +3,14 @@
 #include <algorithm>
 #include <cassert>
 
+#include "Engine/Core/GraphicsDevice.h"
+
 Scene::Scene()  = default;
 Scene::~Scene() = default;
 
-void Scene::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV) {
-    m_pDevice           = pDevice;
-    m_pPoolCBV          = pPoolCBV;
+void Scene::Init(GraphicsDevice& graphicsDevice) {
+    m_pDevice           = graphicsDevice.GetDevice();
+    m_pPoolCBV          = graphicsDevice.CbvSrvUavPool();
     m_currentFrameIndex = 0;
 }
 

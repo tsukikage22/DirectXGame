@@ -15,9 +15,9 @@ bool TextureManager::Init(ID3D12Device* pDevice) {
     m_pDevice = pDevice;
 
     // アセット用SRVプールの作成
-    m_pPoolAssetSRV =
-        DescriptorPool::Create(pDevice, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-            D3D12_DESCRIPTOR_HEAP_FLAG_NONE, config::kAssetSrvCapacity);
+    m_pPoolAssetSRV = DescriptorPool::Create(m_pDevice,
+        D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+        config::kAssetSrvCapacity);
     if (!m_pPoolAssetSRV) {
         return false;
     }

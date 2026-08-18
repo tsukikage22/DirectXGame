@@ -1,18 +1,21 @@
 #include "Engine/Resource/ModelLoader.h"
 
+#include "Engine/Core/DescriptorPool.h"
+#include "Engine/Core/GraphicsDevice.h"
+#include "Engine/Model/ModelAsset.h"
 #include "Engine/Resource/AssetPath.h"
 #include "Engine/Resource/GLBImporter.h"
-#include "Engine/Model/ModelAsset.h"
+#include "Engine/Resource/TextureManager.h"
 
-bool ModelLoader::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
-    TextureManager* pTextureManager) {
+bool ModelLoader::Init(
+    GraphicsDevice& graphicsDevice, TextureManager* pTextureManager) {
     // 引数チェック
-    if (!pDevice || !pPoolCBV || !pTextureManager) {
+    if (!pTextureManager) {
         return false;
     }
 
-    m_pDevice         = pDevice;
-    m_pPoolCBV        = pPoolCBV;
+    m_pDevice         = graphicsDevice.GetDevice();
+    m_pPoolCBV        = graphicsDevice.CbvSrvUavPool();
     m_pTextureManager = pTextureManager;
 
     return true;

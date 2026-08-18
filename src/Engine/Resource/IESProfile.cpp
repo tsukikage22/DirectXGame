@@ -7,6 +7,7 @@
 
 #include "Engine/Core/DescriptorPool.h"
 #include "Engine/Core/DxDebug.h"
+#include "Engine/Core/GraphicsDevice.h"
 
 namespace {
 
@@ -299,24 +300,16 @@ std::vector<float> BuildPixels(
 //------------------------------------------------
 // IESProfile class
 //------------------------------------------------
-IESProfile::IESProfile()
-    : m_pPoolSRV(nullptr), m_pDevice(nullptr), m_count(0) {}
 
 IESProfile::~IESProfile() { Term(); }
 
 /// @brief 初期化処理
-bool IESProfile::Init(ID3D12Device* pDevice, DescriptorPool* pPool) {
-    // 引数チェック
-    if (!pDevice || !pPool) {
-        OutputDebugStringW(L"Invalid arguments to IESProfile::Init.\n");
-        return false;
-    }
-
+bool IESProfile::Init(GraphicsDevice& graphicsDevice) {
     // 二重呼び出し時のリソース開放
     Term();
 
-    m_pPoolSRV = pPool;
-    m_pDevice  = pDevice;
+    m_pPoolSRV = graphicsDevice.CbvSrvUavPool();
+    m_pDevice  = graphicsDevice.GetDevice();
 
     // Texture2DArrayの作成
     // リソースの生成

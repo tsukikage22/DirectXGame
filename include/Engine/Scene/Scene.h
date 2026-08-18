@@ -16,12 +16,15 @@
 #include "Engine/Scene/Light.h"
 #include "Engine/Shader/TransformGPU.h"
 
+// 前方宣言
+class GraphicsDevice;
+
 class Scene {
 public:
     Scene();
     ~Scene();
 
-    void Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV);
+    void Init(GraphicsDevice& graphicsDevice);
 
     void Term();
 

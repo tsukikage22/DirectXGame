@@ -8,17 +8,18 @@
 #include <filesystem>
 #include <memory>
 
-#include "Engine/Core/DescriptorPool.h"
 #include "Engine/Model/Model.h"
-#include "Engine/Scene/Scene.h"
-#include "Engine/Resource/TextureManager.h"
 #include "directxtk12/ResourceUploadBatch.h"
+
+// 前方宣言
+class DescriptorPool;
+class TextureManager;
+class GraphicsDevice;
 
 class ModelLoader {
 public:
     /// @brief 初期化，必要なポインタの受け取り
-    bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
-        TextureManager* pTextureManager);
+    bool Init(GraphicsDevice& graphicsDevice, TextureManager* pTextureManager);
 
     /// @brief 終了処理，ポインタの破棄
     void Term();

@@ -1,5 +1,5 @@
 /// @file GraphicsDevice.h
-/// @brief D3D12デバイスの管理
+/// @brief D3D12デバイスと，デバイスから生成される単一のリソースを管理する
 
 #pragma once
 
