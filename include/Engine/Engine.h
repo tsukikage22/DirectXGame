@@ -11,53 +11,28 @@
 #define NOMINMAX
 #include <Windows.h>
 #include <d3d12.h>
-#include <d3dcompiler.h>
 #include <dxgi1_6.h>
-
-#include <algorithm>
-#include <memory>
-#include <vector>
 
 #include "Engine/Core/ComPtr.h"
 #include "Engine/Core/CommandQueue.h"
 #include "Engine/Core/DescriptorPool.h"
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/FrameResource.h"
-#include "Engine/Core/GenHandle.h"
 #include "Engine/Debug/DebugUI.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Graphics/DepthTarget.h"
-#include "Engine/Graphics/GraphicsPipelineBuilder.h"
-#include "Engine/Graphics/IndexBuffer.h"
-#include "Engine/Graphics/RootSignatureBuilder.h"
-#include "Engine/Graphics/VertexBuffer.h"
 #include "Engine/Input/IWindowEventListener.h"
 #include "Engine/Input/InputSystem.h"
-#include "Engine/Model/MaterialGPU.h"
-#include "Engine/Model/MeshGPU.h"
-#include "Engine/Model/Model.h"
-#include "Engine/Model/VertexTypes.h"
-#include "Engine/Resource/AssetPath.h"
-#include "Engine/Resource/GLBImporter.h"
 #include "Engine/Resource/IESProfile.h"
 #include "Engine/Resource/ModelLoader.h"
 #include "Engine/Resource/TextureManager.h"
 #include "Engine/Scene/Camera.h"
 #include "Engine/Scene/Scene.h"
 #include "Engine/Shader/DisplayConstantsGPU.h"
-#include "Engine/Shader/SceneConstantsGPU.h"
-#include "Engine/Shader/TransformGPU.h"
 
-///////////////////////////////////////////
-// Linker
-///////////////////////////////////////////
-#pragma comment(lib, "d3d12.lib")
-#pragma comment(lib, "dxgi.lib")
-#pragma comment(lib, "d3dcompiler.lib")
-#pragma comment(lib, "dxguid.lib")
-#pragma comment(lib, "DirectXTK12.lib")
-#pragma comment(lib, "DirectXTex.lib")
-
+namespace scene_rs {
+// ルートシグネチャ内でのルートパラメータ番号
+// Addxxxの呼び出し順と一致させる
 enum RootParam {
     CBV_Scene      = 0,  // b0
     CBV_Transform  = 1,  // b1
@@ -67,6 +42,15 @@ enum RootParam {
     SRV_IESProfile = 5,  // t0, space1
     SRV_Lights     = 6,  // t0, space2
 };
+
+}  // namespace scene_rs
+
+namespace ui_rs {
+enum RootParam {
+    CBV_Display = 0,  // b3
+    SRV_UI      = 1,  // t0
+};
+}  // namespace ui_rs
 
 /// @brief ディスプレイ情報
 struct DisplayInfo {
@@ -148,12 +132,6 @@ private:
         Engine* m_pEngine;
     };
 
-    /// @brief ImGui用のディスクリプタアロケータ
-    struct ImGuiSrvAllocator {
-        DescriptorPool* pPool;
-        std::unordered_map<SIZE_T, DescriptorAllocation> allocations;
-    };
-
     //==============================================================
     // private variables
     //==============================================================
@@ -180,11 +158,9 @@ private:
     FrameResource m_FrameResources[config::kFrameCount];  // フレームリソース
 
     ModelLoader m_modelLoader;
-    std::vector<ModelAsset> m_ModelAssets;  // モデルデータ
-    UINT m_textureCount = 0;                // テクスチャ数
-    TextureManager m_TextureManager;        // テクスチャマネージャ
-    Camera m_Camera;                        // カメラ
-    Scene m_Scene;                          // シーン
+    TextureManager m_TextureManager;  // テクスチャマネージャ
+    Camera m_Camera;                  // カメラ
+    Scene m_Scene;                    // シーン
 
     IESProfile m_IESProfile;  // IESプロファイル
 
