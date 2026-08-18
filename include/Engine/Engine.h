@@ -26,7 +26,6 @@
 #include "Engine/Resource/IESProfile.h"
 #include "Engine/Resource/ModelLoader.h"
 #include "Engine/Resource/TextureManager.h"
-#include "Engine/Scene/Camera.h"
 #include "Engine/Scene/Scene.h"
 #include "Engine/Shader/DisplayConstantsGPU.h"
 
@@ -101,8 +100,6 @@ public:
         return m_WindowEventAdapter;
     }
 
-    Camera& GetCamera() { return m_Camera; }
-
     Scene& GetScene() { return m_Scene; }
 
 private:
@@ -159,7 +156,6 @@ private:
 
     ModelLoader m_modelLoader;
     TextureManager m_TextureManager;  // テクスチャマネージャ
-    Camera m_Camera;                  // カメラ
     Scene m_Scene;                    // シーン
 
     IESProfile m_IESProfile;  // IESプロファイル

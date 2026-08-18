@@ -23,9 +23,9 @@ void Game::Init(Engine* pEngine) {
 
     // カメラコントローラの初期化
     m_pCameraController->Init(
-        &m_pEngine->GetCamera(), &m_pEngine->GetInputSystem());
+        &m_pEngine->GetScene().GetCamera(), &m_pEngine->GetInputSystem());
 
-    m_pEngine->GetCamera().SetExposure(2.8f, 1.0f / 30.0f, 800.0f);
+    m_pEngine->GetScene().GetCamera().SetExposure(2.8f, 1.0f / 30.0f, 800.0f);
 
     // モデルのロード
     auto loader = m_pEngine->CreateAssetLoadScope();

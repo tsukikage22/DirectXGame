@@ -122,7 +122,7 @@ void Engine::BeginFrame() {
     m_pCmdList->RSSetViewports(1, &m_Viewport);
     m_pCmdList->RSSetScissorRects(1, &m_ScissorRect);
 
-    m_DebugUI.BeginFrame(m_InputSystem, m_Camera, m_Scene);
+    m_DebugUI.BeginFrame(m_InputSystem, m_Scene.GetCamera(), m_Scene);
 }
 
 // ゲームロジック・シーン定数・transform更新
@@ -151,8 +151,9 @@ void Engine::Update() {
     shader::SceneConstants sc{};
 
     // ビュー行列・射影行列を転置して格納
-    DirectX::XMFLOAT4X4 view       = m_Camera.GetViewMatrix();
-    DirectX::XMFLOAT4X4 projection = m_Camera.GetProjectionMatrix();
+    Camera& camera                 = m_Scene.GetCamera();
+    DirectX::XMFLOAT4X4 view       = camera.GetViewMatrix();
+    DirectX::XMFLOAT4X4 projection = camera.GetProjectionMatrix();
     DirectX::XMMATRIX viewMat      = DirectX::XMLoadFloat4x4(&view);
     DirectX::XMMATRIX projMat      = DirectX::XMLoadFloat4x4(&projection);
     DirectX::XMStoreFloat4x4(&sc.view, DirectX::XMMatrixTranspose(viewMat));
@@ -160,10 +161,10 @@ void Engine::Update() {
         &sc.projection, DirectX::XMMatrixTranspose(projMat));
 
     // カメラ位置・時間・ライト数・露出・デバッグビューの設定
-    sc.cameraPosition = m_Camera.GetTransform().GetPosition();
+    sc.cameraPosition = camera.GetTransform().GetPosition();
     sc.time           = static_cast<float>(GetTickCount64()) / 1000.0f;
     sc.lightCount     = uploadedCount;  // 実際にアップロードされたライトの数
-    sc.exposure       = m_Camera.ComputeExposure();
+    sc.exposure       = camera.ComputeExposure();
     sc.debugView      = static_cast<uint32_t>(m_DebugUI.GetDebugView());
 
     m_FrameResources[m_FrameIndex].GetSceneConstants().Update(sc);
