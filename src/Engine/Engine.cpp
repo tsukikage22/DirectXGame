@@ -335,17 +335,10 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
     dxdebug::EnableDebugLayer();
 
     // デバイスの生成
-    {
-        auto hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0,
-            IID_PPV_ARGS(m_pDevice.GetAddressOf()));
-        if (FAILED(hr)) {
-            OutputDebugStringW(L"Failed to create D3D12 Device.\n");
-            return false;
-        }
-    }
+    m_Device.Init();
 
     // InfoQueueの設定
-    dxdebug::SetupInfoQueue(m_pDevice.Get());
+    dxdebug::SetupInfoQueue(m_Device.GetDevice());
 
     // ウィンドウハンドルの保存
     m_hWnd = hWnd;
@@ -353,7 +346,7 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
     // コマンドキュー・フェンスの生成
     {
         if (!m_CommandQueue.Init(
-                m_pDevice.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT)) {
+                m_Device.GetDevice(), D3D12_COMMAND_LIST_TYPE_DIRECT)) {
             return false;
         }
     }
@@ -362,8 +355,8 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
     {
         // DXGIファクトリの生成
         m_pFactory.Reset();
-        CHECK_HR(
-            m_pDevice.Get(), CreateDXGIFactory1(IID_PPV_ARGS(&m_pFactory)));
+        CHECK_HR(m_Device.GetDevice(),
+            CreateDXGIFactory1(IID_PPV_ARGS(&m_pFactory)));
 
         // スワップチェインの設定
         DXGI_SWAP_CHAIN_DESC1 desc = {};
@@ -382,12 +375,12 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
 
         // スワップチェインの生成
         engine::ComPtr<IDXGISwapChain1> pSwapChain;
-        CHECK_HR(m_pDevice.Get(),
+        CHECK_HR(m_Device.GetDevice(),
             m_pFactory->CreateSwapChainForHwnd(m_CommandQueue.GetD3DQueue(),
                 hWnd, &desc, nullptr, nullptr, pSwapChain.GetAddressOf()));
 
         // IDXGISwapChain3を取得
-        CHECK_HR(m_pDevice.Get(), pSwapChain.As(&m_pSwapChain));
+        CHECK_HR(m_Device.GetDevice(), pSwapChain.As(&m_pSwapChain));
 
         // バックバッファ番号を取得
         m_FrameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
@@ -406,7 +399,7 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
     // ディスクリプタプールの生成
     {
         // CBV/SRV/UAV
-        if (!DescriptorPool::Create(m_pDevice.Get(),
+        if (!DescriptorPool::Create(m_Device.GetDevice(),
                 D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
                 D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
                 config::kCbvSrvUavCapacity, &m_pPoolCBV_SRV_UAV)) {
@@ -414,7 +407,7 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         }
 
         // SMP
-        if (!DescriptorPool::Create(m_pDevice.Get(),
+        if (!DescriptorPool::Create(m_Device.GetDevice(),
                 D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
                 D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
                 config::kSamplerCapacity, &m_pPoolSMP)) {
@@ -422,14 +415,14 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         }
 
         // RTV
-        if (!DescriptorPool::Create(m_pDevice.Get(),
+        if (!DescriptorPool::Create(m_Device.GetDevice(),
                 D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
                 config::kRtvCapacity, &m_pPoolRTV)) {
             return false;
         }
 
         // DSV
-        if (!DescriptorPool::Create(m_pDevice.Get(),
+        if (!DescriptorPool::Create(m_Device.GetDevice(),
                 D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
                 config::kDsvCapacity, &m_pPoolDSV)) {
             return false;
@@ -440,7 +433,7 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
     {
         for (auto i = 0u; i < config::kFrameCount; i++) {
             if (!m_ColorTarget[i].Init(
-                    m_pDevice.Get(), m_pPoolRTV, i, m_pSwapChain.Get())) {
+                    m_Device.GetDevice(), m_pPoolRTV, i, m_pSwapChain.Get())) {
                 return false;
             }
         }
@@ -448,7 +441,7 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
 
     // 深度ステンシルバッファの生成
     {
-        if (!m_DepthTarget.Init(m_pDevice.Get(), m_pPoolDSV, width, height,
+        if (!m_DepthTarget.Init(m_Device.GetDevice(), m_pPoolDSV, width, height,
                 kDepthBufferFormat)) {
             return false;
         }
@@ -474,7 +467,7 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
 
     // UI用レンダーターゲットの作成
     {
-        if (!m_UIRenderTarget.Init(m_pDevice.Get(), m_pPoolRTV,
+        if (!m_UIRenderTarget.Init(m_Device.GetDevice(), m_pPoolRTV,
                 m_pPoolCBV_SRV_UAV, width, height, kUIRenderTargetFormat)) {
             return false;
         }
@@ -511,7 +504,7 @@ void Engine::TermD3D() {
     m_CommandQueue.Term();
 
     // デバイスの破棄
-    m_pDevice.Reset();
+    m_Device.Term();
 }
 
 // アプリケーション固有の初期化
@@ -519,15 +512,17 @@ void Engine::TermD3D() {
 bool Engine::InitApp() {
     // フレームリソースの初期化
     for (int i = 0; i < config::kFrameCount; i++) {
-        if (!m_FrameResources[i].Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV)) {
+        if (!m_FrameResources[i].Init(
+                m_Device.GetDevice(), m_pPoolCBV_SRV_UAV)) {
             return false;
         }
     }
 
     // コマンドリストの生成
     {
-        CHECK_HR(m_pDevice.Get(),
-            m_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+        CHECK_HR(m_Device.GetDevice(),
+            m_Device.GetDevice()->CreateCommandList(0,
+                D3D12_COMMAND_LIST_TYPE_DIRECT,
                 m_FrameResources[m_FrameIndex].GetCommandAllocator(), nullptr,
                 IID_PPV_ARGS(m_pCmdList.GetAddressOf())));
         m_pCmdList->Close();
@@ -537,24 +532,24 @@ bool Engine::InitApp() {
     {
         // ModelLoaderの初期化
         if (!m_modelLoader.Init(
-                m_pDevice.Get(), m_pPoolCBV_SRV_UAV, &m_TextureManager)) {
+                m_Device.GetDevice(), m_pPoolCBV_SRV_UAV, &m_TextureManager)) {
             MessageBoxW(
                 nullptr, L"Failed to initialize ModelLoader.", L"Error", MB_OK);
             return false;
         }
 
         // シーンの初期化
-        m_Scene.Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV);
+        m_Scene.Init(m_Device.GetDevice(), m_pPoolCBV_SRV_UAV);
 
         // TextureManagerの初期化
-        if (!m_TextureManager.Init(m_pDevice.Get())) {
+        if (!m_TextureManager.Init(m_Device.GetDevice())) {
             MessageBoxW(nullptr, L"Failed to initialize TextureManager.",
                 L"Error", MB_OK);
             return false;
         }
 
         // ResourceUploadBatchの生成
-        DirectX::ResourceUploadBatch batch(m_pDevice.Get());
+        DirectX::ResourceUploadBatch batch(m_Device.GetDevice());
         batch.Begin();
 
         // デフォルトテクスチャの生成
@@ -565,7 +560,7 @@ bool Engine::InitApp() {
         }
 
         // IESProfileの初期化
-        if (!m_IESProfile.Init(m_pDevice.Get(), m_pPoolCBV_SRV_UAV)) {
+        if (!m_IESProfile.Init(m_Device.GetDevice(), m_pPoolCBV_SRV_UAV)) {
             MessageBoxW(
                 nullptr, L"Failed to initialize IESProfile.", L"Error", MB_OK);
             return false;
@@ -631,7 +626,7 @@ bool Engine::InitApp() {
                 D3D12_TEXTURE_ADDRESS_MODE_WRAP,   // 水平角は0-360°でループする
                 D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 
-        bool result = builder.Build(m_pDevice.Get());
+        bool result = builder.Build(m_Device.GetDevice());
         if (!result) {
             MessageBoxW(
                 nullptr, L"Failed to build root signature.", L"Error", MB_OK);
@@ -659,9 +654,9 @@ bool Engine::InitApp() {
         // シェーダの読み込み
         engine::ComPtr<ID3DBlob> vsBlob;
         engine::ComPtr<ID3DBlob> psBlob;
-        CHECK_HR(m_pDevice.Get(),
+        CHECK_HR(m_Device.GetDevice(),
             D3DReadFileToBlob(vsPath.c_str(), vsBlob.GetAddressOf()));
-        CHECK_HR(m_pDevice.Get(),
+        CHECK_HR(m_Device.GetDevice(),
             D3DReadFileToBlob(psPath.c_str(), psBlob.GetAddressOf()));
 
         // グラフィックスパイプラインステートの設定
@@ -673,7 +668,7 @@ bool Engine::InitApp() {
             .SetBlendState(BlendMode::Opaque)
             .SetRenderTargetLayout(kGeometryLayout);
 
-        if (!pipelineBuilder.Build(m_pDevice.Get())) {
+        if (!pipelineBuilder.Build(m_Device.GetDevice())) {
             MessageBoxW(nullptr, L"Failed to build graphics pipeline state.",
                 L"Error", MB_OK);
             return false;
@@ -693,7 +688,7 @@ bool Engine::InitApp() {
         dc.maxFullFrameLuminance = m_DisplayInfo.maxFullFrameLuminance;
 
         if (!m_DisplayConstantsGPU.Init(
-                m_pDevice.Get(), m_pPoolCBV_SRV_UAV, dc)) {
+                m_Device.GetDevice(), m_pPoolCBV_SRV_UAV, dc)) {
             MessageBoxW(nullptr, L"Failed to initialize display constants.",
                 L"Error", MB_OK);
             return false;
@@ -701,7 +696,7 @@ bool Engine::InitApp() {
     }
 
     // ImGuiの初期化
-    if (!m_DebugUI.Init(m_pDevice.Get(), m_CommandQueue.GetD3DQueue(),
+    if (!m_DebugUI.Init(m_Device.GetDevice(), m_CommandQueue.GetD3DQueue(),
             kUIRenderTargetFormat, m_pPoolCBV_SRV_UAV, m_hWnd)) {
         MessageBoxW(nullptr, L"Failed to initialize ImGui.", L"Error", MB_OK);
         return false;
@@ -723,9 +718,9 @@ bool Engine::InitApp() {
         // シェーダの読み込み
         engine::ComPtr<ID3DBlob> vsBlob;
         engine::ComPtr<ID3DBlob> psBlob;
-        CHECK_HR(m_pDevice.Get(),
+        CHECK_HR(m_Device.GetDevice(),
             D3DReadFileToBlob(vsPath.c_str(), vsBlob.GetAddressOf()));
-        CHECK_HR(m_pDevice.Get(),
+        CHECK_HR(m_Device.GetDevice(),
             D3DReadFileToBlob(psPath.c_str(), psBlob.GetAddressOf()));
 
         // ルートシグネチャの生成
@@ -742,7 +737,7 @@ bool Engine::InitApp() {
                 D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
             .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL);
 
-        if (!rsBuilder.Build(m_pDevice.Get())) {
+        if (!rsBuilder.Build(m_Device.GetDevice())) {
             MessageBoxW(nullptr, L"Failed to build UI root signature.",
                 L"Error", MB_OK);
             return false;
@@ -757,7 +752,7 @@ bool Engine::InitApp() {
             .SetBlendState(BlendMode::PremultipliedAlpha)
             .SetRenderTargetLayout(kCompositeLayout);
 
-        if (!psoBuilder.Build(m_pDevice.Get())) {
+        if (!psoBuilder.Build(m_Device.GetDevice())) {
             MessageBoxW(nullptr, L"Failed to build UI pipeline state.",
                 L"Error", MB_OK);
             return false;
@@ -799,7 +794,7 @@ void Engine::TermApp() {
 AssetLoadScope Engine::CreateAssetLoadScope() {
     // ResourceUploadBatchのBegin
     auto batch =
-        std::make_unique<DirectX::ResourceUploadBatch>(m_pDevice.Get());
+        std::make_unique<DirectX::ResourceUploadBatch>(m_Device.GetDevice());
     batch->Begin();
 
     // ModelLoadScopeの初期化

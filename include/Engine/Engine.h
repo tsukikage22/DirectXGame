@@ -18,6 +18,7 @@
 #include "Engine/Core/DescriptorPool.h"
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/FrameResource.h"
+#include "Engine/Core/GraphicsDevice.h"
 #include "Engine/Debug/DebugUI.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Graphics/DepthTarget.h"
@@ -132,7 +133,6 @@ private:
     //==============================================================
     // private variables
     //==============================================================
-    engine::ComPtr<ID3D12Device> m_pDevice;                // デバイス
     engine::ComPtr<IDXGISwapChain3> m_pSwapChain;          // スワップチェイン
     engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList;  // コマンドリスト
     engine::ComPtr<ID3D12RootSignature> m_pRootSignature;  // ルートシグネチャ
@@ -146,6 +146,7 @@ private:
     DescriptorPool* m_pPoolDSV;          // DSV用ディスクリプタプール
     DescriptorPool* m_pPoolSMP;          // サンプラ用ディスクリプタプール
 
+    GraphicsDevice m_Device;  // D3D12デバイスの管理クラス
     ColorTarget m_ColorTarget[config::kFrameCount];  // カラーターゲット
     DepthTarget m_DepthTarget;                       // 深度ステンシル
     CommandQueue m_CommandQueue;                     // コマンドキュー
