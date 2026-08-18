@@ -67,8 +67,9 @@ public:
     D3D12_CPU_DESCRIPTOR_HANDLE GetSrvCpuHandle(TextureHandle handle) const;
 
 private:
-    ID3D12Device* m_pDevice;          // デバイス
-    DescriptorPool* m_pPoolAssetSRV;  // アセットSRV用ディスクリプタプール
+    ID3D12Device* m_pDevice;  // デバイス
+    std::unique_ptr<DescriptorPool>
+        m_pPoolAssetSRV;  // アセットSRV用ディスクリプタプール（ステージングに使う）
     std::vector<ShaderResourceTexture> m_textures;  // テクスチャプール
 
     // デフォルトテクスチャ

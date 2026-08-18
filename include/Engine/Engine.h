@@ -141,15 +141,9 @@ private:
 
     uint32_t m_FrameIndex;  // 現在のフレーム番号
 
-    DescriptorPool* m_pPoolCBV_SRV_UAV;  // CBV/SRV/UAV用ディスクリプタプール
-    DescriptorPool* m_pPoolRTV;          // RTV用ディスクリプタプール
-    DescriptorPool* m_pPoolDSV;          // DSV用ディスクリプタプール
-    DescriptorPool* m_pPoolSMP;          // サンプラ用ディスクリプタプール
-
     GraphicsDevice m_Device;  // D3D12デバイスの管理クラス
     ColorTarget m_ColorTarget[config::kFrameCount];  // カラーターゲット
     DepthTarget m_DepthTarget;                       // 深度ステンシル
-    CommandQueue m_CommandQueue;                     // コマンドキュー
     D3D12_VIEWPORT m_Viewport;                       // ビューポート
     D3D12_RECT m_ScissorRect;                        // シザー矩形
 

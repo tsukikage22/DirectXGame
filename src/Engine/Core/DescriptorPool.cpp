@@ -4,18 +4,18 @@
 
 #include "Engine/Core/DescriptorAllocation.h"
 
-bool DescriptorPool::Create(ID3D12Device* pDevice,
+std::unique_ptr<DescriptorPool> DescriptorPool::Create(ID3D12Device* pDevice,
     D3D12_DESCRIPTOR_HEAP_TYPE type, D3D12_DESCRIPTOR_HEAP_FLAGS flags,
-    uint32_t capacity, DescriptorPool** outPool) {
+    uint32_t capacity) {
     // 引数チェック
-    if (pDevice == nullptr || outPool == nullptr) {
-        return false;
+    if (pDevice == nullptr) {
+        return nullptr;
     }
 
     // プールのインスタンス生成
-    auto pool = new (std::nothrow) DescriptorPool();
-    if (pool == nullptr) {
-        return false;
+    std::unique_ptr<DescriptorPool> pool(new (std::nothrow) DescriptorPool());
+    if (!pool) {
+        return nullptr;
     }
 
     // ディスクリプタヒープ生成
@@ -23,8 +23,7 @@ bool DescriptorPool::Create(ID3D12Device* pDevice,
         pool->m_pHeap = std::make_unique<DirectX::DescriptorHeap>(
             pDevice, type, flags, capacity);
     } catch (const std::exception&) {
-        pool->m_pHeap.reset();
-        return false;
+        return nullptr;
     }
 
     pool->m_capacity = capacity;
@@ -38,8 +37,7 @@ bool DescriptorPool::Create(ID3D12Device* pDevice,
     }
 
     // 正常終了
-    *outPool = pool;
-    return true;
+    return pool;
 }
 
 // ディスクリプタプールへの割り当て
@@ -122,6 +120,8 @@ D3D12_CPU_DESCRIPTOR_HANDLE DescriptorPool::GetCPUHandle(uint32_t index) const {
 
 // GPUハンドル取得
 D3D12_GPU_DESCRIPTOR_HANDLE DescriptorPool::GetGPUHandle(uint32_t index) const {
+    assert(m_shaderVisible &&
+           "DescriptorPool: GPU handle requested for non-shader-visible heap");
     return m_pHeap->GetGpuHandle(index);
 }
 

@@ -1,5 +1,7 @@
 #include "Engine/Resource/TextureManager.h"
 
+#include "Engine/Core/EngineConfig.h"
+
 TextureManager::TextureManager()
     : m_pDevice(nullptr), m_pPoolAssetSRV(nullptr) {}
 
@@ -13,8 +15,10 @@ bool TextureManager::Init(ID3D12Device* pDevice) {
     m_pDevice = pDevice;
 
     // アセット用SRVプールの作成
-    if (!DescriptorPool::Create(pDevice, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-            D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 2048, &m_pPoolAssetSRV)) {
+    m_pPoolAssetSRV =
+        DescriptorPool::Create(pDevice, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+            D3D12_DESCRIPTOR_HEAP_FLAG_NONE, config::kAssetSrvCapacity);
+    if (!m_pPoolAssetSRV) {
         return false;
     }
 
@@ -34,10 +38,7 @@ void TextureManager::Term() {
     m_textures.clear();
 
     // ディスクリプタプールの解放
-    if (m_pPoolAssetSRV) {
-        delete m_pPoolAssetSRV;
-        m_pPoolAssetSRV = nullptr;
-    }
+    m_pPoolAssetSRV.reset();
 
     m_pDevice = nullptr;
 }
@@ -107,7 +108,7 @@ uint32_t TextureManager::CreateFromImageAsset(
 
     ShaderResourceTexture shaderResourceTexture;
     if (!shaderResourceTexture.InitFromImage(
-            m_pDevice, m_pPoolAssetSRV, image, batch)) {
+            m_pDevice, m_pPoolAssetSRV.get(), image, batch)) {
         return UINT32_MAX;
     }
 
@@ -169,7 +170,7 @@ bool TextureManager::CreateDefaultTextures(
     uint8_t b   = 0xFF;
     uint8_t a   = 0xFF;
     bool result = CreateSolidColorTexture(
-        batch, r, g, b, a, m_pPoolAssetSRV, *m_pDefaultWhiteTexture);
+        batch, r, g, b, a, m_pPoolAssetSRV.get(), *m_pDefaultWhiteTexture);
     if (!result) {
         return false;
     }
@@ -180,7 +181,7 @@ bool TextureManager::CreateDefaultTextures(
     b      = 0xFF;
     a      = 0xFF;
     result = CreateSolidColorTexture(
-        batch, r, g, b, a, m_pPoolAssetSRV, *m_pDefaultNormalFlatTexture);
+        batch, r, g, b, a, m_pPoolAssetSRV.get(), *m_pDefaultNormalFlatTexture);
     if (!result) {
         return false;
     }
