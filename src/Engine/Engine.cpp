@@ -8,12 +8,39 @@
 ///////////////////////////////////////////
 #include "Engine/Engine.h"
 
+#include <d3dcompiler.h>
+
 #include <array>
 #include <cstdint>
+#include <filesystem>
+#include <memory>
+#include <vector>
 
 #include "Engine/Core/DxDebug.h"
 #include "Engine/Debug/DebugUI.h"
+#include "Engine/Graphics/GraphicsPipelineBuilder.h"
+#include "Engine/Graphics/IndexBuffer.h"
+#include "Engine/Graphics/RootSignatureBuilder.h"
+#include "Engine/Graphics/VertexBuffer.h"
+#include "Engine/Model/MaterialGPU.h"
+#include "Engine/Model/MeshGPU.h"
+#include "Engine/Model/Model.h"
+#include "Engine/Model/VertexTypes.h"
 #include "Engine/Resource/AssetLoadScope.h"
+#include "Engine/Resource/AssetPath.h"
+#include "Engine/Resource/GLBImporter.h"
+#include "Engine/Shader/SceneConstantsGPU.h"
+#include "Engine/Shader/TransformGPU.h"
+
+///////////////////////////////////////////
+// Linker
+///////////////////////////////////////////
+#pragma comment(lib, "d3d12.lib")
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "d3dcompiler.lib")
+#pragma comment(lib, "dxguid.lib")
+#pragma comment(lib, "DirectXTK12.lib")
+#pragma comment(lib, "DirectXTex.lib")
 
 ////////////////////////////////////////////
 // Engine class
