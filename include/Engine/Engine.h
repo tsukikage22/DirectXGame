@@ -148,12 +148,6 @@ private:
         Engine* m_pEngine;
     };
 
-    /// @brief ImGui用のディスクリプタアロケータ
-    struct ImGuiSrvAllocator {
-        DescriptorPool* pPool;
-        std::unordered_map<SIZE_T, DescriptorAllocation> allocations;
-    };
-
     //==============================================================
     // private variables
     //==============================================================
@@ -180,11 +174,9 @@ private:
     FrameResource m_FrameResources[config::kFrameCount];  // フレームリソース
 
     ModelLoader m_modelLoader;
-    std::vector<ModelAsset> m_ModelAssets;  // モデルデータ
-    UINT m_textureCount = 0;                // テクスチャ数
-    TextureManager m_TextureManager;        // テクスチャマネージャ
-    Camera m_Camera;                        // カメラ
-    Scene m_Scene;                          // シーン
+    TextureManager m_TextureManager;  // テクスチャマネージャ
+    Camera m_Camera;                  // カメラ
+    Scene m_Scene;                    // シーン
 
     IESProfile m_IESProfile;  // IESプロファイル
 
