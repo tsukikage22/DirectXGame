@@ -24,6 +24,7 @@
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/FrameResource.h"
 #include "Engine/Core/GenHandle.h"
+#include "Engine/Debug/DebugUI.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Graphics/DepthTarget.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
@@ -127,6 +128,31 @@ private:
     static constexpr DXGI_FORMAT kBackBufferFormat =
         DXGI_FORMAT_R16G16B16A16_FLOAT;
     static constexpr DXGI_FORMAT kDepthBufferFormat = DXGI_FORMAT_D32_FLOAT;
+    static constexpr DXGI_FORMAT kUIRenderTargetFormat =
+        DXGI_FORMAT_R8G8B8A8_UNORM;
+
+    //==============================================================
+    // Inner Class
+    //==============================================================
+    /// @brief ウィンドウイベント用の内部クラス
+    class WindowEventAdapter : public IWindowEventListener {
+    public:
+        explicit WindowEventAdapter(Engine* pEngine) : m_pEngine(pEngine) {}
+
+        /// @brief ウィンドウ移動時の処理
+        void OnWindowMoved() override;
+
+        void OnDisplayChanged() override;
+
+    private:
+        Engine* m_pEngine;
+    };
+
+    /// @brief ImGui用のディスクリプタアロケータ
+    struct ImGuiSrvAllocator {
+        DescriptorPool* pPool;
+        std::unordered_map<SIZE_T, DescriptorAllocation> allocations;
+    };
 
     //==============================================================
     // private variables
@@ -171,6 +197,14 @@ private:
 
     HWND m_hWnd;  // ウィンドウハンドル
 
+    WindowEventAdapter m_WindowEventAdapter{ this };
+
+    ColorTarget m_UIRenderTarget;  // UI用レンダーターゲット
+    engine::ComPtr<ID3D12RootSignature>
+        m_pUIRootSignature;                        // UI用ルートシグネチャ
+    engine::ComPtr<ID3D12PipelineState> m_pUIPSO;  // UI用パイプラインステート
+    DebugUI m_DebugUI;                             // デバッグUI
+
     /////////////////////////////////////////////////////////////////////////
     // private methods
     /////////////////////////////////////////////////////////////////////////
@@ -187,23 +221,4 @@ private:
 
     /// @brief モニター変更チェック
     bool IsMonitorChanged(HWND hWnd);
-
-    //==============================================================
-    // Inner Class
-    //==============================================================
-    /// @brief ウィンドウイベント用の内部クラス
-    class WindowEventAdapter : public IWindowEventListener {
-    public:
-        explicit WindowEventAdapter(Engine* pEngine) : m_pEngine(pEngine) {}
-
-        /// @brief ウィンドウ移動時の処理
-        void OnWindowMoved() override;
-
-        void OnDisplayChanged() override;
-
-    private:
-        Engine* m_pEngine;
-    };
-
-    WindowEventAdapter m_WindowEventAdapter{ this };
 };

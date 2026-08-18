@@ -11,6 +11,32 @@
 #include "Materials.hlsli"
 
 //==============================================================
+// Constants
+//==============================================================
+static const uint DEBUG_VIEW_FINAL_COLOR = 0;
+static const uint DEBUG_VIEW_BASE_COLOR = 1;
+static const uint DEBUG_VIEW_NORMAL = 2;
+static const uint DEBUG_VIEW_ROUGHNESS = 3;
+static const uint DEBUG_VIEW_METALLIC = 4;
+static const uint DEBUG_VIEW_AO = 5;
+
+//==============================================================
+// structures
+//==============================================================
+//--------------------------------------------------------------
+// デバッグビュー選択関数に渡す表面のパラメータをまとめた構造体
+//--------------------------------------------------------------
+struct SurfaceParams {
+    float3 baseColor;
+    float metallic;
+    float roughness;
+    float ao;
+    float3 N;
+    float3 V;
+    float2 uv;
+};
+
+//==============================================================
 // Helper Functions
 //==============================================================
 //--------------------------------------------------------------
@@ -24,6 +50,35 @@ float3x3 CreateTBN(float3 normal, float3 tangent, float handedness) {
     float3 B = cross(N, T) * handedness;
 
     return float3x3(T, B, N);
+}
+
+//--------------------------------------------------------------
+// [0,1]のパラメータをその値のsRGB値として解釈し，表示のためにscRGBに変換する
+//--------------------------------------------------------------
+float3 ToDebugParam(float3 value) {
+    return ToScRGB(SRGBToLinear(saturate(value)));
+}
+
+//--------------------------------------------------------------
+// デバッグビューの選択
+//--------------------------------------------------------------
+float3 EvaluateDebugView(SurfaceParams surf, float3 finalColor) {
+    switch (g_scene.debugView) {
+        case DEBUG_VIEW_FINAL_COLOR:
+            return finalColor;
+        case DEBUG_VIEW_BASE_COLOR:
+            return ToScRGB(surf.baseColor);
+        case DEBUG_VIEW_NORMAL:
+            return ToDebugParam(surf.N * 0.5f + 0.5f); // [-1, 1] -> [0, 1]
+        case DEBUG_VIEW_ROUGHNESS:
+            return ToDebugParam(float3(surf.roughness, surf.roughness, surf.roughness));
+        case DEBUG_VIEW_METALLIC:
+            return ToDebugParam(float3(surf.metallic, surf.metallic, surf.metallic));
+        case DEBUG_VIEW_AO:
+            return ToDebugParam(float3(surf.ao, surf.ao, surf.ao));
+        default:
+            return finalColor;
+    }
 }
 
 //==============================================================
@@ -67,7 +122,7 @@ PSOutput main(VSOutput input) : SV_TARGET
     //==============================================
     // ライティング計算
     //==============================================
-    float3 finalColor = float3(0.0f, 0.0f, 0.0f);
+    float3 litColor = float3(0.0f, 0.0f, 0.0f);
     
     // 光源の数だけループしてfinalColorに加算
     for(uint i=0; i<g_scene.lightCount; i++) {
@@ -82,15 +137,28 @@ PSOutput main(VSOutput input) : SV_TARGET
 
         // BRDFの計算
         float3 BRDF = EvaluateBRDF(N, V, L, baseColor.rgb, metallic, roughness);
-        finalColor += E * NL * BRDF;
+        litColor += E * NL * BRDF;
     }
 
-    finalColor *= g_scene.exposure;
+    litColor *= g_scene.exposure;
 
     // トーンマップの適用
-    float3 toneMapped = GT_Tonemap(finalColor);
+    float3 toneMapped = GT_Tonemap(litColor);
 
-    output.color = float4(toneMapped, baseColor.a);
+    // scRGBに変換
+    toneMapped = ToScRGB(toneMapped);
+
+    // デバッグビューの選択
+    SurfaceParams surf;
+    surf.baseColor = baseColor.rgb;
+    surf.metallic = metallic;
+    surf.roughness = roughness;
+    surf.ao = ao;
+    surf.N = N;
+    surf.V = V;
+    float3 finalColor = EvaluateDebugView(surf, toneMapped);
+
+    output.color = float4(finalColor, baseColor.a);
 
     return output;
 }

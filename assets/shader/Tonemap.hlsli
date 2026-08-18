@@ -7,22 +7,8 @@
 #define TONEMAP_HLSLI
 
 #include "Common.hlsli"
+#include "Display.hlsli"
 
-//=============================================================
-// Structure
-//=============================================================
-struct DisplayConstants {
-    float maxLuminance;
-    float minLuminance;
-    float paperWhiteNits;
-    float maxFullFrameLuminance;
-};
-
-//==============================================================
-// Resource Bindings
-//==============================================================
-// [b3] ディスプレイ定数
-ConstantBuffer<DisplayConstants> g_display: register(b3);
 
 //==============================================================
 // Functions
@@ -76,5 +62,6 @@ float3 GT_Tonemap(float3 color) {
     // 色の再構成
     return toneMappedMaxCol * color / maxCol;
 }
+
 
 #endif // TONEMAP_HLSLI

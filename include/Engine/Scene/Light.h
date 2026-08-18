@@ -95,11 +95,20 @@ public:
     /// @brief ライトの影響範囲を設定する
     void SetRange(float range);
 
-    /// @brief ライトの色を設定する．色度のみを扱うため内部で正規化を行う．
+    /// @brief ライトの色を設定する
+    /// @note 相対輝度（Rec.709）が1になるよう正規化するため，
+    ///       色度を変えても明るさが保たれるように調整される
+    ///       正規化の結果，各成分は1を超える場合がある
     void SetColor(const DirectX::XMFLOAT3& color);
+
+    /// @brief 色温度からライトの色を設定する
+    /// @param temperature 色温度[K]，4000K～15000Kの範囲で設定することを想定
+    void SetColorFromTemperature(float temperature);
 
     /// @brief ライトの有効/無効を切り替える
     void ToggleLight() { m_enabled = !m_enabled; }
+
+    const char* GetTypeName() const;
 
     LightType GetType() const { return m_type; }
     float GetIntensity() const { return m_intensity; }
@@ -130,7 +139,8 @@ private:
     // ライトの共通パラメータ
     float m_intensity         = 0.0f;   // 光の強さ（平行光源はlx，ほかはcd）
     float m_range             = 30.0f;  // 範囲
-    DirectX::XMFLOAT3 m_color = { 1.0f, 1.0f, 1.0f };  // 色度
+    DirectX::XMFLOAT3 m_color = { 1.0f, 1.0f,
+        1.0f };             // 相対輝度1に正規化した色度
     Transform m_transform;  // ライトの位置・方向を保持するTransform
     bool m_enabled = true;  // ライトの有効/無効
 

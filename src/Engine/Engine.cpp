@@ -12,6 +12,7 @@
 #include <cstdint>
 
 #include "Engine/Core/DxDebug.h"
+#include "Engine/Debug/DebugUI.h"
 #include "Engine/Resource/AssetLoadScope.h"
 
 ////////////////////////////////////////////
@@ -40,6 +41,9 @@ bool Engine::Initialize(HWND hWnd, uint32_t width, uint32_t height) {
 
 // 終了処理
 void Engine::Shutdown() {
+    // GPUの処理が完了するまで待機
+    m_CommandQueue.Flush();
+
     // アプリケーション固有の終了処理
     TermApp();
 
@@ -77,9 +81,9 @@ void Engine::BeginFrame() {
     // 5. レンダーターゲットとビューポートの設定・クリア
     // レンダーターゲットの設定
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle =
-        m_ColorTarget[m_FrameIndex].GetCPUHandle();
+        m_ColorTarget[m_FrameIndex].GetRTVCPUHandle();
     D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_DepthTarget.GetCPUHandle();
-    m_pCmdList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle);
+    BeginPass(m_pCmdList.Get(), kGeometryLayout, &rtvHandle, &dsvHandle);
 
     // レンダーターゲットのクリア
     const float clearColor[] = { 0.25f, 0.25f, 0.25f, 1.0f };
@@ -90,14 +94,14 @@ void Engine::BeginFrame() {
     // ビューポートの設定
     m_pCmdList->RSSetViewports(1, &m_Viewport);
     m_pCmdList->RSSetScissorRects(1, &m_ScissorRect);
+
+    m_DebugUI.BeginFrame(m_InputSystem, m_Camera, m_Scene);
 }
 
 // ゲームロジック・シーン定数・transform更新
 // GPUバッファへの書き込み
 void Engine::Update() {
     // 定数バッファの中身(行列やマテリアル情報)の更新
-    // シーン定数の更新
-    shader::SceneConstants sc = {};
 
     // シーン内の全ゲームオブジェクトのtransformを更新
     m_Scene.ForEachObject(
@@ -112,10 +116,12 @@ void Engine::Update() {
         }
         lights[count++] = light.ToShaderConstants();
     });
-
     uint32_t uploadedCount =  // バッファにコピーされたライトの数
         m_FrameResources[m_FrameIndex].GetLightBuffer().Update(
             lights.data(), count);
+
+    // シーン定数の更新
+    shader::SceneConstants sc{};
 
     // ビュー行列・射影行列を転置して格納
     DirectX::XMFLOAT4X4 view       = m_Camera.GetViewMatrix();
@@ -126,23 +132,24 @@ void Engine::Update() {
     DirectX::XMStoreFloat4x4(
         &sc.projection, DirectX::XMMatrixTranspose(projMat));
 
-    // カメラ位置・時間・ライト数・露出の設定
+    // カメラ位置・時間・ライト数・露出・デバッグビューの設定
     sc.cameraPosition = m_Camera.GetTransform().GetPosition();
     sc.time           = static_cast<float>(GetTickCount64()) / 1000.0f;
-    sc.lightCount     = count;
+    sc.lightCount     = uploadedCount;  // 実際にアップロードされたライトの数
     sc.exposure       = m_Camera.ComputeExposure();
+    sc.debugView      = static_cast<uint32_t>(m_DebugUI.GetDebugView());
 
     m_FrameResources[m_FrameIndex].GetSceneConstants().Update(sc);
 }
 
 // 描画コマンドの記録
 void Engine::Render() {
-    // パイプライン設定
-    m_pCmdList->SetGraphicsRootSignature(m_pRootSignature.Get());
-    m_pCmdList->SetPipelineState(m_pPSO.Get());
-
-    // 描画処理
+    // シーン描画処理
     {
+        // パイプライン設定
+        m_pCmdList->SetGraphicsRootSignature(m_pRootSignature.Get());
+        m_pCmdList->SetPipelineState(m_pPSO.Get());
+
         ID3D12DescriptorHeap* ppHeaps = { m_pPoolCBV_SRV_UAV->GetHeap() };
         m_pCmdList->SetDescriptorHeaps(1, &ppHeaps);
 
@@ -212,6 +219,38 @@ void Engine::Render() {
                     mesh->GetIndexCount(), 1, 0, 0, 0);
             }
         });
+    }
+
+    // デバッグUIの描画
+    m_DebugUI.Render(m_UIRenderTarget, m_pCmdList.Get());
+
+    // シーン描画とUI描画の合成
+    {
+        // レンダーターゲットの設定
+        auto rtvHandle = m_ColorTarget[m_FrameIndex].GetRTVCPUHandle();
+        BeginPass(m_pCmdList.Get(), kCompositeLayout, &rtvHandle, nullptr);
+
+        // ルートシグネチャとパイプラインステートの設定
+        m_pCmdList->SetGraphicsRootSignature(m_pUIRootSignature.Get());
+        m_pCmdList->SetPipelineState(m_pUIPSO.Get());
+
+        // CBVとしてDisplayConstantsを設定
+        m_pCmdList->SetGraphicsRootConstantBufferView(
+            0, m_DisplayConstantsGPU.GetGPUAddress());
+
+        // ディスクリプタヒープの設定
+        ID3D12DescriptorHeap* pHeaps[] = { m_pPoolCBV_SRV_UAV->GetHeap() };
+        m_pCmdList->SetDescriptorHeaps(1, pHeaps);
+        m_pCmdList->SetGraphicsRootDescriptorTable(
+            1, m_UIRenderTarget.GetSRVGPUHandle());
+
+        // ビューポートの設定
+        m_pCmdList->RSSetViewports(1, &m_Viewport);
+        m_pCmdList->RSSetScissorRects(1, &m_ScissorRect);
+
+        // 描画
+        m_pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        m_pCmdList->DrawInstanced(3, 1, 0, 0);  // フルスクリーン三角形を描画
     }
 }
 
@@ -400,6 +439,14 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         m_ScissorRect.bottom = height;
     }
 
+    // UI用レンダーターゲットの作成
+    {
+        if (!m_UIRenderTarget.Init(m_pDevice.Get(), m_pPoolRTV,
+                m_pPoolCBV_SRV_UAV, width, height, kUIRenderTargetFormat)) {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -414,6 +461,9 @@ void Engine::TermD3D() {
 
     // 深度ステンシルビューの解放
     m_DepthTarget.Term();
+
+    // UI用レンダーターゲットの解放
+    m_UIRenderTarget.Term();
 
     // ディスクリプタプールの破棄
     delete m_pPoolCBV_SRV_UAV;
@@ -455,7 +505,8 @@ bool Engine::InitApp() {
         // ModelLoaderの初期化
         if (!m_modelLoader.Init(
                 m_pDevice.Get(), m_pPoolCBV_SRV_UAV, &m_TextureManager)) {
-            assert(false && "Failed to initialize ModelLoader.");
+            MessageBoxW(
+                nullptr, L"Failed to initialize ModelLoader.", L"Error", MB_OK);
             return false;
         }
 
@@ -582,13 +633,12 @@ bool Engine::InitApp() {
 
         // グラフィックスパイプラインステートの設定
         GraphicsPipelineBuilder pipelineBuilder;
-        pipelineBuilder.SetDefault()
-            .SetRootSignature(m_pRootSignature.Get())
+        pipelineBuilder.SetRootSignature(m_pRootSignature.Get())
             .SetVertexShader(vsBlob.Get())
             .SetPixelShader(psBlob.Get())
             .SetInputLayout(StandardVertex::GetInputLayout())
-            .SetRTVFormat(kBackBufferFormat)
-            .SetDSVFormat(kDepthBufferFormat);
+            .SetBlendState(BlendMode::Opaque)
+            .SetRenderTargetLayout(kGeometryLayout);
 
         if (!pipelineBuilder.Build(m_pDevice.Get())) {
             MessageBoxW(nullptr, L"Failed to build graphics pipeline state.",
@@ -617,6 +667,71 @@ bool Engine::InitApp() {
         }
     }
 
+    // ImGuiの初期化
+    if (!m_DebugUI.Init(m_pDevice.Get(), m_CommandQueue.GetD3DQueue(),
+            kUIRenderTargetFormat, m_pPoolCBV_SRV_UAV, m_hWnd)) {
+        MessageBoxW(nullptr, L"Failed to initialize ImGui.", L"Error", MB_OK);
+        return false;
+    }
+
+    // UI合成用PSO，ルートシグネチャの作成
+    {
+        // シェーダのパスを取得
+        std::filesystem::path vsPath;
+        std::filesystem::path psPath;
+        AssetPath assetPath;
+        if (!assetPath.GetAssetPath(L"shader/UI_VS.cso", vsPath) ||
+            !assetPath.GetAssetPath(L"shader/UI_PS.cso", psPath)) {
+            MessageBoxW(
+                nullptr, L"Failed to find shader files.", L"Error", MB_OK);
+            return false;
+        }
+
+        // シェーダの読み込み
+        engine::ComPtr<ID3DBlob> vsBlob;
+        engine::ComPtr<ID3DBlob> psBlob;
+        CHECK_HR(m_pDevice.Get(),
+            D3DReadFileToBlob(vsPath.c_str(), vsBlob.GetAddressOf()));
+        CHECK_HR(m_pDevice.Get(),
+            D3DReadFileToBlob(psPath.c_str(), psBlob.GetAddressOf()));
+
+        // ルートシグネチャの生成
+        auto rsBuilder = RootSignatureBuilder{};
+        std::vector<D3D12_DESCRIPTOR_RANGE1> range;
+        range.push_back(
+            rsBuilder.CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0,
+                D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE));
+        // ルートシグネチャの構成
+        // [b3] Display Constants (Root CBV)
+        // [t0] UI Texture (Descriptor Table SRV)
+        rsBuilder
+            .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL,
+                D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
+            .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL);
+
+        if (!rsBuilder.Build(m_pDevice.Get())) {
+            MessageBoxW(nullptr, L"Failed to build UI root signature.",
+                L"Error", MB_OK);
+            return false;
+        }
+        m_pUIRootSignature = rsBuilder.Get();
+
+        // パイプラインステートの生成
+        auto psoBuilder = GraphicsPipelineBuilder{};
+        psoBuilder.SetRootSignature(m_pUIRootSignature.Get())
+            .SetVertexShader(vsBlob.Get())
+            .SetPixelShader(psBlob.Get())
+            .SetBlendState(BlendMode::PremultipliedAlpha)
+            .SetRenderTargetLayout(kCompositeLayout);
+
+        if (!psoBuilder.Build(m_pDevice.Get())) {
+            MessageBoxW(nullptr, L"Failed to build UI pipeline state.",
+                L"Error", MB_OK);
+            return false;
+        }
+        m_pUIPSO = psoBuilder.Get();
+    }
+
     return true;
 }
 
@@ -630,11 +745,14 @@ void Engine::TermApp() {
     // テクスチャプールの解放
     m_TextureManager.Term();
 
-    // パイプラインステートの解放
-    m_pPSO.Reset();
+    // デバッグUIの終了処理
+    m_DebugUI.Term();
 
-    // ルートシグニチャの解放
+    // PSO，RootSignatureの破棄
+    m_pPSO.Reset();
     m_pRootSignature.Reset();
+    m_pUIPSO.Reset();
+    m_pUIRootSignature.Reset();
 
     // フレームリソースの解放
     for (int i = 0; i < config::kFrameCount; i++) {

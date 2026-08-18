@@ -40,10 +40,11 @@ bool SceneConstantsGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV) {
     DirectX::XMMATRIX projT = DirectX::XMMatrixTranspose(projMatrix);
     DirectX::XMStoreFloat4x4(&sc.projection, projT);
 
-    // カメラ位置・ゲーム時間・露出の初期化
+    // カメラ位置・ゲーム時間・露出・表示モードの初期化
     sc.cameraPosition = DirectX::XMFLOAT3(0.0f, 0.0f, -5.0f);
     sc.time           = 0.0f;
     sc.exposure       = 1.0f;
+    sc.debugView      = 0;
 
     return Init(pDevice, pPoolCBV, sc);
 }

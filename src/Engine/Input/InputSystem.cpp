@@ -25,27 +25,57 @@ void InputSystem::BeginFrame() {
 //==============================
 // キーボード
 // キーの現在状態
-bool InputSystem::IsKeyDown(int vk) const { return m_KeyCur[vk]; }
+bool InputSystem::IsKeyDown(int vk) const {
+    if (m_ImGuiWantCaptureKeyboard) {
+        return false;
+    }
+    return m_KeyCur[vk];
+}
 // キーが押された瞬間
 bool InputSystem::WasKeyPressed(int vk) const {
+    if (m_ImGuiWantCaptureKeyboard) {
+        return false;
+    }
     return m_KeyCur[vk] && !m_KeyPrev[vk];
 }
 // キーが離された瞬間
 bool InputSystem::WasKeyReleased(int vk) const {
+    if (m_ImGuiWantCaptureKeyboard) {
+        return false;
+    }
     return !m_KeyCur[vk] && m_KeyPrev[vk];
 }
 
 // マウス
-int InputSystem::MouseDX() const { return m_Mouse.dx; }
-int InputSystem::MouseDY() const { return m_Mouse.dy; }
+int InputSystem::MouseDX() const {
+    if (m_ImGuiWantCaptureMouse) {
+        return 0;
+    }
+    return m_Mouse.dx;
+}
+int InputSystem::MouseDY() const {
+    if (m_ImGuiWantCaptureMouse) {
+        return 0;
+    }
+    return m_Mouse.dy;
+}
 bool InputSystem::IsMouseDown(Button b) const {
+    if (m_ImGuiWantCaptureMouse) {
+        return false;
+    }
     return m_Mouse.buttonCur[static_cast<size_t>(b)];
 }
 bool InputSystem::WasMousePressed(Button b) const {
+    if (m_ImGuiWantCaptureMouse) {
+        return false;
+    }
     return m_Mouse.buttonCur[static_cast<size_t>(b)] &&
            !m_Mouse.buttonPrev[static_cast<size_t>(b)];
 }
 bool InputSystem::WasMouseReleased(Button b) const {
+    if (m_ImGuiWantCaptureMouse) {
+        return false;
+    }
     return !m_Mouse.buttonCur[static_cast<size_t>(b)] &&
            m_Mouse.buttonPrev[static_cast<size_t>(b)];
 }

@@ -4,8 +4,8 @@
 
 #include <DirectXMath.h>
 
-#include "Engine/Graphics/ConstantBuffer.h"
 #include "Engine/Core/DescriptorPool.h"
+#include "Engine/Graphics/ConstantBuffer.h"
 #include "Engine/Shader/ShaderConstants.h"
 
 class SceneConstantsGPU {
@@ -37,6 +37,7 @@ public:
     //========================================
     // アクセサ
     //========================================
+
     /// @brief 定数バッファの取得
     ConstantBuffer& GetConstantBuffer() { return m_constantBuffer; }
 

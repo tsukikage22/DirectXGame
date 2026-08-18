@@ -38,11 +38,12 @@ void Game::Init(Engine* pEngine) {
     m_katanaModel = loader.LoadModel(path);
     AssetPath().GetAssetPath(L"model/Plane.glb", path);
     m_planeModel = loader.LoadModel(path);
+    AssetPath().GetAssetPath(L"model/NormalTangentTest.glb", path);
+    m_normalTestModel = loader.LoadModel(path);
 
     // ライトの作成
 
     // Directional
-    /*
     {
         m_pEngine->GetScene().SpawnDirectionalLight({
             .direction   = { 0.0f, -1.0f, 0.0f },
@@ -50,7 +51,6 @@ void Game::Init(Engine* pEngine) {
             .illuminance = 100000.0f,
         });
     }
-    */
 
     // 2 Spot lights
     /*
@@ -89,6 +89,7 @@ void Game::Init(Engine* pEngine) {
     */
 
     // 2 photometric lights
+    /*
     {
         // IESプロファイルのロード
         std::optional<uint32_t> iesIndex;
@@ -117,6 +118,7 @@ void Game::Init(Engine* pEngine) {
             .iesIndex     = iesIndex2.value(),
         });
     }
+        */
 }
 
 void Game::Tick(float deltaTime) {
@@ -167,6 +169,16 @@ void Game::Tick(float deltaTime) {
         } else {
             m_pEngine->GetScene().DespawnObject(m_planeObject);
             m_planeObject = {};
+        }
+    }
+
+    if (m_pInputSystem->WasKeyPressed('5')) {
+        if (!m_normalTestObject.IsValid()) {
+            m_normalTestObject =
+                m_pEngine->GetScene().SpawnObject(m_normalTestModel);
+        } else {
+            m_pEngine->GetScene().DespawnObject(m_normalTestObject);
+            m_normalTestObject = {};
         }
     }
 }
