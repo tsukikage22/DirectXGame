@@ -267,7 +267,7 @@ void Engine::Render() {
     }
 
     // デバッグUIの描画
-    m_DebugUI.Render(m_UIRenderTarget, m_pCmdList.Get());
+    m_DebugUI.Render(m_Renderer.GetUITarget(), m_pCmdList.Get());
 
     // シーン描画とUI描画の合成
     {
@@ -290,8 +290,8 @@ void Engine::Render() {
             m_Device.CbvSrvUavPool()->GetHeap()
         };
         m_pCmdList->SetDescriptorHeaps(1, pHeaps);
-        m_pCmdList->SetGraphicsRootDescriptorTable(
-            ui_rs::RootParam::SRV_UI, m_UIRenderTarget.GetSRVGPUHandle());
+        m_pCmdList->SetGraphicsRootDescriptorTable(ui_rs::RootParam::SRV_UI,
+            m_Renderer.GetUITarget().GetSRVGPUHandle());
 
         // ビューポートの設定
         auto viewport =
@@ -371,24 +371,12 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
         return false;
     }
 
-    // UI用レンダーターゲットの作成
-    {
-        if (!m_UIRenderTarget.Init(m_Device.GetDevice(), m_Device.RtvPool(),
-                m_Device.CbvSrvUavPool(), width, height,
-                kUIRenderTargetFormat)) {
-            return false;
-        }
-    }
-
     return true;
 }
 
 void Engine::TermD3D() {
     // GPUの処理が完了するまで待機
     m_Device.WaitForGPU();
-
-    // UI用レンダーターゲットの解放
-    m_UIRenderTarget.Term();
 
     // Rendererの終了処理
     m_Renderer.Term();
@@ -585,7 +573,7 @@ bool Engine::InitApp() {
     }
 
     // ImGuiの初期化
-    if (!m_DebugUI.Init(m_Device, kUIRenderTargetFormat, m_hWnd)) {
+    if (!m_DebugUI.Init(m_Device, config::kUIBufferFormat, m_hWnd)) {
         MessageBoxW(nullptr, L"Failed to initialize ImGui.", L"Error", MB_OK);
         return false;
     }

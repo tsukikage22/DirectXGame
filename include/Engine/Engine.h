@@ -18,7 +18,6 @@
 #include "Engine/Core/GraphicsDevice.h"
 #include "Engine/Core/Renderer.h"
 #include "Engine/Debug/DebugUI.h"
-#include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Input/IWindowEventListener.h"
 #include "Engine/Input/InputSystem.h"
 #include "Engine/Resource/IESProfile.h"
@@ -102,12 +101,6 @@ public:
 
 private:
     //==============================================================
-    // constants
-    //==============================================================
-    static constexpr DXGI_FORMAT kUIRenderTargetFormat =
-        DXGI_FORMAT_R8G8B8A8_UNORM;
-
-    //==============================================================
     // Inner Class
     //==============================================================
     /// @brief ウィンドウイベント用の内部クラス
@@ -150,7 +143,6 @@ private:
 
     WindowEventAdapter m_WindowEventAdapter{ this };
 
-    ColorTarget m_UIRenderTarget;  // UI用レンダーターゲット
     engine::ComPtr<ID3D12RootSignature>
         m_pUIRootSignature;                        // UI用ルートシグネチャ
     engine::ComPtr<ID3D12PipelineState> m_pUIPSO;  // UI用パイプラインステート

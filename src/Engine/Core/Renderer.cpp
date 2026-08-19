@@ -18,10 +18,19 @@ bool Renderer::Init(
         return false;
     }
 
+    // UI用レンダーターゲットの作成
+    // UIは常に表示解像度（バックバッファに合わせる）
+    if (!m_uiTarget.Init(device.GetDevice(), device.RtvPool(),
+            device.CbvSrvUavPool(), width, height, config::kUIBufferFormat)) {
+        return false;
+    }
     return true;
 }
 
 void Renderer::Term() {
+    // UI用レンダーターゲットの終了処理
+    m_uiTarget.Term();
+
     // 深度バッファの終了処理
     m_depthTarget.Term();
 
