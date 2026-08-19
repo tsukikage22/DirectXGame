@@ -2,8 +2,6 @@
 
 #include <windowsx.h>
 
-#include <cstdint>
-
 #include "Engine/Input/IInputReceiver.h"
 #include "Engine/Input/IWindowEventListener.h"
 #include "backends/imgui_impl_win32.h"
@@ -40,6 +38,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 // ウィンドウクラス名
 const auto ClassName = TEXT("DirectXGameWindowClass");
+
 }  // namespace
 
 bool Window::Create(int width, int height, const wchar_t* title) {
@@ -132,10 +131,7 @@ LRESULT Window::HandleMessage(
             }
             // DefWindowProcに渡すことで，WM_SIZEやWM_MOVEが送信される
             return DefWindowProc(hWnd, msg, wParam, lParam);
-        } break;
-
-        case WM_DISPLAYCHANGE: {
-        } break;
+        }
 
         case WM_KEYDOWN: {
             // キーボード押下
@@ -239,24 +235,30 @@ LRESULT Window::HandleMessage(
             m_isMinimized = false;
 
             // 幅と高さ
-            const uint32_t w = static_cast<uint32_t>(LOWORD(lParam));
-            const uint32_t h = static_cast<uint32_t>(HIWORD(lParam));
-            // 幅または高さが0の場合は無視する
-            if (w == 0 || h == 0) {
-                break;
-            }
+            uint32_t w = static_cast<uint32_t>(LOWORD(lParam));
+            uint32_t h = static_cast<uint32_t>(HIWORD(lParam));
 
-            if (m_windowEventListener) {
-                m_windowEventListener->OnWindowResized(w, h);
-            }
+            // 幅または高さが0の場合は無視する
+            if (w == 0 || h == 0) break;
+
+            m_width  = w;
+            m_height = h;
+
+            // サイズ変更中はイベントを送信しない
+            if (m_isSizeMoving) break;
+
+            // ドラッグ無しでサイズ変更された場合はイベントを送信する
+            NotifyResize();
+
         } break;
 
         case WM_ENTERSIZEMOVE: {
-            m_isSizeMooving = true;
+            m_isSizeMoving = true;
         } break;
 
         case WM_EXITSIZEMOVE: {
-            m_isSizeMooving = false;
+            m_isSizeMoving = false;
+            NotifyResize();
         } break;
 
         default: {
@@ -265,4 +267,17 @@ LRESULT Window::HandleMessage(
     }
 
     return 0;
+}
+
+void Window::NotifyResize() {
+    // サイズが変わっていなければ通知しない
+    if (m_width == m_notifiedWidth && m_height == m_notifiedHeight) {
+        return;
+    }
+    m_notifiedWidth  = m_width;
+    m_notifiedHeight = m_height;
+
+    if (m_windowEventListener) {
+        m_windowEventListener->OnWindowResized(m_width, m_height);
+    }
 }

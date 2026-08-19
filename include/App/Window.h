@@ -2,6 +2,8 @@
 
 #include <Windows.h>
 
+#include <cstdint>
+
 struct IInputReceiver;
 struct IWindowEventListener;
 
@@ -32,6 +34,9 @@ public:
     }
 
 private:
+    /// @brief リサイズをイベントリスナーに通知する
+    void NotifyResize();
+
     HINSTANCE m_hInst = nullptr;
     HWND m_hWnd       = nullptr;
 
@@ -39,7 +44,12 @@ private:
     IInputReceiver* m_inputReceiver             = nullptr;
     IWindowEventListener* m_windowEventListener = nullptr;
 
-    bool m_isActive      = false;
-    bool m_isMinimized   = false;
-    bool m_isSizeMooving = false;
+    uint32_t m_width          = 0;
+    uint32_t m_height         = 0;
+    uint32_t m_notifiedWidth  = 0;
+    uint32_t m_notifiedHeight = 0;
+
+    bool m_isActive     = false;
+    bool m_isMinimized  = false;
+    bool m_isSizeMoving = false;
 };
