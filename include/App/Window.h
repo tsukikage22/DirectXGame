@@ -39,5 +39,7 @@ private:
     IInputReceiver* m_inputReceiver             = nullptr;
     IWindowEventListener* m_windowEventListener = nullptr;
 
-    bool m_isActive = false;
+    bool m_isActive      = false;
+    bool m_isMinimized   = false;
+    bool m_isSizeMooving = false;
 };

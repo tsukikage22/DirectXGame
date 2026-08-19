@@ -620,3 +620,11 @@ void Engine::WindowEventAdapter::OnWindowMoved() {
         m_pEngine->m_Renderer.UploadDisplayConstants();
     }
 }
+
+void Engine::WindowEventAdapter::OnWindowResized(
+    uint32_t width, uint32_t height) {
+    // ウィンドウサイズ変更時の処理
+    wchar_t buffer[256];
+    swprintf(buffer, 256, L"Window resized. %d, %d\n", width, height);
+    OutputDebugString(buffer);
+}

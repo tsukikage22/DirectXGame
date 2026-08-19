@@ -2,6 +2,8 @@
 
 #include <windowsx.h>
 
+#include <cstdint>
+
 #include "Engine/Input/IInputReceiver.h"
 #include "Engine/Input/IWindowEventListener.h"
 #include "backends/imgui_impl_win32.h"
@@ -65,16 +67,16 @@ bool Window::Create(int width, int height, const wchar_t* title) {
     }
 
     // ウィンドウサイズの設定
-    RECT rc    = {};
-    rc.right   = static_cast<LONG>(width);
-    rc.bottom  = static_cast<LONG>(height);
-    auto style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU;
+    RECT rc           = {};
+    rc.right          = static_cast<LONG>(width);
+    rc.bottom         = static_cast<LONG>(height);
+    const DWORD style = WS_OVERLAPPEDWINDOW;
     AdjustWindowRect(&rc, style, FALSE);
 
     // ウィンドウの作成
-    m_hWnd = CreateWindowEx(0, ClassName, TEXT("DirectX Game"), style,
-        CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top,
-        nullptr, nullptr, m_hInst, this);
+    m_hWnd = CreateWindowEx(0, ClassName, title, style, CW_USEDEFAULT,
+        CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr,
+        m_hInst, this);
 
     if (m_hWnd == nullptr) {
         return false;
@@ -128,6 +130,8 @@ LRESULT Window::HandleMessage(
             if (m_windowEventListener) {
                 m_windowEventListener->OnWindowMoved();
             }
+            // DefWindowProcに渡すことで，WM_SIZEやWM_MOVEが送信される
+            return DefWindowProc(hWnd, msg, wParam, lParam);
         } break;
 
         case WM_DISPLAYCHANGE: {
@@ -224,6 +228,36 @@ LRESULT Window::HandleMessage(
             EndPaint(hWnd, &ps);
             return 0;
         }
+
+        case WM_SIZE: {
+            // ウィンドウサイズ変更
+            // 最小化
+            if (wParam == SIZE_MINIMIZED) {
+                m_isMinimized = true;
+                break;
+            }
+            m_isMinimized = false;
+
+            // 幅と高さ
+            const uint32_t w = static_cast<uint32_t>(LOWORD(lParam));
+            const uint32_t h = static_cast<uint32_t>(HIWORD(lParam));
+            // 幅または高さが0の場合は無視する
+            if (w == 0 || h == 0) {
+                break;
+            }
+
+            if (m_windowEventListener) {
+                m_windowEventListener->OnWindowResized(w, h);
+            }
+        } break;
+
+        case WM_ENTERSIZEMOVE: {
+            m_isSizeMooving = true;
+        } break;
+
+        case WM_EXITSIZEMOVE: {
+            m_isSizeMooving = false;
+        } break;
 
         default: {
             return DefWindowProc(hWnd, msg, wParam, lParam);

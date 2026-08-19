@@ -101,6 +101,9 @@ private:
         /// @brief ウィンドウ移動時の処理
         void OnWindowMoved() override;
 
+        /// @brief ウィンドウサイズ変更時の処理
+        void OnWindowResized(uint32_t width, uint32_t height) override;
+
     private:
         Engine* m_pEngine;
     };
