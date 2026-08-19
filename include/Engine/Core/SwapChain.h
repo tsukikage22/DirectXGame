@@ -12,7 +12,6 @@
 #include "Engine/Core/ComPtr.h"
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Graphics/ColorTarget.h"
-#include "Engine/Graphics/DepthTarget.h"
 
 class GraphicsDevice;
 
@@ -42,12 +41,6 @@ public:
         WaitForSingleObject(m_frameLatencyWaitableObject, timeout);
     }
 
-    /// @return ビューポートの作成
-    D3D12_VIEWPORT MakeViewport() const;
-
-    /// @return シザー矩形の作成
-    D3D12_RECT MakeScissorRect() const;
-
     /// @brief スワップチェインの取得
     IDXGISwapChain3* GetSwapChain() { return m_pSwapChain.Get(); }
 
@@ -57,9 +50,6 @@ public:
     /// @brief バックバッファの取得
     ColorTarget& GetBackBuffer() { return m_colorTarget[m_frameIndex]; }
 
-    /// @brief 深度バッファの取得
-    DepthTarget& GetDepthBuffer() { return m_depthTarget; }
-
 private:
     engine::ComPtr<IDXGISwapChain3> m_pSwapChain;  // スワップチェイン
     uint32_t m_frameIndex = 0;                     // 現在のフレーム番号
@@ -67,10 +57,6 @@ private:
         nullptr;  // フレームレイテンシ待機オブジェクト
 
     ColorTarget m_colorTarget[config::kFrameCount];  // バックバッファ
-    DepthTarget m_depthTarget;                       // 深度バッファ
-
-    uint32_t m_width  = 0;  // バックバッファの幅
-    uint32_t m_height = 0;  // バックバッファの高さ
 
     // コピー禁止
     SwapChain(const SwapChain&)            = delete;

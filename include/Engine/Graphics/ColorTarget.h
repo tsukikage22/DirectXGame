@@ -39,10 +39,19 @@ public:
     /// @brief リソースの解放
     void Term();
 
+    /// @brief このターゲット全体を覆うビューポートを作成する
+    D3D12_VIEWPORT MakeViewport() const;
+
+    /// @brief このターゲット全体を覆うシザー矩形を作成する
+    D3D12_RECT MakeScissorRect() const;
+
     //========================================================================
     // アクセサ
     //========================================================================
     ID3D12Resource* GetResource() const { return m_Target.GetResource(); }
+
+    uint32_t GetWidth() const { return m_width; }
+    uint32_t GetHeight() const { return m_height; }
 
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCPUHandle() const {
         return m_RTVAllocation.GetCPUHandle();
@@ -67,6 +76,9 @@ private:
     DescriptorAllocation m_RTVAllocation;      // RTVのディスクリプタ
     DescriptorAllocation m_SRVAllocation;      // SRVのディスクリプタ
     D3D12_RENDER_TARGET_VIEW_DESC m_ViewDesc;  // RTVのディスクリプタ
+
+    uint32_t m_width  = 0;  // 幅
+    uint32_t m_height = 0;  // 高さ
 
     ColorTarget(const ColorTarget&)    = delete;
     void operator=(const ColorTarget&) = delete;

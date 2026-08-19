@@ -84,10 +84,10 @@ void Engine::Shutdown() {
 // フェンス待機・コマンドリスト/アロケータのリセット
 void Engine::BeginFrame() {
     // 1. DXGIフレームペーシング
-    m_SwapChain.WaitForFrameLatency();
+    m_Renderer.WaitFrameLatency();
 
     // 2. フェンス同期
-    uint32_t frameIndex = m_SwapChain.GetFrameIndex();
+    uint32_t frameIndex = m_Renderer.GetFrameIndex();
     uint64_t fenceValue = m_FrameResources[frameIndex].GetFenceValue();
     // 初回フレーム（fencevalue == 0）の場合は待機をスキップ
     if (fenceValue != 0) {
@@ -99,43 +99,18 @@ void Engine::BeginFrame() {
     // 3. コマンドリスト/アロケータのリセット
     m_FrameResources[frameIndex].BeginFrame(m_pCmdList.Get());
 
-    // 4. リソースバリア(Present -> RenderTarget)の設定
-    D3D12_RESOURCE_BARRIER barrier = {};
-    barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-    barrier.Transition.pResource   = m_SwapChain.GetBackBuffer().GetResource();
-    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-    barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-    barrier.Transition.StateAfter  = D3D12_RESOURCE_STATE_RENDER_TARGET;
-    m_pCmdList->ResourceBarrier(1, &barrier);
+    // リソースバリア(Present -> RenderTarget)の設定と
+    // レンダーターゲットの設定・クリア
+    m_Renderer.BeginFrame(m_pCmdList.Get());
 
-    // 5. レンダーターゲットとビューポートの設定・クリア
-    // レンダーターゲットの設定
-    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle =
-        m_SwapChain.GetBackBuffer().GetRTVCPUHandle();
-    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle =
-        m_SwapChain.GetDepthBuffer().GetCPUHandle();
-    BeginPass(m_pCmdList.Get(), kGeometryLayout, &rtvHandle, &dsvHandle);
-
-    // レンダーターゲットのクリア
-    const float clearColor[] = { 0.25f, 0.25f, 0.25f, 1.0f };
-    m_pCmdList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-    m_pCmdList->ClearDepthStencilView(
-        dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-
-    // ビューポートの設定
-    auto viewport    = m_SwapChain.MakeViewport();
-    auto scissorRect = m_SwapChain.MakeScissorRect();
-    m_pCmdList->RSSetViewports(1, &viewport);
-    m_pCmdList->RSSetScissorRects(1, &scissorRect);
-
+    // デバッグUIの描画開始
     m_DebugUI.BeginFrame(m_InputSystem, m_Scene.GetCamera(), m_Scene);
 }
 
 // ゲームロジック・シーン定数・transform更新
 // GPUバッファへの書き込み
 void Engine::Update() {
-    uint32_t frameIndex = m_SwapChain.GetFrameIndex();
+    uint32_t frameIndex = m_Renderer.GetFrameIndex();
 
     // 定数バッファの中身(行列やマテリアル情報)の更新
     // シーン内の全ゲームオブジェクトのtransformを更新
@@ -180,7 +155,7 @@ void Engine::Update() {
 
 // 描画コマンドの記録
 void Engine::Render() {
-    uint32_t frameIndex = m_SwapChain.GetFrameIndex();
+    uint32_t frameIndex = m_Renderer.GetFrameIndex();
 
     // シーン描画処理
     {
@@ -199,7 +174,7 @@ void Engine::Render() {
         // [b3] DisplayConstants (共通)
         m_pCmdList->SetGraphicsRootConstantBufferView(
             scene_rs::RootParam::CBV_Display,
-            m_DisplayConstantsGPU.GetGPUAddress());
+            m_Renderer.GetDisplayConstantsAddress());
 
         // [t0, space1] IESプロファイルテクスチャ (共通)
         m_pCmdList->SetGraphicsRootDescriptorTable(
@@ -264,13 +239,12 @@ void Engine::Render() {
     }
 
     // デバッグUIの描画
-    m_DebugUI.Render(m_UIRenderTarget, m_pCmdList.Get());
+    m_DebugUI.Render(m_Renderer.GetUITarget(), m_pCmdList.Get());
 
     // シーン描画とUI描画の合成
     {
-        // レンダーターゲットの設定
-        auto rtvHandle = m_SwapChain.GetBackBuffer().GetRTVCPUHandle();
-        BeginPass(m_pCmdList.Get(), kCompositeLayout, &rtvHandle, nullptr);
+        // レンダーターゲットとビューポートの設定
+        m_Renderer.BeginCompositePass(m_pCmdList.Get());
 
         // ルートシグネチャとパイプラインステートの設定
         m_pCmdList->SetGraphicsRootSignature(m_pUIRootSignature.Get());
@@ -279,21 +253,15 @@ void Engine::Render() {
         // CBVとしてDisplayConstantsを設定
         m_pCmdList->SetGraphicsRootConstantBufferView(
             ui_rs::RootParam::CBV_Display,
-            m_DisplayConstantsGPU.GetGPUAddress());
+            m_Renderer.GetDisplayConstantsAddress());
 
         // ディスクリプタヒープの設定
         ID3D12DescriptorHeap* pHeaps[] = {
             m_Device.CbvSrvUavPool()->GetHeap()
         };
         m_pCmdList->SetDescriptorHeaps(1, pHeaps);
-        m_pCmdList->SetGraphicsRootDescriptorTable(
-            ui_rs::RootParam::SRV_UI, m_UIRenderTarget.GetSRVGPUHandle());
-
-        // ビューポートの設定
-        auto viewport = m_SwapChain.MakeViewport();
-        m_pCmdList->RSSetViewports(1, &viewport);
-        auto scissorRect = m_SwapChain.MakeScissorRect();
-        m_pCmdList->RSSetScissorRects(1, &scissorRect);
+        m_pCmdList->SetGraphicsRootDescriptorTable(ui_rs::RootParam::SRV_UI,
+            m_Renderer.GetUITarget().GetSRVGPUHandle());
 
         // 描画
         m_pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -304,17 +272,8 @@ void Engine::Render() {
 // コマンドリスト実行，フェンス発行
 // 描画コマンドの実行
 void Engine::EndFrame() {
-    uint32_t frameIndex = m_SwapChain.GetFrameIndex();
-
     // 1. リソースバリアの設定
-    D3D12_RESOURCE_BARRIER barrier = {};
-    barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-    barrier.Transition.pResource   = m_SwapChain.GetBackBuffer().GetResource();
-    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-    barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-    barrier.Transition.StateAfter  = D3D12_RESOURCE_STATE_PRESENT;
-    m_pCmdList->ResourceBarrier(1, &barrier);
+    m_Renderer.EndFrame(m_pCmdList.Get());
 
     // 2. コマンドリストのクローズ
     m_pCmdList->Close();
@@ -328,6 +287,7 @@ void Engine::EndFrame() {
     UINT64 fenceValue = m_Device.GetCommandQueue().Signal();
 
     // 5. フェンス値の保存
+    uint32_t frameIndex = m_Renderer.GetFrameIndex();
     m_FrameResources[frameIndex].EndFrame(fenceValue);
 }
 
@@ -335,7 +295,7 @@ void Engine::EndFrame() {
 // 結果の表示
 void Engine::Present() {
     // 画面表示
-    m_SwapChain.Present();
+    m_Renderer.Present();
 }
 
 //==============================================
@@ -359,18 +319,9 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
     // ウィンドウハンドルの保存
     m_hWnd = hWnd;
 
-    // スワップチェインの生成
-    if (!m_SwapChain.Init(m_Device, width, height, hWnd)) {
+    // Rendererの初期化
+    if (!m_Renderer.Init(m_Device, width, height, hWnd)) {
         return false;
-    }
-
-    // UI用レンダーターゲットの作成
-    {
-        if (!m_UIRenderTarget.Init(m_Device.GetDevice(), m_Device.RtvPool(),
-                m_Device.CbvSrvUavPool(), width, height,
-                kUIRenderTargetFormat)) {
-            return false;
-        }
     }
 
     return true;
@@ -380,11 +331,8 @@ void Engine::TermD3D() {
     // GPUの処理が完了するまで待機
     m_Device.WaitForGPU();
 
-    // UI用レンダーターゲットの解放
-    m_UIRenderTarget.Term();
-
-    // スワップチェインの破棄
-    m_SwapChain.Term();
+    // Rendererの終了処理
+    m_Renderer.Term();
 
     // コマンドキュー，デバイス，ディスクリプタプールの破棄
     m_Device.Term();
@@ -405,7 +353,7 @@ bool Engine::InitApp() {
         CHECK_HR(m_Device.GetDevice(),
             m_Device.GetDevice()->CreateCommandList(0,
                 D3D12_COMMAND_LIST_TYPE_DIRECT,
-                m_FrameResources[m_SwapChain.GetFrameIndex()]
+                m_FrameResources[m_Renderer.GetFrameIndex()]
                     .GetCommandAllocator(),
                 nullptr, IID_PPV_ARGS(m_pCmdList.GetAddressOf())));
         m_pCmdList->Close();
@@ -559,26 +507,8 @@ bool Engine::InitApp() {
         m_pPSO = pipelineBuilder.Get();
     }
 
-    // ディスプレイ定数の初期化
-    {
-        m_DisplayInfo               = GetDisplayInfo();
-        shader::DisplayConstants dc = {};
-        dc.maxLuminance             = m_DisplayInfo.maxLuminance;
-        dc.minLuminance             = m_DisplayInfo.minLuminance;
-        dc.paperWhiteNits =
-            m_DisplayInfo.isHDRSupported ? 200.0f : 80.0f;  // SDRの白
-        dc.maxFullFrameLuminance = m_DisplayInfo.maxFullFrameLuminance;
-
-        if (!m_DisplayConstantsGPU.Init(
-                m_Device.GetDevice(), m_Device.CbvSrvUavPool(), dc)) {
-            MessageBoxW(nullptr, L"Failed to initialize display constants.",
-                L"Error", MB_OK);
-            return false;
-        }
-    }
-
     // ImGuiの初期化
-    if (!m_DebugUI.Init(m_Device, kUIRenderTargetFormat, m_hWnd)) {
+    if (!m_DebugUI.Init(m_Device, config::kUIBufferFormat, m_hWnd)) {
         MessageBoxW(nullptr, L"Failed to initialize ImGui.", L"Error", MB_OK);
         return false;
     }
@@ -645,9 +575,6 @@ bool Engine::InitApp() {
 }
 
 void Engine::TermApp() {
-    // ディスプレイ定数の破棄
-    m_DisplayConstantsGPU.Term();
-
     // シーンの破棄
     m_Scene.Term();
 
@@ -684,93 +611,12 @@ AssetLoadScope Engine::CreateAssetLoadScope() {
 }
 
 //=============================================
-// 内部ヘルパー
-//=============================================
-/// @brief HDR対応チェック
-DisplayInfo Engine::GetDisplayInfo() {
-    // 出力情報の初期化
-    DisplayInfo info           = {};
-    info.isHDRSupported        = false;
-    info.maxLuminance          = 80.0f;
-    info.minLuminance          = 0.0f;
-    info.maxFullFrameLuminance = 80.0f;
-
-    // スワップチェーンから現座表示されているOutputを取得
-    ComPtr<IDXGIOutput> output;
-    if (FAILED(m_SwapChain.GetSwapChain()->GetContainingOutput(
-            output.GetAddressOf()))) {
-        return info;
-    };
-    ComPtr<IDXGIOutput6> output6;
-    if (FAILED(output.As(&output6))) {
-        return info;
-    }
-
-    // ディスプレイの詳細情報を取得
-    DXGI_OUTPUT_DESC1 desc1 = {};
-    if (FAILED(output6->GetDesc1(&desc1))) {
-        return info;
-    }
-
-    info.hMonitor = desc1.Monitor;
-
-    // HDR10対応チェック
-    info.isHDRSupported =
-        (desc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
-
-    if (info.isHDRSupported) {
-        info.maxLuminance          = desc1.MaxLuminance;
-        info.minLuminance          = desc1.MinLuminance;
-        info.maxFullFrameLuminance = desc1.MaxFullFrameLuminance;
-    }
-
-    return info;
-}
-
-bool Engine::IsMonitorChanged(HWND hWnd) {
-    // 現在のモニターを取得
-    HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONULL);
-
-    if (m_DisplayInfo.hMonitor != hMonitor) {
-        return true;
-    }
-    return false;
-}
-
-//=============================================
 // イベント関数
 //=============================================
 void Engine::WindowEventAdapter::OnWindowMoved() {
-    // モニター変更チェック
-    if (m_pEngine->IsMonitorChanged(m_pEngine->m_hWnd)) {
-        // ディスプレイ情報取得
-        DisplayInfo displayInfo = m_pEngine->GetDisplayInfo();
-
-        // ディスプレイ定数の更新
-        shader::DisplayConstants dc = {};
-        dc.maxLuminance             = displayInfo.maxLuminance;
-        dc.minLuminance             = displayInfo.minLuminance;
-        dc.paperWhiteNits        = displayInfo.isHDRSupported ? 200.0f : 80.0f;
-        dc.maxFullFrameLuminance = displayInfo.maxFullFrameLuminance;
-
-        m_pEngine->m_DisplayInfo = displayInfo;
-        m_pEngine->m_DisplayConstantsGPU.Update(dc);
+    // モニター変更を検出
+    if (m_pEngine->m_Renderer.DetectMonitorChange()) {
+        m_pEngine->m_Renderer.QueryDisplayInfo();
+        m_pEngine->m_Renderer.UploadDisplayConstants();
     }
-
-    // フレームレート設定
-}
-
-void Engine::WindowEventAdapter::OnDisplayChanged() {
-    // ディスプレイ情報取得
-    DisplayInfo displayInfo = m_pEngine->GetDisplayInfo();
-
-    // ディスプレイ定数の更新
-    shader::DisplayConstants dc = {};
-    dc.maxLuminance             = displayInfo.maxLuminance;
-    dc.minLuminance             = displayInfo.minLuminance;
-    dc.paperWhiteNits           = displayInfo.isHDRSupported ? 200.0f : 80.0f;
-    dc.maxFullFrameLuminance    = displayInfo.maxFullFrameLuminance;
-
-    m_pEngine->m_DisplayInfo = displayInfo;
-    m_pEngine->m_DisplayConstantsGPU.Update(dc);
 }

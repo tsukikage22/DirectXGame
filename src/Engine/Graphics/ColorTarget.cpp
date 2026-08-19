@@ -1,5 +1,7 @@
 #include "Engine/Graphics/ColorTarget.h"
 
+#include "Engine/Core/DxDebug.h"
+
 ColorTarget::ColorTarget()
     : m_Target(), m_RTVAllocation(), m_SRVAllocation(), m_ViewDesc{} {}
 
@@ -20,13 +22,17 @@ bool ColorTarget::Init(ID3D12Device* pDevice, DescriptorPool* pPoolRTV,
     // RTVの作成
     m_RTVAllocation = pPoolRTV->Allocate();
 
-    DXGI_SWAP_CHAIN_DESC desc;
-    pSwapChain->GetDesc(&desc);
+    DXGI_SWAP_CHAIN_DESC desc = {};
+    CHECK_HR(pDevice, pSwapChain->GetDesc(&desc));
 
     m_ViewDesc.Format               = desc.BufferDesc.Format;
     m_ViewDesc.ViewDimension        = D3D12_RTV_DIMENSION_TEXTURE2D;
     m_ViewDesc.Texture2D.MipSlice   = 0;
     m_ViewDesc.Texture2D.PlaneSlice = 0;
+
+    // 幅と高さの保持
+    m_width  = desc.BufferDesc.Width;
+    m_height = desc.BufferDesc.Height;
 
     pDevice->CreateRenderTargetView(
         m_Target.GetResource(), &m_ViewDesc, m_RTVAllocation.GetCPUHandle());
@@ -83,7 +89,29 @@ bool ColorTarget::Init(ID3D12Device* pDevice, DescriptorPool* pPoolRTV,
 }
 
 void ColorTarget::Term() {
+    m_width         = 0;
+    m_height        = 0;
     m_RTVAllocation = DescriptorAllocation{};
     m_SRVAllocation = DescriptorAllocation{};
     m_Target.Term();
+}
+
+D3D12_VIEWPORT ColorTarget::MakeViewport() const {
+    D3D12_VIEWPORT viewport = {};
+    viewport.TopLeftX       = 0.0f;
+    viewport.TopLeftY       = 0.0f;
+    viewport.Width          = static_cast<float>(m_width);
+    viewport.Height         = static_cast<float>(m_height);
+    viewport.MinDepth       = 0.0f;
+    viewport.MaxDepth       = 1.0f;
+    return viewport;
+}
+
+D3D12_RECT ColorTarget::MakeScissorRect() const {
+    D3D12_RECT rect = {};
+    rect.left       = 0;
+    rect.top        = 0;
+    rect.right      = static_cast<LONG>(m_width);
+    rect.bottom     = static_cast<LONG>(m_height);
+    return rect;
 }

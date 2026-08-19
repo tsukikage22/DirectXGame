@@ -16,16 +16,14 @@
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/FrameResource.h"
 #include "Engine/Core/GraphicsDevice.h"
-#include "Engine/Core/SwapChain.h"
+#include "Engine/Core/Renderer.h"
 #include "Engine/Debug/DebugUI.h"
-#include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Input/IWindowEventListener.h"
 #include "Engine/Input/InputSystem.h"
 #include "Engine/Resource/IESProfile.h"
 #include "Engine/Resource/ModelLoader.h"
 #include "Engine/Resource/TextureManager.h"
 #include "Engine/Scene/Scene.h"
-#include "Engine/Shader/DisplayConstantsGPU.h"
 
 namespace scene_rs {
 // ルートシグネチャ内でのルートパラメータ番号
@@ -48,15 +46,6 @@ enum RootParam {
     SRV_UI      = 1,  // t0
 };
 }  // namespace ui_rs
-
-/// @brief ディスプレイ情報
-struct DisplayInfo {
-    HMONITOR hMonitor;
-    bool isHDRSupported;
-    float maxLuminance;
-    float minLuminance;
-    float maxFullFrameLuminance;
-};
 
 // 前方宣言
 class AssetLoadScope;
@@ -102,12 +91,6 @@ public:
 
 private:
     //==============================================================
-    // constants
-    //==============================================================
-    static constexpr DXGI_FORMAT kUIRenderTargetFormat =
-        DXGI_FORMAT_R8G8B8A8_UNORM;
-
-    //==============================================================
     // Inner Class
     //==============================================================
     /// @brief ウィンドウイベント用の内部クラス
@@ -117,8 +100,6 @@ private:
 
         /// @brief ウィンドウ移動時の処理
         void OnWindowMoved() override;
-
-        void OnDisplayChanged() override;
 
     private:
         Engine* m_pEngine;
@@ -132,7 +113,7 @@ private:
     engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
 
     GraphicsDevice m_Device;  // D3D12デバイスの管理クラス
-    SwapChain m_SwapChain;    // スワップチェインの管理クラス
+    Renderer m_Renderer;      // レンダラーの管理クラス
 
     FrameResource m_FrameResources[config::kFrameCount];  // フレームリソース
 
@@ -142,15 +123,12 @@ private:
 
     IESProfile m_IESProfile;  // IESプロファイル
 
-    InputSystem m_InputSystem;                  // 入力システム
-    DisplayInfo m_DisplayInfo;                  // ディスプレイ情報
-    DisplayConstantsGPU m_DisplayConstantsGPU;  // ディスプレイ定数GPU
+    InputSystem m_InputSystem;  // 入力システム
 
     HWND m_hWnd;  // ウィンドウハンドル
 
     WindowEventAdapter m_WindowEventAdapter{ this };
 
-    ColorTarget m_UIRenderTarget;  // UI用レンダーターゲット
     engine::ComPtr<ID3D12RootSignature>
         m_pUIRootSignature;                        // UI用ルートシグネチャ
     engine::ComPtr<ID3D12PipelineState> m_pUIPSO;  // UI用パイプラインステート
@@ -163,13 +141,4 @@ private:
     void TermD3D();
     bool InitApp();
     void TermApp();
-
-    //==============================================================
-    // 内部ヘルパー
-    //==============================================================
-    /// @brief HDR対応チェック
-    DisplayInfo GetDisplayInfo();
-
-    /// @brief モニター変更チェック
-    bool IsMonitorChanged(HWND hWnd);
 };
