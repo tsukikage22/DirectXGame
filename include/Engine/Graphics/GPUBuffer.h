@@ -48,4 +48,8 @@ private:
     D3D12_RESOURCE_STATES m_State = D3D12_RESOURCE_STATE_COMMON;
     bool m_IsMapped               = false;
     void* m_pMappedData           = nullptr;
+
+    // コピー禁止
+    GPUBuffer(const GPUBuffer&)            = delete;
+    GPUBuffer& operator=(const GPUBuffer&) = delete;
 };
