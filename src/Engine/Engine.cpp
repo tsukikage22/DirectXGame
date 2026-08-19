@@ -104,7 +104,7 @@ void Engine::BeginFrame() {
 
     // 4. リソースバリア(Present -> RenderTarget)の設定
     ColorTarget& backBuffer        = sc.GetBackBuffer();
-    DepthTarget& depthBuffer       = sc.GetDepthBuffer();
+    DepthTarget& depthBuffer       = m_Renderer.GetDepthBuffer();
     D3D12_RESOURCE_BARRIER barrier = {};
     barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -365,7 +365,7 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
     m_hWnd = hWnd;
 
     // Rendererの初期化
-    if (!m_Renderer.GetSwapChain().Init(m_Device, width, height, hWnd)) {
+    if (!m_Renderer.Init(m_Device, width, height, hWnd)) {
         return false;
     }
 

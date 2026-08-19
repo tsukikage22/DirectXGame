@@ -51,15 +51,6 @@ bool SwapChain::Init(GraphicsDevice& graphicsDevice, uint32_t width,
         }
     }
 
-    // 深度ステンシルバッファの生成
-    {
-        if (!m_depthTarget.Init(graphicsDevice.GetDevice(),
-                graphicsDevice.DsvPool(), width, height,
-                config::kDepthBufferFormat)) {
-            return false;
-        }
-    }
-
     // 高さと幅の設定
     m_width  = width;
     m_height = height;
@@ -78,9 +69,6 @@ void SwapChain::Term() {
     for (auto i = 0u; i < config::kFrameCount; i++) {
         m_colorTarget[i].Term();
     }
-
-    // 深度バッファの解放
-    m_depthTarget.Term();
 
     // スワップチェインの破棄
     m_pSwapChain.Reset();

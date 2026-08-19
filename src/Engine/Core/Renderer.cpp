@@ -1,10 +1,28 @@
 #include "Engine/Core/Renderer.h"
 
+#include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/GraphicsDevice.h"
 
 bool Renderer::Init(
-    GraphicsDevice& device, HWND hWnd, uint32_t width, uint32_t height) {
-    return m_SwapChain.Init(device, width, height, hWnd);
+    GraphicsDevice& device, uint32_t width, uint32_t height, HWND hWnd) {
+    // スワップチェインの生成
+    if (!m_swapChain.Init(device, width, height, hWnd)) {
+        return false;
+    }
+
+    // 深度バッファの生成
+    if (!m_depthTarget.Init(device.GetDevice(), device.DsvPool(), width, height,
+            config::kDepthBufferFormat)) {
+        return false;
+    }
+
+    return true;
 }
 
-void Renderer::Term() { m_SwapChain.Term(); }
+void Renderer::Term() {
+    // 深度バッファの終了処理
+    m_depthTarget.Term();
+
+    // スワップチェインの終了処理
+    m_swapChain.Term();
+}
