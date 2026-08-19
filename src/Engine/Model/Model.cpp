@@ -1,13 +1,16 @@
 #include "Engine/Model/Model.h"
 
-bool Model::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV_SRV_UAV,
+#include "Engine/Core/GraphicsDevice.h"
+
+bool Model::Init(GraphicsDevice& graphicsDevice,
     TextureManager* pTextureManager, DirectX::ResourceUploadBatch& batch,
     const ModelAsset& modelAsset) {
     // 引数チェック
-    if (!pDevice || !pPoolCBV_SRV_UAV || !pTextureManager ||
-        !modelAsset.IsValid()) {
+    if (!pTextureManager || !modelAsset.IsValid()) {
         return false;
     }
+
+    ID3D12Device* pDevice = graphicsDevice.GetDevice();
 
     // メッシュをGPUに転送
     m_meshes.resize(modelAsset.meshes.size());
@@ -22,11 +25,8 @@ bool Model::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV_SRV_UAV,
     m_materials.resize(modelAsset.materials.size());
     for (size_t i = 0; i < modelAsset.materials.size(); i++) {
         m_materials[i] = std::make_unique<MaterialGPU>();
-        if (!m_materials[i]->Init(pDevice,
-                pPoolCBV_SRV_UAV,  // CBV用（定数バッファ）
-                pPoolCBV_SRV_UAV,  // SRV用（テクスチャコピー先）
-                pTextureManager,   // テクスチャソース
-                modelAsset.materials[i])) {
+        if (!m_materials[i]->Init(
+                graphicsDevice, pTextureManager, modelAsset.materials[i])) {
             return false;
         }
     }

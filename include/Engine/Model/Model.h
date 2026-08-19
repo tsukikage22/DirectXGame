@@ -2,13 +2,13 @@
 /// @brief MeshとMaterialのリソース管理
 #pragma once
 
-#include <d3d12.h>
-
 #include <memory>
 #include <vector>
 
 #include "Engine/Model/MaterialGPU.h"
 #include "Engine/Model/MeshGPU.h"
+
+class GraphicsDevice;
 
 class Model {
 public:
@@ -16,9 +16,8 @@ public:
     ~Model() = default;
 
     /// @brief 初期化，ModelAssetからGPUリソースを作成
-    bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV_SRV_UAV,
-        TextureManager* pTextureManager, DirectX::ResourceUploadBatch& batch,
-        const ModelAsset& modelAsset);
+    bool Init(GraphicsDevice& graphicsDevice, TextureManager* pTextureManager,
+        DirectX::ResourceUploadBatch& batch, const ModelAsset& modelAsset);
 
     /// @brief リソースの破棄
     void Term();

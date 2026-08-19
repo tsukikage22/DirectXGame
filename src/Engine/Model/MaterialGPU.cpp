@@ -1,5 +1,7 @@
 #include "Engine/Model/MaterialGPU.h"
 
+#include "Engine/Core/GraphicsDevice.h"
+
 MaterialGPU::MaterialGPU()
     : m_constantBuffer(),
       m_pTextureManager(nullptr),
@@ -19,19 +21,18 @@ MaterialGPU::MaterialGPU()
 MaterialGPU::~MaterialGPU() { Term(); }
 
 // 初期化処理，MaterialAssetからGPUリソースを作成
-bool MaterialGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
-    DescriptorPool* pPoolSRV, TextureManager* pTextureManager,
-    const MaterialAsset& materialAsset) {
+bool MaterialGPU::Init(GraphicsDevice& graphicsDevice,
+    TextureManager* pTextureManager, const MaterialAsset& materialAsset) {
     // 引数チェック
-    if (pDevice == nullptr || pPoolCBV == nullptr || pPoolSRV == nullptr ||
-        pTextureManager == nullptr) {
+    if (!pTextureManager) {
         return false;
     }
 
     m_pTextureManager = pTextureManager;
 
     // 定数バッファの作成
-    if (!m_constantBuffer.Init<shader::MaterialConstants>(pDevice, pPoolCBV)) {
+    if (!m_constantBuffer.Init<shader::MaterialConstants>(
+            graphicsDevice.GetDevice(), graphicsDevice.CbvSrvUavPool())) {
         return false;
     }
 
@@ -63,7 +64,8 @@ bool MaterialGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
     }
 
     // SRVテーブルの初期化
-    if (!m_srvTable.Init(pDevice, pPoolSRV, this, pTextureManager)) {
+    if (!m_srvTable.Init(graphicsDevice.GetDevice(),
+            graphicsDevice.CbvSrvUavPool(), this, pTextureManager)) {
         return false;
     }
 

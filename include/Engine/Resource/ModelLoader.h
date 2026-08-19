@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <d3d12.h>
-
 #include <filesystem>
 #include <memory>
 
@@ -12,7 +10,6 @@
 #include "directxtk12/ResourceUploadBatch.h"
 
 // 前方宣言
-class DescriptorPool;
 class TextureManager;
 class GraphicsDevice;
 
@@ -29,7 +26,6 @@ public:
         const std::filesystem::path& path, DirectX::ResourceUploadBatch& batch);
 
 private:
-    ID3D12Device* m_pDevice           = nullptr;
-    DescriptorPool* m_pPoolCBV        = nullptr;
+    GraphicsDevice* m_pGraphicsDevice = nullptr;
     TextureManager* m_pTextureManager = nullptr;
 };
