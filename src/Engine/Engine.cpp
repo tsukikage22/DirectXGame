@@ -66,6 +66,9 @@ bool Engine::Initialize(HWND hWnd, uint32_t width, uint32_t height) {
         return false;
     }
 
+    // 描画領域の大きさに合わせてカメラのアスペクト比を設定
+    ApplyRenderSize(width, height);
+
     return true;
 }
 
@@ -323,9 +326,6 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
     if (!m_Renderer.Init(m_Device, width, height, hWnd)) {
         return false;
     }
-
-    // 描画領域の大きさに合わせてカメラのアスペクト比を設定
-    ApplyRenderSize(width, height);
 
     return true;
 }
@@ -638,11 +638,11 @@ void Engine::WindowEventAdapter::OnWindowMoved() {
 void Engine::WindowEventAdapter::OnWindowResized(
     uint32_t width, uint32_t height) {
     // ウィンドウサイズ変更時の処理
-    m_pEngine->m_Renderer.ResizeBuffers(m_pEngine->m_Device, width, height);
-    m_pEngine->ApplyRenderSize(width, height);
+    if (!m_pEngine->m_Renderer.ResizeBuffers(
+            m_pEngine->m_Device, width, height)) {
+        OutputDebugStringW(L"Failed to resize render targets.\n");
+        return;
+    }
 
-    // デバッグ表示
-    wchar_t buffer[256];
-    swprintf(buffer, 256, L"Window resized. %d, %d\n", width, height);
-    OutputDebugString(buffer);
+    m_pEngine->ApplyRenderSize(width, height);
 }
