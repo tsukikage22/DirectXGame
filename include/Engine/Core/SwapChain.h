@@ -41,12 +41,6 @@ public:
         WaitForSingleObject(m_frameLatencyWaitableObject, timeout);
     }
 
-    /// @return ビューポートの作成
-    D3D12_VIEWPORT MakeViewport() const;
-
-    /// @return シザー矩形の作成
-    D3D12_RECT MakeScissorRect() const;
-
     /// @brief スワップチェインの取得
     IDXGISwapChain3* GetSwapChain() { return m_pSwapChain.Get(); }
 
@@ -63,9 +57,6 @@ private:
         nullptr;  // フレームレイテンシ待機オブジェクト
 
     ColorTarget m_colorTarget[config::kFrameCount];  // バックバッファ
-
-    uint32_t m_width  = 0;  // バックバッファの幅
-    uint32_t m_height = 0;  // バックバッファの高さ
 
     // コピー禁止
     SwapChain(const SwapChain&)            = delete;

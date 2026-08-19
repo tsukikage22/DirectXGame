@@ -37,10 +37,16 @@ bool DepthTarget::Init(ID3D12Device* pDevice, DescriptorPool* pPoolDSV,
     pDevice->CreateDepthStencilView(
         m_Target.GetResource(), &m_ViewDesc, m_DSVAllocation.GetCPUHandle());
 
+    // 幅と高さの保持
+    m_width  = width;
+    m_height = height;
+
     return true;
 }
 
 void DepthTarget::Term() {
+    m_width  = 0;
+    m_height = 0;
     m_Target.Term();
     m_DSVAllocation = DescriptorAllocation{};
     m_pPoolDSV      = nullptr;

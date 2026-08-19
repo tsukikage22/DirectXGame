@@ -40,11 +40,17 @@ public:
         return m_DSVAllocation.GetGPUHandle();
     }
 
+    uint32_t GetWidth() const { return m_width; }
+    uint32_t GetHeight() const { return m_height; }
+
 private:
     TextureResource m_Target;                  // リソース
     DescriptorPool* m_pPoolDSV;                // ディスクリプタプール
     DescriptorAllocation m_DSVAllocation;      // DSVのディスクリプタ
     D3D12_DEPTH_STENCIL_VIEW_DESC m_ViewDesc;  // DSVのディスクリプタ
+
+    uint32_t m_width  = 0;  // 幅
+    uint32_t m_height = 0;  // 高さ
 
     DepthTarget(const DepthTarget&)    = delete;
     void operator=(const DepthTarget&) = delete;

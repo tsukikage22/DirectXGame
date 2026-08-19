@@ -51,10 +51,6 @@ bool SwapChain::Init(GraphicsDevice& graphicsDevice, uint32_t width,
         }
     }
 
-    // 高さと幅の設定
-    m_width  = width;
-    m_height = height;
-
     return true;
 }
 
@@ -80,28 +76,4 @@ void SwapChain::Present() {
 
     // バックバッファ番号を更新
     m_frameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
-}
-
-D3D12_VIEWPORT SwapChain::MakeViewport() const {
-    D3D12_VIEWPORT viewport = {};
-
-    viewport.TopLeftX = 0.0f;
-    viewport.TopLeftY = 0.0f;
-    viewport.Width    = static_cast<float>(m_width);
-    viewport.Height   = static_cast<float>(m_height);
-    viewport.MinDepth = 0.0f;
-    viewport.MaxDepth = 1.0f;
-
-    return viewport;
-}
-
-D3D12_RECT SwapChain::MakeScissorRect() const {
-    D3D12_RECT scissorRect = {};
-
-    scissorRect.left   = 0;
-    scissorRect.top    = 0;
-    scissorRect.right  = m_width;
-    scissorRect.bottom = m_height;
-
-    return scissorRect;
 }

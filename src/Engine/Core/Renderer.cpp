@@ -11,6 +11,8 @@ bool Renderer::Init(
     }
 
     // 深度バッファの生成
+    // 将来的にジオメトリパスのターゲットがバックバッファと一致しなくなった場合は，
+    // ここで幅と高さをジオメトリパスのRTの幅と高さに合わせる必要がある
     if (!m_depthTarget.Init(device.GetDevice(), device.DsvPool(), width, height,
             config::kDepthBufferFormat)) {
         return false;

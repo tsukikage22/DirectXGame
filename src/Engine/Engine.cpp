@@ -127,8 +127,8 @@ void Engine::BeginFrame() {
         dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
     // ビューポートの設定
-    auto viewport    = sc.MakeViewport();
-    auto scissorRect = sc.MakeScissorRect();
+    auto viewport    = sc.GetBackBuffer().MakeViewport();
+    auto scissorRect = sc.GetBackBuffer().MakeScissorRect();
     m_pCmdList->RSSetViewports(1, &viewport);
     m_pCmdList->RSSetScissorRects(1, &scissorRect);
 
@@ -294,9 +294,11 @@ void Engine::Render() {
             ui_rs::RootParam::SRV_UI, m_UIRenderTarget.GetSRVGPUHandle());
 
         // ビューポートの設定
-        auto viewport = m_Renderer.GetSwapChain().MakeViewport();
+        auto viewport =
+            m_Renderer.GetSwapChain().GetBackBuffer().MakeViewport();
         m_pCmdList->RSSetViewports(1, &viewport);
-        auto scissorRect = m_Renderer.GetSwapChain().MakeScissorRect();
+        auto scissorRect =
+            m_Renderer.GetSwapChain().GetBackBuffer().MakeScissorRect();
         m_pCmdList->RSSetScissorRects(1, &scissorRect);
 
         // 描画
