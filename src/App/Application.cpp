@@ -79,6 +79,11 @@ void Application::MainLoop() {
         m_Game.Tick(m_deltaTime);
 
         // 5. 描画処理
+        // 最小化中は描画処理をスキップする
+        if (m_Window.IsMinimized()) {
+            continue;
+        }
+
         // フレーム開始
         m_Engine.BeginFrame();
 

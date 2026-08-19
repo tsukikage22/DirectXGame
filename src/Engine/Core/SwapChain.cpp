@@ -43,7 +43,7 @@ bool SwapChain::Init(GraphicsDevice& graphicsDevice, uint32_t width,
 
     pSwapChain.Reset();
 
-    // RTVの生成
+    // バックバッファの生成
     for (auto i = 0u; i < config::kFrameCount; i++) {
         if (!m_colorTarget[i].Init(graphicsDevice.GetDevice(),
                 graphicsDevice.RtvPool(), i, m_pSwapChain.Get())) {
@@ -76,4 +76,34 @@ void SwapChain::Present() {
 
     // バックバッファ番号を更新
     m_frameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
+}
+
+bool SwapChain::Resize(
+    GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height) {
+    // バックバッファの解放
+    for (auto i = 0u; i < config::kFrameCount; i++) {
+        m_colorTarget[i].Term();
+    }
+
+    // スワップチェインのリサイズ
+    auto hr = m_pSwapChain.Get()->ResizeBuffers(config::kFrameCount, width,
+        height, config::kBackBufferFormat,
+        DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT);
+    if (FAILED(hr)) {
+        OutputDebugStringW(L"Failed to resize swap chain buffers.\n");
+        return false;
+    }
+
+    // バックバッファの再生成
+    for (auto i = 0u; i < config::kFrameCount; i++) {
+        if (!m_colorTarget[i].Init(graphicsDevice.GetDevice(),
+                graphicsDevice.RtvPool(), i, m_pSwapChain.Get())) {
+            return false;
+        }
+    }
+
+    // frameIndexの更新
+    m_frameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
+
+    return true;
 }

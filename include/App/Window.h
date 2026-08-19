@@ -33,6 +33,8 @@ public:
         m_windowEventListener = listener;
     }
 
+    bool IsMinimized() const { return m_isMinimized; }
+
 private:
     /// @brief リサイズをイベントリスナーに通知する
     void NotifyResize();

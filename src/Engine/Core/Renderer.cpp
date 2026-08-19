@@ -145,7 +145,7 @@ bool Renderer::DetectMonitorChange() {
     return (hMonitor != m_displayInfo.hMonitor);
 }
 
-/// @brief ディスプレイ情報の更新
+// ディスプレイ情報の更新
 void Renderer::QueryDisplayInfo() {
     // 出力情報の初期化
     DisplayInfo info           = {};
@@ -189,11 +189,46 @@ void Renderer::QueryDisplayInfo() {
     m_displayInfo = info;
 }
 
-/// @brief ディスプレイCBの更新
+// ディスプレイCBの更新
 void Renderer::UploadDisplayConstants() {
     // ディスプレイ定数の作成
     shader::DisplayConstants dc = MakeDisplayConstants(m_displayInfo);
 
     // ディスプレイCBの更新
     m_displayConstantsGPU.Update(dc);
+}
+
+bool Renderer::ResizeBuffers(
+    GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height) {
+    // サイズ確認
+    ColorTarget& backBuffer = m_swapChain.GetBackBuffer();
+    if (backBuffer.GetWidth() == width && backBuffer.GetHeight() == height) {
+        return true;
+    }
+
+    // フェンス待機
+    graphicsDevice.WaitForGPU();
+
+    // スワップチェインのリサイズ
+    if (!m_swapChain.Resize(graphicsDevice, width, height)) {
+        return false;
+    }
+
+    // 深度バッファのリサイズ（再生成）
+    m_depthTarget.Term();
+    if (!m_depthTarget.Init(graphicsDevice.GetDevice(),
+            graphicsDevice.DsvPool(), width, height,
+            config::kDepthBufferFormat)) {
+        return false;
+    }
+
+    // UI用レンダーターゲットのリサイズ（再生成）
+    m_uiTarget.Term();
+    if (!m_uiTarget.Init(graphicsDevice.GetDevice(), graphicsDevice.RtvPool(),
+            graphicsDevice.CbvSrvUavPool(), width, height,
+            config::kUIBufferFormat)) {
+        return false;
+    }
+
+    return true;
 }

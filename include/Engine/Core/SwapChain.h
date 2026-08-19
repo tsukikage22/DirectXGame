@@ -35,6 +35,13 @@ public:
     /// @brief 画面表示
     void Present();
 
+    /// @brief バックバッファのリサイズ
+    /// @param graphicsDevice グラフィックスデバイス
+    /// @param width 幅
+    /// @param height 高さ
+    bool Resize(
+        GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height);
+
     /// @brief フレームレイテンシ待機オブジェクトを待機する
     /// @param timeout タイムアウト時間（ミリ秒）
     void WaitForFrameLatency(DWORD timeout = 1000) {

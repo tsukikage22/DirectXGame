@@ -624,6 +624,9 @@ void Engine::WindowEventAdapter::OnWindowMoved() {
 void Engine::WindowEventAdapter::OnWindowResized(
     uint32_t width, uint32_t height) {
     // ウィンドウサイズ変更時の処理
+    m_pEngine->m_Renderer.ResizeBuffers(m_pEngine->m_Device, width, height);
+
+    // デバッグ表示
     wchar_t buffer[256];
     swprintf(buffer, 256, L"Window resized. %d, %d\n", width, height);
     OutputDebugString(buffer);
