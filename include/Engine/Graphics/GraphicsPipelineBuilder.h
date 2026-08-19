@@ -1,5 +1,7 @@
-/// @file Pipeline.h
+/// @file GraphicsPipelineBuilder.h
 /// @brief ルートシグニチャとPSO
+
+#pragma once
 
 #include <d3d12.h>
 
