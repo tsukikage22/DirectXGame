@@ -66,6 +66,9 @@ bool Engine::Initialize(HWND hWnd, uint32_t width, uint32_t height) {
         return false;
     }
 
+    // 描画領域の大きさに合わせてカメラのアスペクト比を設定
+    ApplyRenderSize(width, height);
+
     return true;
 }
 
@@ -599,6 +602,17 @@ void Engine::TermApp() {
     m_pCmdList.Reset();
 }
 
+void Engine::ApplyRenderSize(uint32_t width, uint32_t height) {
+    // 0除算の回避
+    if (height == 0) {
+        return;
+    }
+
+    // カメラのアスペクト比を更新
+    m_Scene.GetCamera().SetAspect(
+        static_cast<float>(width) / static_cast<float>(height));
+}
+
 AssetLoadScope Engine::CreateAssetLoadScope() {
     // ResourceUploadBatchのBegin
     auto batch =
@@ -619,4 +633,16 @@ void Engine::WindowEventAdapter::OnWindowMoved() {
         m_pEngine->m_Renderer.QueryDisplayInfo();
         m_pEngine->m_Renderer.UploadDisplayConstants();
     }
+}
+
+void Engine::WindowEventAdapter::OnWindowResized(
+    uint32_t width, uint32_t height) {
+    // ウィンドウサイズ変更時の処理
+    if (!m_pEngine->m_Renderer.ResizeBuffers(
+            m_pEngine->m_Device, width, height)) {
+        OutputDebugStringW(L"Failed to resize render targets.\n");
+        return;
+    }
+
+    m_pEngine->ApplyRenderSize(width, height);
 }

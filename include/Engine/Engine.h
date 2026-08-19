@@ -101,6 +101,9 @@ private:
         /// @brief ウィンドウ移動時の処理
         void OnWindowMoved() override;
 
+        /// @brief ウィンドウサイズ変更時の処理
+        void OnWindowResized(uint32_t width, uint32_t height) override;
+
     private:
         Engine* m_pEngine;
     };
@@ -141,4 +144,7 @@ private:
     void TermD3D();
     bool InitApp();
     void TermApp();
+
+    /// @brief 描画領域の大きさに合わせてカメラのアスペクト比を更新する
+    void ApplyRenderSize(uint32_t width, uint32_t height);
 };

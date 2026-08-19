@@ -59,6 +59,13 @@ public:
     /// @brief ディスプレイCBの更新
     void UploadDisplayConstants();
 
+    /// @brief バックバッファと深度バッファ，UI用RTのリサイズ
+    /// @param device グラフィックスデバイス
+    /// @param width 幅
+    /// @param height 高さ
+    bool ResizeBuffers(
+        GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height);
+
     //==========================================================
     // アクセサ
     //==========================================================

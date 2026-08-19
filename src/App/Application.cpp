@@ -33,6 +33,9 @@ bool Application::Init() {
     // InputSystemの登録
     m_Window.SetInputReceiver(&m_Engine.GetInputSystem());
 
+    // WindowEventListenerの登録
+    m_Window.SetWindowEventListener(&m_Engine.GetWindowEventListener());
+
     // ゲームロジックの初期化
     m_Game.Init(&m_Engine);
 
@@ -76,6 +79,16 @@ void Application::MainLoop() {
         m_Game.Tick(m_deltaTime);
 
         // 5. 描画処理
+        // 最小化中は描画処理をスキップする
+        if (m_Window.IsMinimized()) {
+            // 最小化中はCPU使用率を下げるために待機する
+            // QS_ALLINPUT：あらゆる入力/メッセージで反応
+            MsgWaitForMultipleObjectsEx(
+                0, nullptr, 100, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
+
+            continue;
+        }
+
         // フレーム開始
         m_Engine.BeginFrame();
 
