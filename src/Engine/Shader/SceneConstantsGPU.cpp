@@ -35,7 +35,7 @@ bool SceneConstantsGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV) {
     DirectX::XMStoreFloat4x4(&sc.view, viewT);
 
     // projection行列の初期化
-    DirectX::XMMATRIX projMatrix = DirectX::XMMatrixPerspectiveFovRH(
+    DirectX::XMMATRIX projMatrix = DirectX::XMMatrixPerspectiveFovLH(
         DirectX::XMConvertToRadians(45.0f), 16.0f / 9.0f, 1.0f, 1000.0f);
     DirectX::XMMATRIX projT = DirectX::XMMatrixTranspose(projMatrix);
     DirectX::XMStoreFloat4x4(&sc.projection, projT);
