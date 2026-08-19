@@ -72,10 +72,16 @@ bool MeshGPU::Init(ID3D12Device* pDevice, DirectX::ResourceUploadBatch& batch,
 
 // 終了処理，リソースの解放
 void MeshGPU::Term() {
-    m_pVB->Term();
-    m_pIB->Term();
-    m_pVB.reset();
-    m_pIB.reset();
+    if (m_pVB) {
+        m_pVB->Term();
+        m_pVB.reset();
+    }
+    if (m_pIB) {
+        m_pIB->Term();
+        m_pIB.reset();
+    }
+    m_MaterialID = 0;
+    m_IndexCount = 0;
 }
 
 void MeshGPU::DiscardUpload() {
