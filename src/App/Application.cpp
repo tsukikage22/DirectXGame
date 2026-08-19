@@ -81,6 +81,11 @@ void Application::MainLoop() {
         // 5. 描画処理
         // 最小化中は描画処理をスキップする
         if (m_Window.IsMinimized()) {
+            // 最小化中はCPU使用率を下げるために待機する
+            // QS_ALLINPUT：あらゆる入力/メッセージで反応
+            MsgWaitForMultipleObjectsEx(
+                0, nullptr, 100, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
+
             continue;
         }
 
