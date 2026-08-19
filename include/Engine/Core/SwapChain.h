@@ -23,7 +23,6 @@ public:
 
     /// @brief スワップチェインの生成
     /// @param graphicsDevice GraphicsDeviceオブジェクト
-    /// @param format バックバッファのフォーマット
     /// @param width バックバッファの幅
     /// @param height バックバッファの高さ
     /// @param hWnd ウィンドウハンドル
@@ -60,11 +59,6 @@ public:
     DepthTarget& GetDepthBuffer() { return m_depthTarget; }
 
 private:
-    // バックバッファと深度バッファのフォーマット
-    static constexpr DXGI_FORMAT kBackBufferFormat =
-        DXGI_FORMAT_R16G16B16A16_FLOAT;
-    static constexpr DXGI_FORMAT kDepthBufferFormat = DXGI_FORMAT_D32_FLOAT;
-
     engine::ComPtr<IDXGISwapChain3> m_pSwapChain;  // スワップチェイン
     uint32_t m_frameIndex = 0;                     // 現在のフレーム番号
     HANDLE m_frameLatencyWaitableObject =

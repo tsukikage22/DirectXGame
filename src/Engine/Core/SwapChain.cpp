@@ -9,7 +9,7 @@ bool SwapChain::Init(GraphicsDevice& graphicsDevice, uint32_t width,
     DXGI_SWAP_CHAIN_DESC1 desc = {};
     desc.Width                 = width;
     desc.Height                = height;
-    desc.Format                = kBackBufferFormat;
+    desc.Format                = config::kBackBufferFormat;
     desc.Stereo                = FALSE;
     desc.SampleDesc.Count      = 1;
     desc.SampleDesc.Quality    = 0;
@@ -54,7 +54,8 @@ bool SwapChain::Init(GraphicsDevice& graphicsDevice, uint32_t width,
     // 深度ステンシルバッファの生成
     {
         if (!m_depthTarget.Init(graphicsDevice.GetDevice(),
-                graphicsDevice.DsvPool(), width, height, kDepthBufferFormat)) {
+                graphicsDevice.DsvPool(), width, height,
+                config::kDepthBufferFormat)) {
             return false;
         }
     }
