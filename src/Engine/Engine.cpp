@@ -84,13 +84,11 @@ void Engine::Shutdown() {
 
 // フェンス待機・コマンドリスト/アロケータのリセット
 void Engine::BeginFrame() {
-    SwapChain& sc = m_Renderer.GetSwapChain();
-
     // 1. DXGIフレームペーシング
-    sc.WaitForFrameLatency();
+    m_Renderer.WaitFrameLatency();
 
     // 2. フェンス同期
-    uint32_t frameIndex = sc.GetFrameIndex();
+    uint32_t frameIndex = m_Renderer.GetFrameIndex();
     uint64_t fenceValue = m_FrameResources[frameIndex].GetFenceValue();
     // 初回フレーム（fencevalue == 0）の場合は待機をスキップ
     if (fenceValue != 0) {
@@ -102,43 +100,18 @@ void Engine::BeginFrame() {
     // 3. コマンドリスト/アロケータのリセット
     m_FrameResources[frameIndex].BeginFrame(m_pCmdList.Get());
 
-    // 4. リソースバリア(Present -> RenderTarget)の設定
-    ColorTarget& backBuffer        = sc.GetBackBuffer();
-    DepthTarget& depthBuffer       = m_Renderer.GetDepthBuffer();
-    D3D12_RESOURCE_BARRIER barrier = {};
-    barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-    barrier.Transition.pResource   = backBuffer.GetResource();
-    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-    barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-    barrier.Transition.StateAfter  = D3D12_RESOURCE_STATE_RENDER_TARGET;
-    m_pCmdList->ResourceBarrier(1, &barrier);
+    // リソースバリア(Present -> RenderTarget)の設定と
+    // レンダーターゲットの設定・クリア
+    m_Renderer.BeginFrame(m_pCmdList.Get());
 
-    // 5. レンダーターゲットとビューポートの設定・クリア
-    // レンダーターゲットの設定
-    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = backBuffer.GetRTVCPUHandle();
-    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = depthBuffer.GetCPUHandle();
-    BeginPass(m_pCmdList.Get(), kGeometryLayout, &rtvHandle, &dsvHandle);
-
-    // レンダーターゲットのクリア
-    const float clearColor[] = { 0.25f, 0.25f, 0.25f, 1.0f };
-    m_pCmdList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-    m_pCmdList->ClearDepthStencilView(
-        dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-
-    // ビューポートの設定
-    auto viewport    = sc.GetBackBuffer().MakeViewport();
-    auto scissorRect = sc.GetBackBuffer().MakeScissorRect();
-    m_pCmdList->RSSetViewports(1, &viewport);
-    m_pCmdList->RSSetScissorRects(1, &scissorRect);
-
+    // デバッグUIの描画開始
     m_DebugUI.BeginFrame(m_InputSystem, m_Scene.GetCamera(), m_Scene);
 }
 
 // ゲームロジック・シーン定数・transform更新
 // GPUバッファへの書き込み
 void Engine::Update() {
-    uint32_t frameIndex = m_Renderer.GetSwapChain().GetFrameIndex();
+    uint32_t frameIndex = m_Renderer.GetFrameIndex();
 
     // 定数バッファの中身(行列やマテリアル情報)の更新
     // シーン内の全ゲームオブジェクトのtransformを更新
@@ -183,7 +156,7 @@ void Engine::Update() {
 
 // 描画コマンドの記録
 void Engine::Render() {
-    uint32_t frameIndex = m_Renderer.GetSwapChain().GetFrameIndex();
+    uint32_t frameIndex = m_Renderer.GetFrameIndex();
 
     // シーン描画処理
     {
@@ -271,10 +244,8 @@ void Engine::Render() {
 
     // シーン描画とUI描画の合成
     {
-        // レンダーターゲットの設定
-        auto rtvHandle =
-            m_Renderer.GetSwapChain().GetBackBuffer().GetRTVCPUHandle();
-        BeginPass(m_pCmdList.Get(), kCompositeLayout, &rtvHandle, nullptr);
+        // レンダーターゲットとビューポートの設定
+        m_Renderer.BeginCompositePass(m_pCmdList.Get());
 
         // ルートシグネチャとパイプラインステートの設定
         m_pCmdList->SetGraphicsRootSignature(m_pUIRootSignature.Get());
@@ -293,14 +264,6 @@ void Engine::Render() {
         m_pCmdList->SetGraphicsRootDescriptorTable(ui_rs::RootParam::SRV_UI,
             m_Renderer.GetUITarget().GetSRVGPUHandle());
 
-        // ビューポートの設定
-        auto viewport =
-            m_Renderer.GetSwapChain().GetBackBuffer().MakeViewport();
-        m_pCmdList->RSSetViewports(1, &viewport);
-        auto scissorRect =
-            m_Renderer.GetSwapChain().GetBackBuffer().MakeScissorRect();
-        m_pCmdList->RSSetScissorRects(1, &scissorRect);
-
         // 描画
         m_pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         m_pCmdList->DrawInstanced(3, 1, 0, 0);  // フルスクリーン三角形を描画
@@ -310,18 +273,8 @@ void Engine::Render() {
 // コマンドリスト実行，フェンス発行
 // 描画コマンドの実行
 void Engine::EndFrame() {
-    uint32_t frameIndex = m_Renderer.GetSwapChain().GetFrameIndex();
-
     // 1. リソースバリアの設定
-    D3D12_RESOURCE_BARRIER barrier = {};
-    barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-    barrier.Transition.pResource =
-        m_Renderer.GetSwapChain().GetBackBuffer().GetResource();
-    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-    barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-    barrier.Transition.StateAfter  = D3D12_RESOURCE_STATE_PRESENT;
-    m_pCmdList->ResourceBarrier(1, &barrier);
+    m_Renderer.EndFrame(m_pCmdList.Get());
 
     // 2. コマンドリストのクローズ
     m_pCmdList->Close();
@@ -335,6 +288,7 @@ void Engine::EndFrame() {
     UINT64 fenceValue = m_Device.GetCommandQueue().Signal();
 
     // 5. フェンス値の保存
+    uint32_t frameIndex = m_Renderer.GetFrameIndex();
     m_FrameResources[frameIndex].EndFrame(fenceValue);
 }
 
@@ -342,7 +296,7 @@ void Engine::EndFrame() {
 // 結果の表示
 void Engine::Present() {
     // 画面表示
-    m_Renderer.GetSwapChain().Present();
+    m_Renderer.Present();
 }
 
 //==============================================
@@ -400,7 +354,7 @@ bool Engine::InitApp() {
         CHECK_HR(m_Device.GetDevice(),
             m_Device.GetDevice()->CreateCommandList(0,
                 D3D12_COMMAND_LIST_TYPE_DIRECT,
-                m_FrameResources[m_Renderer.GetSwapChain().GetFrameIndex()]
+                m_FrameResources[m_Renderer.GetFrameIndex()]
                     .GetCommandAllocator(),
                 nullptr, IID_PPV_ARGS(m_pCmdList.GetAddressOf())));
         m_pCmdList->Close();
