@@ -94,7 +94,7 @@ void SwapChain::Present() {
     m_frameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
 }
 
-D3D12_VIEWPORT SwapChain::MakeViewport() {
+D3D12_VIEWPORT SwapChain::MakeViewport() const {
     D3D12_VIEWPORT viewport = {};
 
     viewport.TopLeftX = 0.0f;
@@ -107,7 +107,7 @@ D3D12_VIEWPORT SwapChain::MakeViewport() {
     return viewport;
 }
 
-D3D12_RECT SwapChain::MakeScissorRect() {
+D3D12_RECT SwapChain::MakeScissorRect() const {
     D3D12_RECT scissorRect = {};
 
     scissorRect.left   = 0;

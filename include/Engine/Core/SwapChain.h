@@ -42,9 +42,11 @@ public:
         WaitForSingleObject(m_frameLatencyWaitableObject, timeout);
     }
 
-    D3D12_VIEWPORT MakeViewport();
+    /// @return ビューポートの作成
+    D3D12_VIEWPORT MakeViewport() const;
 
-    D3D12_RECT MakeScissorRect();
+    /// @return シザー矩形の作成
+    D3D12_RECT MakeScissorRect() const;
 
     /// @brief スワップチェインの取得
     IDXGISwapChain3* GetSwapChain() { return m_pSwapChain.Get(); }

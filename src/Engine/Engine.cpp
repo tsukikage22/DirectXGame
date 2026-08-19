@@ -9,6 +9,7 @@
 #include "Engine/Engine.h"
 
 #include <d3dcompiler.h>
+#include <dxgi1_6.h>
 
 #include <array>
 #include <cstdint>

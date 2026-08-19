@@ -11,7 +11,6 @@
 #define NOMINMAX
 #include <Windows.h>
 #include <d3d12.h>
-#include <dxgi1_6.h>
 
 #include "Engine/Core/ComPtr.h"
 #include "Engine/Core/EngineConfig.h"
@@ -20,7 +19,6 @@
 #include "Engine/Core/SwapChain.h"
 #include "Engine/Debug/DebugUI.h"
 #include "Engine/Graphics/ColorTarget.h"
-#include "Engine/Graphics/DepthTarget.h"
 #include "Engine/Input/IWindowEventListener.h"
 #include "Engine/Input/InputSystem.h"
 #include "Engine/Resource/IESProfile.h"
