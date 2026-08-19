@@ -27,7 +27,7 @@ public:
         m_inputReceiver = receiver;
     }
 
-    void setWindowEventListener(IWindowEventListener* listener) {
+    void SetWindowEventListener(IWindowEventListener* listener) {
         m_windowEventListener = listener;
     }
 

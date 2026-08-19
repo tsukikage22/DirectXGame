@@ -33,6 +33,9 @@ bool Application::Init() {
     // InputSystemの登録
     m_Window.SetInputReceiver(&m_Engine.GetInputSystem());
 
+    // WindowEventListenerの登録
+    m_Window.SetWindowEventListener(&m_Engine.GetWindowEventListener());
+
     // ゲームロジックの初期化
     m_Game.Init(&m_Engine);
 
