@@ -471,8 +471,7 @@ void Engine::TermD3D() {
 bool Engine::InitApp() {
     // フレームリソースの初期化
     for (int i = 0; i < config::kFrameCount; i++) {
-        if (!m_FrameResources[i].Init(
-                m_Device.GetDevice(), m_Device.CbvSrvUavPool())) {
+        if (!m_FrameResources[i].Init(m_Device)) {
             return false;
         }
     }
@@ -654,9 +653,7 @@ bool Engine::InitApp() {
     }
 
     // ImGuiの初期化
-    if (!m_DebugUI.Init(m_Device.GetDevice(),
-            m_Device.GetCommandQueue().GetD3DQueue(), kUIRenderTargetFormat,
-            m_Device.CbvSrvUavPool(), m_hWnd)) {
+    if (!m_DebugUI.Init(m_Device, kUIRenderTargetFormat, m_hWnd)) {
         MessageBoxW(nullptr, L"Failed to initialize ImGui.", L"Error", MB_OK);
         return false;
     }

@@ -2,7 +2,9 @@
 
 #include <cmath>
 
+#include "Engine/Core/DescriptorPool.h"
 #include "Engine/Core/EngineConfig.h"
+#include "Engine/Core/GraphicsDevice.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
 #include "Engine/Input/InputSystem.h"
@@ -142,8 +144,8 @@ void DrawLightSpotAngleEditor(Light& light) {
 }  // namespace
 
 // ImGuiの初期化
-bool DebugUI::Init(ID3D12Device* pDevice, ID3D12CommandQueue* pCommandQueue,
-    DXGI_FORMAT format, DescriptorPool* pPoolCBV_SRV_UAV, HWND hWnd) {
+bool DebugUI::Init(
+    GraphicsDevice& graphicsDevice, DXGI_FORMAT format, HWND hWnd) {
     // ImGuiのコンテキストを作成
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -153,14 +155,15 @@ bool DebugUI::Init(ID3D12Device* pDevice, ID3D12CommandQueue* pCommandQueue,
 
     // ImGuiのバックエンドを初期化
     ImGui_ImplDX12_InitInfo info = {};
-    info.Device                  = pDevice;
-    info.CommandQueue            = pCommandQueue;
-    info.NumFramesInFlight       = config::kFrameCount;
-    info.RTVFormat               = format;
+    info.Device                  = graphicsDevice.GetDevice();
+    info.CommandQueue      = graphicsDevice.GetCommandQueue().GetD3DQueue();
+    info.NumFramesInFlight = config::kFrameCount;
+    info.RTVFormat         = format;
 
     // SRVディスクリプタプールの割り当てと解放
-    info.SrvDescriptorHeap    = pPoolCBV_SRV_UAV->GetHeap();
-    m_ImGuiSrvAllocator.pPool = pPoolCBV_SRV_UAV;
+    DescriptorPool* pPool     = graphicsDevice.CbvSrvUavPool();
+    info.SrvDescriptorHeap    = pPool->GetHeap();
+    m_ImGuiSrvAllocator.pPool = pPool;
     info.UserData = &m_ImGuiSrvAllocator;  // UserDataにpoolとallocationsを渡す
 
     info.SrvDescriptorAllocFn =  // ディスクリプタの割り当て関数

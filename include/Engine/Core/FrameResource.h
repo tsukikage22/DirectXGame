@@ -6,10 +6,10 @@
 #include <vector>
 
 #include "Engine/Core/ComPtr.h"
-#include "Engine/Core/DescriptorPool.h"
 #include "Engine/Shader/LightBuffer.h"
 #include "Engine/Shader/SceneConstantsGPU.h"
-#include "Engine/Shader/TransformGPU.h"
+
+class GraphicsDevice;
 
 class FrameResource {
 public:
@@ -18,7 +18,7 @@ public:
 
     /// @brief 初期化
     /// @return
-    bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV);
+    bool Init(GraphicsDevice& graphicsDevice);
 
     /// @brief 終了処理
     void Term();

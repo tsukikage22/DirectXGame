@@ -15,6 +15,7 @@ class InputSystem;
 class Camera;
 class ColorTarget;
 class Scene;
+class GraphicsDevice;
 
 class DebugUI {
 public:
@@ -22,12 +23,10 @@ public:
     ~DebugUI() = default;
 
     /// @brief ImGuiの初期化
-    /// @param pDevice D3D12デバイス
-    /// @param pCommandQueue コマンドキュー
-    /// @param pPoolCBV_SRV_UAV ディスクリプタプール
+    /// @param graphicsDevice GraphicsDevice
+    /// @param format バックバッファのフォーマット
     /// @param hWnd ウィンドウハンドル
-    bool Init(ID3D12Device* pDevice, ID3D12CommandQueue* pCommandQueue,
-        DXGI_FORMAT format, DescriptorPool* pPoolCBV_SRV_UAV, HWND hWnd);
+    bool Init(GraphicsDevice& graphicsDevice, DXGI_FORMAT format, HWND hWnd);
 
     /// @brief ImGuiの終了処理
     void Term();

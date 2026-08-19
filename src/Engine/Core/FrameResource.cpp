@@ -1,17 +1,16 @@
 #include "Engine/Core/FrameResource.h"
 
 #include "Engine/Core/DxDebug.h"
+#include "Engine/Core/GraphicsDevice.h"
 
 FrameResource::FrameResource()
     : m_pCmdAllocator(nullptr), m_sceneConstants(), m_fenceValue(0) {}
 
 FrameResource::~FrameResource() { Term(); }
 
-bool FrameResource::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV) {
-    // 引数チェック
-    if (!pDevice || !pPoolCBV) {
-        return false;
-    }
+bool FrameResource::Init(GraphicsDevice& graphicsDevice) {
+    ID3D12Device* pDevice    = graphicsDevice.GetDevice();
+    DescriptorPool* pPoolCBV = graphicsDevice.CbvSrvUavPool();
 
     // コマンドアロケータ作成
     CHECK_HR(
