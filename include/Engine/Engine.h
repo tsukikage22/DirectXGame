@@ -11,15 +11,14 @@
 #define NOMINMAX
 #include <Windows.h>
 #include <d3d12.h>
-#include <dxgi1_6.h>
 
 #include "Engine/Core/ComPtr.h"
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/FrameResource.h"
 #include "Engine/Core/GraphicsDevice.h"
+#include "Engine/Core/SwapChain.h"
 #include "Engine/Debug/DebugUI.h"
 #include "Engine/Graphics/ColorTarget.h"
-#include "Engine/Graphics/DepthTarget.h"
 #include "Engine/Input/IWindowEventListener.h"
 #include "Engine/Input/InputSystem.h"
 #include "Engine/Resource/IESProfile.h"
@@ -105,9 +104,6 @@ private:
     //==============================================================
     // constants
     //==============================================================
-    static constexpr DXGI_FORMAT kBackBufferFormat =
-        DXGI_FORMAT_R16G16B16A16_FLOAT;
-    static constexpr DXGI_FORMAT kDepthBufferFormat = DXGI_FORMAT_D32_FLOAT;
     static constexpr DXGI_FORMAT kUIRenderTargetFormat =
         DXGI_FORMAT_R8G8B8A8_UNORM;
 
@@ -131,19 +127,12 @@ private:
     //==============================================================
     // private variables
     //==============================================================
-    engine::ComPtr<IDXGISwapChain3> m_pSwapChain;          // スワップチェイン
     engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList;  // コマンドリスト
     engine::ComPtr<ID3D12RootSignature> m_pRootSignature;  // ルートシグネチャ
     engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
-    engine::ComPtr<IDXGIFactory6> m_pFactory;    // DXGIファクトリ
-
-    uint32_t m_FrameIndex;  // 現在のフレーム番号
 
     GraphicsDevice m_Device;  // D3D12デバイスの管理クラス
-    ColorTarget m_ColorTarget[config::kFrameCount];  // カラーターゲット
-    DepthTarget m_DepthTarget;                       // 深度ステンシル
-    D3D12_VIEWPORT m_Viewport;                       // ビューポート
-    D3D12_RECT m_ScissorRect;                        // シザー矩形
+    SwapChain m_SwapChain;    // スワップチェインの管理クラス
 
     FrameResource m_FrameResources[config::kFrameCount];  // フレームリソース
 
@@ -156,9 +145,6 @@ private:
     InputSystem m_InputSystem;                  // 入力システム
     DisplayInfo m_DisplayInfo;                  // ディスプレイ情報
     DisplayConstantsGPU m_DisplayConstantsGPU;  // ディスプレイ定数GPU
-
-    HANDLE m_frameLatencyWaitableObject =
-        nullptr;  // フレームレイテンシ待機オブジェクト
 
     HWND m_hWnd;  // ウィンドウハンドル
 

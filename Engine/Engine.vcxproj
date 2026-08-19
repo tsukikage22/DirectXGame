@@ -107,6 +107,7 @@
     <ClInclude Include="..\include\Engine\Core\GraphicsDevice.h" />
     <ClInclude Include="..\include\Engine\Core\RetireQueue.h" />
     <ClInclude Include="..\include\Engine\Core\SlotMap.h" />
+    <ClInclude Include="..\include\Engine\Core\SwapChain.h" />
     <ClInclude Include="..\include\Engine\Debug\DebugUI.h" />
     <ClInclude Include="..\include\Engine\Resource\IESProfile.h" />
     <ClInclude Include="..\include\Engine\Resource\AssetLoadScope.h" />
@@ -161,6 +162,7 @@
     <ClCompile Include="..\external\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\src\Engine\Core\DescriptorAllocation.cpp" />
     <ClCompile Include="..\src\Engine\Core\GraphicsDevice.cpp" />
+    <ClCompile Include="..\src\Engine\Core\SwapChain.cpp" />
     <ClCompile Include="..\src\Engine\Debug\DebugUI.cpp" />
     <ClCompile Include="..\src\Engine\Resource\AssetPath.cpp" />
     <ClCompile Include="..\src\Engine\Resource\IESProfile.cpp" />

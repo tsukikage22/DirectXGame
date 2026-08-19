@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Engine/Core/ComPtr.h"
+#include "Engine/Core/EngineConfig.h"
 
 enum class BlendMode {
     Opaque,              // 不透明（既定）
@@ -27,26 +28,26 @@ struct RenderTargetLayout {
 
 // ジオメトリパス：HDRバッファ＋深度
 inline constexpr RenderTargetLayout kGeometryLayout = {
-    { DXGI_FORMAT_R16G16B16A16_FLOAT },  // RTフォーマット
-    1,                                   // RTの数
-    DXGI_FORMAT_D32_FLOAT,               // DSVフォーマット
-    1                                    // サンプル数
+    { config::kBackBufferFormat },  // RTフォーマット
+    1,                              // RTの数
+    config::kDepthBufferFormat,     // DSVフォーマット
+    1                               // サンプル数
 };
 
 // ImGui用オフスクリーンパス：ガンマ空間＋深度なし
 inline constexpr RenderTargetLayout kImGuiLayout = {
-    { DXGI_FORMAT_R8G8B8A8_UNORM },  // RTフォーマット
-    1,                               // RTの数
-    DXGI_FORMAT_UNKNOWN,             // DSVフォーマット
-    1                                // サンプル数
+    { config::kUIBufferFormat },  // RTフォーマット
+    1,                            // RTの数
+    DXGI_FORMAT_UNKNOWN,          // DSVフォーマット
+    1                             // サンプル数
 };
 
 // 最終合成パス：scRGB＋深度なし
 inline constexpr RenderTargetLayout kCompositeLayout = {
-    { DXGI_FORMAT_R16G16B16A16_FLOAT },  // RTフォーマット
-    1,                                   // RTの数
-    DXGI_FORMAT_UNKNOWN,                 // DSVフォーマット
-    1                                    // サンプル数
+    { config::kBackBufferFormat },  // RTフォーマット
+    1,                              // RTの数
+    DXGI_FORMAT_UNKNOWN,            // DSVフォーマット
+    1                               // サンプル数
 };
 
 /// @brief RTLayout定数からSetRenderTargetsを呼び出す

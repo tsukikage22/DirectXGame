@@ -4,6 +4,7 @@
 #pragma once
 
 #include <d3d12.h>
+#include <dxgi1_6.h>
 
 #include <memory>
 
@@ -23,6 +24,7 @@ public:
     void WaitForGPU() { m_CommandQueue.Flush(); }
 
     ID3D12Device* GetDevice() { return m_pDevice.Get(); }
+    IDXGIFactory6* GetFactory() { return m_pFactory.Get(); }
     CommandQueue& GetCommandQueue() { return m_CommandQueue; }
     DescriptorPool* CbvSrvUavPool() { return m_pPoolCBV_SRV_UAV.get(); }
     DescriptorPool* RtvPool() { return m_pPoolRTV.get(); }
@@ -30,8 +32,9 @@ public:
     DescriptorPool* SmpPool() { return m_pPoolSMP.get(); }
 
 private:
-    engine::ComPtr<ID3D12Device> m_pDevice;  // D3D12デバイス
-    CommandQueue m_CommandQueue;             // コマンドキュー
+    engine::ComPtr<ID3D12Device> m_pDevice;    // D3D12デバイス
+    engine::ComPtr<IDXGIFactory6> m_pFactory;  // DXGIファクトリ
+    CommandQueue m_CommandQueue;               // コマンドキュー
 
     // ディスクリプタプール
     std::unique_ptr<DescriptorPool> m_pPoolCBV_SRV_UAV;  // CBV/SRV/UAV用
