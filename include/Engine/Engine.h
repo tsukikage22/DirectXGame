@@ -24,7 +24,6 @@
 #include "Engine/Resource/ModelLoader.h"
 #include "Engine/Resource/TextureManager.h"
 #include "Engine/Scene/Scene.h"
-#include "Engine/Shader/DisplayConstantsGPU.h"
 
 namespace scene_rs {
 // ルートシグネチャ内でのルートパラメータ番号
@@ -47,15 +46,6 @@ enum RootParam {
     SRV_UI      = 1,  // t0
 };
 }  // namespace ui_rs
-
-/// @brief ディスプレイ情報
-struct DisplayInfo {
-    HMONITOR hMonitor;
-    bool isHDRSupported;
-    float maxLuminance;
-    float minLuminance;
-    float maxFullFrameLuminance;
-};
 
 // 前方宣言
 class AssetLoadScope;
@@ -111,8 +101,6 @@ private:
         /// @brief ウィンドウ移動時の処理
         void OnWindowMoved() override;
 
-        void OnDisplayChanged() override;
-
     private:
         Engine* m_pEngine;
     };
@@ -135,9 +123,7 @@ private:
 
     IESProfile m_IESProfile;  // IESプロファイル
 
-    InputSystem m_InputSystem;                  // 入力システム
-    DisplayInfo m_DisplayInfo;                  // ディスプレイ情報
-    DisplayConstantsGPU m_DisplayConstantsGPU;  // ディスプレイ定数GPU
+    InputSystem m_InputSystem;  // 入力システム
 
     HWND m_hWnd;  // ウィンドウハンドル
 
@@ -155,13 +141,4 @@ private:
     void TermD3D();
     bool InitApp();
     void TermApp();
-
-    //==============================================================
-    // 内部ヘルパー
-    //==============================================================
-    /// @brief HDR対応チェック
-    DisplayInfo GetDisplayInfo();
-
-    /// @brief モニター変更チェック
-    bool IsMonitorChanged(HWND hWnd);
 };

@@ -20,7 +20,6 @@
 #include "Engine/Core/CommandQueue.h"
 #include "Engine/Core/DescriptorPool.h"
 #include "Engine/Core/DxDebug.h"
-#include "Engine/Core/SwapChain.h"
 #include "Engine/Debug/DebugUI.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
 #include "Engine/Graphics/IndexBuffer.h"
@@ -175,7 +174,7 @@ void Engine::Render() {
         // [b3] DisplayConstants (共通)
         m_pCmdList->SetGraphicsRootConstantBufferView(
             scene_rs::RootParam::CBV_Display,
-            m_DisplayConstantsGPU.GetGPUAddress());
+            m_Renderer.GetDisplayConstantsAddress());
 
         // [t0, space1] IESプロファイルテクスチャ (共通)
         m_pCmdList->SetGraphicsRootDescriptorTable(
@@ -254,7 +253,7 @@ void Engine::Render() {
         // CBVとしてDisplayConstantsを設定
         m_pCmdList->SetGraphicsRootConstantBufferView(
             ui_rs::RootParam::CBV_Display,
-            m_DisplayConstantsGPU.GetGPUAddress());
+            m_Renderer.GetDisplayConstantsAddress());
 
         // ディスクリプタヒープの設定
         ID3D12DescriptorHeap* pHeaps[] = {
@@ -508,24 +507,6 @@ bool Engine::InitApp() {
         m_pPSO = pipelineBuilder.Get();
     }
 
-    // ディスプレイ定数の初期化
-    {
-        m_DisplayInfo               = GetDisplayInfo();
-        shader::DisplayConstants dc = {};
-        dc.maxLuminance             = m_DisplayInfo.maxLuminance;
-        dc.minLuminance             = m_DisplayInfo.minLuminance;
-        dc.paperWhiteNits =
-            m_DisplayInfo.isHDRSupported ? 200.0f : 80.0f;  // SDRの白
-        dc.maxFullFrameLuminance = m_DisplayInfo.maxFullFrameLuminance;
-
-        if (!m_DisplayConstantsGPU.Init(
-                m_Device.GetDevice(), m_Device.CbvSrvUavPool(), dc)) {
-            MessageBoxW(nullptr, L"Failed to initialize display constants.",
-                L"Error", MB_OK);
-            return false;
-        }
-    }
-
     // ImGuiの初期化
     if (!m_DebugUI.Init(m_Device, config::kUIBufferFormat, m_hWnd)) {
         MessageBoxW(nullptr, L"Failed to initialize ImGui.", L"Error", MB_OK);
@@ -594,9 +575,6 @@ bool Engine::InitApp() {
 }
 
 void Engine::TermApp() {
-    // ディスプレイ定数の破棄
-    m_DisplayConstantsGPU.Term();
-
     // シーンの破棄
     m_Scene.Term();
 
@@ -633,93 +611,12 @@ AssetLoadScope Engine::CreateAssetLoadScope() {
 }
 
 //=============================================
-// 内部ヘルパー
-//=============================================
-/// @brief HDR対応チェック
-DisplayInfo Engine::GetDisplayInfo() {
-    // 出力情報の初期化
-    DisplayInfo info           = {};
-    info.isHDRSupported        = false;
-    info.maxLuminance          = 80.0f;
-    info.minLuminance          = 0.0f;
-    info.maxFullFrameLuminance = 80.0f;
-
-    // スワップチェーンから現座表示されているOutputを取得
-    ComPtr<IDXGIOutput> output;
-    if (FAILED(m_Renderer.GetSwapChain().GetSwapChain()->GetContainingOutput(
-            output.GetAddressOf()))) {
-        return info;
-    };
-    ComPtr<IDXGIOutput6> output6;
-    if (FAILED(output.As(&output6))) {
-        return info;
-    }
-
-    // ディスプレイの詳細情報を取得
-    DXGI_OUTPUT_DESC1 desc1 = {};
-    if (FAILED(output6->GetDesc1(&desc1))) {
-        return info;
-    }
-
-    info.hMonitor = desc1.Monitor;
-
-    // HDR10対応チェック
-    info.isHDRSupported =
-        (desc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
-
-    if (info.isHDRSupported) {
-        info.maxLuminance          = desc1.MaxLuminance;
-        info.minLuminance          = desc1.MinLuminance;
-        info.maxFullFrameLuminance = desc1.MaxFullFrameLuminance;
-    }
-
-    return info;
-}
-
-bool Engine::IsMonitorChanged(HWND hWnd) {
-    // 現在のモニターを取得
-    HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONULL);
-
-    if (m_DisplayInfo.hMonitor != hMonitor) {
-        return true;
-    }
-    return false;
-}
-
-//=============================================
 // イベント関数
 //=============================================
 void Engine::WindowEventAdapter::OnWindowMoved() {
-    // モニター変更チェック
-    if (m_pEngine->IsMonitorChanged(m_pEngine->m_hWnd)) {
-        // ディスプレイ情報取得
-        DisplayInfo displayInfo = m_pEngine->GetDisplayInfo();
-
-        // ディスプレイ定数の更新
-        shader::DisplayConstants dc = {};
-        dc.maxLuminance             = displayInfo.maxLuminance;
-        dc.minLuminance             = displayInfo.minLuminance;
-        dc.paperWhiteNits        = displayInfo.isHDRSupported ? 200.0f : 80.0f;
-        dc.maxFullFrameLuminance = displayInfo.maxFullFrameLuminance;
-
-        m_pEngine->m_DisplayInfo = displayInfo;
-        m_pEngine->m_DisplayConstantsGPU.Update(dc);
+    // モニター変更を検出
+    if (m_pEngine->m_Renderer.DetectMonitorChange()) {
+        m_pEngine->m_Renderer.QueryDisplayInfo();
+        m_pEngine->m_Renderer.UploadDisplayConstants();
     }
-
-    // フレームレート設定
-}
-
-void Engine::WindowEventAdapter::OnDisplayChanged() {
-    // ディスプレイ情報取得
-    DisplayInfo displayInfo = m_pEngine->GetDisplayInfo();
-
-    // ディスプレイ定数の更新
-    shader::DisplayConstants dc = {};
-    dc.maxLuminance             = displayInfo.maxLuminance;
-    dc.minLuminance             = displayInfo.minLuminance;
-    dc.paperWhiteNits           = displayInfo.isHDRSupported ? 200.0f : 80.0f;
-    dc.maxFullFrameLuminance    = displayInfo.maxFullFrameLuminance;
-
-    m_pEngine->m_DisplayInfo = displayInfo;
-    m_pEngine->m_DisplayConstantsGPU.Update(dc);
 }

@@ -1,8 +1,12 @@
 #include "Engine/Core/Renderer.h"
 
+#include <Windows.h>
+
+#include "Engine/Core/ComPtr.h"
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/GraphicsDevice.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
+#include "Engine/Shader/ShaderConstants.h"
 
 namespace /* anonymous */ {
 /// @brief リソースバリアの作成
@@ -17,10 +21,24 @@ D3D12_RESOURCE_BARRIER MakeTransitionBarrier(ID3D12Resource* pResource,
     barrier.Transition.StateAfter  = after;
     return barrier;
 }
+
+/// @brief DisplayInfoからDisplayConstantsを作成する
+shader::DisplayConstants MakeDisplayConstants(const DisplayInfo& info) {
+    shader::DisplayConstants dc = {};
+    dc.maxLuminance             = info.maxLuminance;
+    dc.minLuminance             = info.minLuminance;
+    dc.paperWhiteNits        = info.isHDRSupported ? config::kHDRPaperWhiteNits
+                                                   : config::kSDRPaperWhiteNits;
+    dc.maxFullFrameLuminance = info.maxFullFrameLuminance;
+    return dc;
+}
+
 }  // namespace
 
 bool Renderer::Init(
     GraphicsDevice& device, uint32_t width, uint32_t height, HWND hWnd) {
+    m_hWnd = hWnd;
+
     // スワップチェインの生成
     if (!m_swapChain.Init(device, width, height, hWnd)) {
         return false;
@@ -41,10 +59,23 @@ bool Renderer::Init(
         return false;
     }
 
+    // ディスプレイCBの作成
+    if (!m_displayConstantsGPU.Init(
+            device.GetDevice(), device.CbvSrvUavPool())) {
+        return false;
+    }
+
+    // ディスプレイ情報とCBの更新
+    QueryDisplayInfo();
+    UploadDisplayConstants();
+
     return true;
 }
 
 void Renderer::Term() {
+    // ディスプレイCBの破棄
+    m_displayConstantsGPU.Term();
+
     // UI用レンダーターゲットの終了処理
     m_uiTarget.Term();
 
@@ -104,4 +135,65 @@ void Renderer::EndFrame(ID3D12GraphicsCommandList* pCmdList) {
         MakeTransitionBarrier(m_swapChain.GetBackBuffer().GetResource(),
             D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
     pCmdList->ResourceBarrier(1, &barrier);
+}
+
+// モニター変更の検出
+bool Renderer::DetectMonitorChange() {
+    // 現在のモニターを取得
+    HMONITOR hMonitor = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONULL);
+
+    return (hMonitor != m_displayInfo.hMonitor);
+}
+
+/// @brief ディスプレイ情報の更新
+void Renderer::QueryDisplayInfo() {
+    // 出力情報の初期化
+    DisplayInfo info           = {};
+    info.isHDRSupported        = false;
+    info.maxLuminance          = 80.0f;
+    info.minLuminance          = 0.0f;
+    info.maxFullFrameLuminance = 80.0f;
+
+    // スワップチェーンから現座表示されているOutputを取得
+    engine::ComPtr<IDXGIOutput> output;
+    if (FAILED(m_swapChain.GetSwapChain()->GetContainingOutput(
+            output.GetAddressOf()))) {
+        m_displayInfo = info;
+        return;
+    };
+    engine::ComPtr<IDXGIOutput6> output6;
+    if (FAILED(output.As(&output6))) {
+        m_displayInfo = info;
+        return;
+    }
+
+    // ディスプレイの詳細情報を取得
+    DXGI_OUTPUT_DESC1 desc1 = {};
+    if (FAILED(output6->GetDesc1(&desc1))) {
+        m_displayInfo = info;
+        return;
+    }
+
+    info.hMonitor = desc1.Monitor;
+
+    // HDR10対応チェック
+    info.isHDRSupported =
+        (desc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+
+    if (info.isHDRSupported) {
+        info.maxLuminance          = desc1.MaxLuminance;
+        info.minLuminance          = desc1.MinLuminance;
+        info.maxFullFrameLuminance = desc1.MaxFullFrameLuminance;
+    }
+
+    m_displayInfo = info;
+}
+
+/// @brief ディスプレイCBの更新
+void Renderer::UploadDisplayConstants() {
+    // ディスプレイ定数の作成
+    shader::DisplayConstants dc = MakeDisplayConstants(m_displayInfo);
+
+    // ディスプレイCBの更新
+    m_displayConstantsGPU.Update(dc);
 }

@@ -8,8 +8,18 @@
 #include "Engine/Core/SwapChain.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Graphics/DepthTarget.h"
+#include "Engine/Shader/DisplayConstantsGPU.h"
 
 class GraphicsDevice;
+
+/// @brief ディスプレイ情報
+struct DisplayInfo {
+    HMONITOR hMonitor;
+    bool isHDRSupported;
+    float maxLuminance;
+    float minLuminance;
+    float maxFullFrameLuminance;
+};
 
 class Renderer {
 public:
@@ -40,25 +50,43 @@ public:
         m_swapChain.WaitForFrameLatency(timeout);
     }
 
+    /// @brief モニター変更を検出する
+    bool DetectMonitorChange();
+
+    /// @brief ディスプレイ情報の更新
+    void QueryDisplayInfo();
+
+    /// @brief ディスプレイCBの更新
+    void UploadDisplayConstants();
+
     //==========================================================
     // アクセサ
     //==========================================================
-    /// @brief スワップチェインの取得
-    SwapChain& GetSwapChain() { return m_swapChain; }
-
-    /// @brief 深度バッファの取得
+    /// @brief 深度バッファ
     DepthTarget& GetDepthBuffer() { return m_depthTarget; }
 
-    /// @brief UI用レンダーターゲットの取得
+    /// @brief UI用レンダーターゲット
     ColorTarget& GetUITarget() { return m_uiTarget; }
 
-    /// @brief 現在のフレーム番号を取得
+    /// @brief 現在のフレーム番号
     uint32_t GetFrameIndex() const { return m_swapChain.GetFrameIndex(); }
+
+    /// @brief ディスプレイ情報
+    DisplayInfo GetDisplayInfo() const { return m_displayInfo; }
+
+    /// @brief ディスプレイCBのGPUアドレス
+    D3D12_GPU_VIRTUAL_ADDRESS GetDisplayConstantsAddress() const {
+        return m_displayConstantsGPU.GetGPUAddress();
+    }
 
 private:
     SwapChain m_swapChain;      // スワップチェイン
     DepthTarget m_depthTarget;  // 深度バッファ
     ColorTarget m_uiTarget;     // UI用レンダーターゲット
+
+    DisplayInfo m_displayInfo = {};             // ディスプレイ情報
+    DisplayConstantsGPU m_displayConstantsGPU;  // ディスプレイCB
+    HWND m_hWnd = nullptr;                      // ウィンドウハンドル
 
     // コピー禁止
     Renderer(const Renderer&)            = delete;
