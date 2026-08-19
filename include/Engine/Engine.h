@@ -106,9 +106,6 @@ private:
     //==============================================================
     // constants
     //==============================================================
-    static constexpr DXGI_FORMAT kBackBufferFormat =
-        DXGI_FORMAT_R16G16B16A16_FLOAT;
-    static constexpr DXGI_FORMAT kDepthBufferFormat = DXGI_FORMAT_D32_FLOAT;
     static constexpr DXGI_FORMAT kUIRenderTargetFormat =
         DXGI_FORMAT_R8G8B8A8_UNORM;
 
@@ -138,10 +135,6 @@ private:
 
     GraphicsDevice m_Device;  // D3D12デバイスの管理クラス
     SwapChain m_SwapChain;    // スワップチェインの管理クラス
-    ColorTarget m_ColorTarget[config::kFrameCount];  // カラーターゲット
-    DepthTarget m_DepthTarget;                       // 深度ステンシル
-    D3D12_VIEWPORT m_Viewport;                       // ビューポート
-    D3D12_RECT m_ScissorRect;                        // シザー矩形
 
     FrameResource m_FrameResources[config::kFrameCount];  // フレームリソース
 

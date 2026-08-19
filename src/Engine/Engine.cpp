@@ -102,7 +102,7 @@ void Engine::BeginFrame() {
     D3D12_RESOURCE_BARRIER barrier = {};
     barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-    barrier.Transition.pResource   = m_ColorTarget[frameIndex].GetResource();
+    barrier.Transition.pResource   = m_SwapChain.GetBackBuffer().GetResource();
     barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
     barrier.Transition.StateAfter  = D3D12_RESOURCE_STATE_RENDER_TARGET;
@@ -111,8 +111,9 @@ void Engine::BeginFrame() {
     // 5. レンダーターゲットとビューポートの設定・クリア
     // レンダーターゲットの設定
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle =
-        m_ColorTarget[frameIndex].GetRTVCPUHandle();
-    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_DepthTarget.GetCPUHandle();
+        m_SwapChain.GetBackBuffer().GetRTVCPUHandle();
+    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle =
+        m_SwapChain.GetDepthBuffer().GetCPUHandle();
     BeginPass(m_pCmdList.Get(), kGeometryLayout, &rtvHandle, &dsvHandle);
 
     // レンダーターゲットのクリア
@@ -122,8 +123,10 @@ void Engine::BeginFrame() {
         dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
     // ビューポートの設定
-    m_pCmdList->RSSetViewports(1, &m_Viewport);
-    m_pCmdList->RSSetScissorRects(1, &m_ScissorRect);
+    auto viewport    = m_SwapChain.MakeViewport();
+    auto scissorRect = m_SwapChain.MakeScissorRect();
+    m_pCmdList->RSSetViewports(1, &viewport);
+    m_pCmdList->RSSetScissorRects(1, &scissorRect);
 
     m_DebugUI.BeginFrame(m_InputSystem, m_Scene.GetCamera(), m_Scene);
 }
@@ -265,7 +268,7 @@ void Engine::Render() {
     // シーン描画とUI描画の合成
     {
         // レンダーターゲットの設定
-        auto rtvHandle = m_ColorTarget[frameIndex].GetRTVCPUHandle();
+        auto rtvHandle = m_SwapChain.GetBackBuffer().GetRTVCPUHandle();
         BeginPass(m_pCmdList.Get(), kCompositeLayout, &rtvHandle, nullptr);
 
         // ルートシグネチャとパイプラインステートの設定
@@ -286,8 +289,10 @@ void Engine::Render() {
             ui_rs::RootParam::SRV_UI, m_UIRenderTarget.GetSRVGPUHandle());
 
         // ビューポートの設定
-        m_pCmdList->RSSetViewports(1, &m_Viewport);
-        m_pCmdList->RSSetScissorRects(1, &m_ScissorRect);
+        auto viewport = m_SwapChain.MakeViewport();
+        m_pCmdList->RSSetViewports(1, &viewport);
+        auto scissorRect = m_SwapChain.MakeScissorRect();
+        m_pCmdList->RSSetScissorRects(1, &scissorRect);
 
         // 描画
         m_pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -304,7 +309,7 @@ void Engine::EndFrame() {
     D3D12_RESOURCE_BARRIER barrier = {};
     barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-    barrier.Transition.pResource   = m_ColorTarget[frameIndex].GetResource();
+    barrier.Transition.pResource   = m_SwapChain.GetBackBuffer().GetResource();
     barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
     barrier.Transition.StateAfter  = D3D12_RESOURCE_STATE_PRESENT;
@@ -354,44 +359,8 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
     m_hWnd = hWnd;
 
     // スワップチェインの生成
-    if (!m_SwapChain.Init(m_Device, kBackBufferFormat, width, height, hWnd)) {
+    if (!m_SwapChain.Init(m_Device, width, height, hWnd)) {
         return false;
-    }
-
-    // レンダーターゲットビューの生成
-    {
-        for (auto i = 0u; i < config::kFrameCount; i++) {
-            if (!m_ColorTarget[i].Init(m_Device.GetDevice(), m_Device.RtvPool(),
-                    i, m_SwapChain.GetSwapChain())) {
-                return false;
-            }
-        }
-    }
-
-    // 深度ステンシルバッファの生成
-    {
-        if (!m_DepthTarget.Init(m_Device.GetDevice(), m_Device.DsvPool(), width,
-                height, kDepthBufferFormat)) {
-            return false;
-        }
-    }
-
-    // ビューポートの設定
-    {
-        m_Viewport.TopLeftX = 0.0f;
-        m_Viewport.TopLeftY = 0.0f;
-        m_Viewport.Width    = static_cast<float>(width);
-        m_Viewport.Height   = static_cast<float>(height);
-        m_Viewport.MinDepth = 0.0f;
-        m_Viewport.MaxDepth = 1.0f;
-    }
-
-    // シザー矩形の設定
-    {
-        m_ScissorRect.left   = 0;
-        m_ScissorRect.top    = 0;
-        m_ScissorRect.right  = width;
-        m_ScissorRect.bottom = height;
     }
 
     // UI用レンダーターゲットの作成
@@ -409,14 +378,6 @@ bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
 void Engine::TermD3D() {
     // GPUの処理が完了するまで待機
     m_Device.WaitForGPU();
-
-    // レンダーターゲットビューの解放
-    for (auto i = 0u; i < config::kFrameCount; i++) {
-        m_ColorTarget[i].Term();
-    }
-
-    // 深度ステンシルビューの解放
-    m_DepthTarget.Term();
 
     // UI用レンダーターゲットの解放
     m_UIRenderTarget.Term();

@@ -10,6 +10,9 @@
 #include <cstdint>
 
 #include "Engine/Core/ComPtr.h"
+#include "Engine/Core/EngineConfig.h"
+#include "Engine/Graphics/ColorTarget.h"
+#include "Engine/Graphics/DepthTarget.h"
 
 class GraphicsDevice;
 
@@ -25,8 +28,8 @@ public:
     /// @param height バックバッファの高さ
     /// @param hWnd ウィンドウハンドル
     /// @return 初期化に成功したかどうか
-    bool Init(GraphicsDevice& graphicsDevice, DXGI_FORMAT format,
-        uint32_t width, uint32_t height, HWND hWnd);
+    bool Init(GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height,
+        HWND hWnd);
 
     /// @brief 終了処理
     void Term();
@@ -40,18 +43,38 @@ public:
         WaitForSingleObject(m_frameLatencyWaitableObject, timeout);
     }
 
+    D3D12_VIEWPORT MakeViewport();
+
+    D3D12_RECT MakeScissorRect();
+
     /// @brief スワップチェインの取得
-    /// @return
     IDXGISwapChain3* GetSwapChain() { return m_pSwapChain.Get(); }
 
     /// @brief 現在のフレーム番号を取得
     uint32_t GetFrameIndex() const { return m_frameIndex; }
 
+    /// @brief バックバッファの取得
+    ColorTarget& GetBackBuffer() { return m_colorTarget[m_frameIndex]; }
+
+    /// @brief 深度バッファの取得
+    DepthTarget& GetDepthBuffer() { return m_depthTarget; }
+
 private:
+    // バックバッファと深度バッファのフォーマット
+    static constexpr DXGI_FORMAT kBackBufferFormat =
+        DXGI_FORMAT_R16G16B16A16_FLOAT;
+    static constexpr DXGI_FORMAT kDepthBufferFormat = DXGI_FORMAT_D32_FLOAT;
+
     engine::ComPtr<IDXGISwapChain3> m_pSwapChain;  // スワップチェイン
     uint32_t m_frameIndex = 0;                     // 現在のフレーム番号
     HANDLE m_frameLatencyWaitableObject =
         nullptr;  // フレームレイテンシ待機オブジェクト
+
+    ColorTarget m_colorTarget[config::kFrameCount];  // バックバッファ
+    DepthTarget m_depthTarget;                       // 深度バッファ
+
+    uint32_t m_width  = 0;  // バックバッファの幅
+    uint32_t m_height = 0;  // バックバッファの高さ
 
     // コピー禁止
     SwapChain(const SwapChain&)            = delete;
