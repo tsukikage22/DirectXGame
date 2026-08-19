@@ -16,7 +16,7 @@
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/FrameResource.h"
 #include "Engine/Core/GraphicsDevice.h"
-#include "Engine/Core/SwapChain.h"
+#include "Engine/Core/Renderer.h"
 #include "Engine/Debug/DebugUI.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Input/IWindowEventListener.h"
@@ -132,7 +132,7 @@ private:
     engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
 
     GraphicsDevice m_Device;  // D3D12デバイスの管理クラス
-    SwapChain m_SwapChain;    // スワップチェインの管理クラス
+    Renderer m_Renderer;      // レンダラーの管理クラス
 
     FrameResource m_FrameResources[config::kFrameCount];  // フレームリソース
 
