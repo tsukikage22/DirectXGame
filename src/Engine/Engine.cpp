@@ -584,6 +584,12 @@ void Engine::TermApp() {
     // テクスチャプールの解放
     m_TextureManager.Term();
 
+    // IESProfileの解放
+    m_IESProfile.Term();
+
+    // ModelLoaderの解放
+    m_modelLoader.Term();
+
     // デバッグUIの終了処理
     m_DebugUI.Term();
 

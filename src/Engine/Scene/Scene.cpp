@@ -88,11 +88,18 @@ void Scene::DespawnLight(engine::LightHandle handle) {
 }
 
 void Scene::Term() {
-    // モデルの破棄
-    m_modelMap.ForEach([](std::unique_ptr<Model>& pModel) { pModel->Term(); });
-
     // 遅延解放キューのクリア
     m_retireQueue.ClearAll();
+
+    // スロットマップの破棄
+    // デバイスとディスクリプタプールが破棄される前に，
+    // GPUリソースを持つオブジェクトを全て破棄する
+    m_gameObjectMap.Clear();
+    m_lightMap.Clear();
+    m_modelMap.Clear();
+
+    m_pDevice  = nullptr;
+    m_pPoolCBV = nullptr;
 }
 
 /// 遅延解放キューのクリア

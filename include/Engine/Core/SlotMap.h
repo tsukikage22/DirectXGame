@@ -91,6 +91,14 @@ public:
         }
     }
 
+    /// @brief 全要素を削除する
+    void Clear() {
+        m_data.clear();
+        m_slots.clear();
+        m_dataToSlot.clear();
+        m_freeList.clear();
+    }
+
     // イテレータの取得
     auto begin() { return m_data.begin(); }
     auto end() { return m_data.end(); }

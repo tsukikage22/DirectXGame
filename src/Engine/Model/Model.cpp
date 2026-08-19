@@ -13,22 +13,26 @@ bool Model::Init(GraphicsDevice& graphicsDevice,
     ID3D12Device* pDevice = graphicsDevice.GetDevice();
 
     // メッシュをGPUに転送
-    m_meshes.resize(modelAsset.meshes.size());
+    m_meshes.reserve(modelAsset.meshes.size());
     for (size_t i = 0; i < modelAsset.meshes.size(); i++) {
-        m_meshes[i] = std::make_unique<MeshGPU>();
-        if (!m_meshes[i]->Init(pDevice, batch, modelAsset.meshes[i])) {
+        auto mesh = std::make_unique<MeshGPU>();
+        if (!mesh->Init(pDevice, batch, modelAsset.meshes[i])) {
+            Term();
             return false;
         }
+        m_meshes.push_back(std::move(mesh));
     }
 
     // マテリアルをGPUに転送
-    m_materials.resize(modelAsset.materials.size());
+    m_materials.reserve(modelAsset.materials.size());
     for (size_t i = 0; i < modelAsset.materials.size(); i++) {
-        m_materials[i] = std::make_unique<MaterialGPU>();
-        if (!m_materials[i]->Init(
+        auto material = std::make_unique<MaterialGPU>();
+        if (!material->Init(
                 graphicsDevice, pTextureManager, modelAsset.materials[i])) {
+            Term();
             return false;
         }
+        m_materials.push_back(std::move(material));
     }
 
     return true;
@@ -36,15 +40,9 @@ bool Model::Init(GraphicsDevice& graphicsDevice,
 
 void Model::Term() {
     // メッシュの破棄
-    for (auto& mesh : m_meshes) {
-        mesh->Term();
-    }
     m_meshes.clear();
 
     // マテリアルの破棄
-    for (auto& material : m_materials) {
-        material->Term();
-    }
     m_materials.clear();
 }
 
