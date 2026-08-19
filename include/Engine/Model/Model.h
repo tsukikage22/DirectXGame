@@ -12,8 +12,8 @@ class GraphicsDevice;
 
 class Model {
 public:
-    Model()  = default;
-    ~Model() = default;
+    Model() = default;
+    ~Model() { Term(); };
 
     /// @brief 初期化，ModelAssetからGPUリソースを作成
     bool Init(GraphicsDevice& graphicsDevice, TextureManager* pTextureManager,
