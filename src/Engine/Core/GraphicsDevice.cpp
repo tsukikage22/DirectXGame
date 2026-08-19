@@ -1,5 +1,6 @@
 #include "Engine/Core/GraphicsDevice.h"
 
+#include "Engine/Core/DxDebug.h"
 #include "Engine/Core/EngineConfig.h"
 
 bool GraphicsDevice::Init() {
@@ -10,6 +11,10 @@ bool GraphicsDevice::Init() {
         OutputDebugStringW(L"Failed to create D3D12 Device.\n");
         return false;
     }
+
+    // DXGIファクトリの生成
+    m_pFactory.Reset();
+    CHECK_HR(m_pDevice.Get(), CreateDXGIFactory1(IID_PPV_ARGS(&m_pFactory)));
 
     // コマンドキュー・フェンスの生成
     if (!m_CommandQueue.Init(m_pDevice.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT)) {

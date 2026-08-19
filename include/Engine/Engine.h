@@ -17,6 +17,7 @@
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/FrameResource.h"
 #include "Engine/Core/GraphicsDevice.h"
+#include "Engine/Core/SwapChain.h"
 #include "Engine/Debug/DebugUI.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Graphics/DepthTarget.h"
@@ -131,15 +132,12 @@ private:
     //==============================================================
     // private variables
     //==============================================================
-    engine::ComPtr<IDXGISwapChain3> m_pSwapChain;          // スワップチェイン
     engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList;  // コマンドリスト
     engine::ComPtr<ID3D12RootSignature> m_pRootSignature;  // ルートシグネチャ
     engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
-    engine::ComPtr<IDXGIFactory6> m_pFactory;    // DXGIファクトリ
-
-    uint32_t m_FrameIndex;  // 現在のフレーム番号
 
     GraphicsDevice m_Device;  // D3D12デバイスの管理クラス
+    SwapChain m_SwapChain;    // スワップチェインの管理クラス
     ColorTarget m_ColorTarget[config::kFrameCount];  // カラーターゲット
     DepthTarget m_DepthTarget;                       // 深度ステンシル
     D3D12_VIEWPORT m_Viewport;                       // ビューポート
@@ -156,9 +154,6 @@ private:
     InputSystem m_InputSystem;                  // 入力システム
     DisplayInfo m_DisplayInfo;                  // ディスプレイ情報
     DisplayConstantsGPU m_DisplayConstantsGPU;  // ディスプレイ定数GPU
-
-    HANDLE m_frameLatencyWaitableObject =
-        nullptr;  // フレームレイテンシ待機オブジェクト
 
     HWND m_hWnd;  // ウィンドウハンドル
 
