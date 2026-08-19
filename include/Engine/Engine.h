@@ -14,8 +14,6 @@
 #include <dxgi1_6.h>
 
 #include "Engine/Core/ComPtr.h"
-#include "Engine/Core/CommandQueue.h"
-#include "Engine/Core/DescriptorPool.h"
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/FrameResource.h"
 #include "Engine/Core/GraphicsDevice.h"

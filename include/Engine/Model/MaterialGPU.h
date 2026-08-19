@@ -9,10 +9,10 @@
 #include "Engine/Graphics/ConstantBuffer.h"
 #include "Engine/Model/MaterialSrvTable.h"
 #include "Engine/Model/ModelAsset.h"
-#include "Engine/Shader/ShaderConstants.h"
 #include "Engine/Resource/TextureManager.h"
+#include "Engine/Shader/ShaderConstants.h"
 
-class DescriptorPool;
+class GraphicsDevice;
 
 enum class TextureUsage : uint32_t {
     BaseColor = 0,
@@ -29,8 +29,7 @@ public:
     ~MaterialGPU();
 
     /// @brief 初期化処理，MaterialAssetからGPUリソースを作成
-    bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
-        DescriptorPool* pPoolSRV, TextureManager* pTextureManager,
+    bool Init(GraphicsDevice& graphicsDevice, TextureManager* pTextureManager,
         const MaterialAsset& materialAsset);
 
     /// @brief 終了処理，リソースの解放

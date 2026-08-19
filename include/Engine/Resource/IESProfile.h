@@ -14,6 +14,7 @@
 
 // 前方宣言
 class DescriptorPool;
+class GraphicsDevice;
 
 //-----------------------------------------------
 // Light Source Structure
@@ -44,11 +45,11 @@ struct IESProfileData {
 
 class IESProfile {
 public:
-    IESProfile();
+    IESProfile() = default;
     ~IESProfile();
 
     /// @brief 初期化処理
-    bool Init(ID3D12Device* pDevice, DescriptorPool* pPool);
+    bool Init(GraphicsDevice& graphicsDevice);
 
     /// @brief 終了処理
     void Term();
@@ -69,12 +70,12 @@ private:
     constexpr static uint32_t kWidth  = 256;  // テクスチャの幅 θ（垂直角）
     constexpr static uint32_t kHeight = 128;  // テクスチャの高さ φ（水平角）
 
-    TextureResource m_textureArray;  // IESプロファイルのテクスチャ
-    DescriptorAllocation m_srv;      // SRVディスクリプタ
-    DescriptorPool* m_pPoolSRV;      // ディスクリプタプール
-    ID3D12Device* m_pDevice;         // デバイス
+    TextureResource m_textureArray;        // IESプロファイルのテクスチャ
+    DescriptorAllocation m_srv;            // SRVディスクリプタ
+    DescriptorPool* m_pPoolSRV = nullptr;  // ディスクリプタプール
+    ID3D12Device* m_pDevice    = nullptr;  // デバイス
 
-    uint32_t m_count;  // 読み込まれたIESプロファイルの数
+    uint32_t m_count = 0;  // 読み込まれたIESプロファイルの数
 
     // コピー禁止
     IESProfile(const IESProfile&)            = delete;

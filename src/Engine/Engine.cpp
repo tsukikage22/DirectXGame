@@ -16,6 +16,8 @@
 #include <memory>
 #include <vector>
 
+#include "Engine/Core/CommandQueue.h"
+#include "Engine/Core/DescriptorPool.h"
 #include "Engine/Core/DxDebug.h"
 #include "Engine/Debug/DebugUI.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
@@ -469,8 +471,7 @@ void Engine::TermD3D() {
 bool Engine::InitApp() {
     // フレームリソースの初期化
     for (int i = 0; i < config::kFrameCount; i++) {
-        if (!m_FrameResources[i].Init(
-                m_Device.GetDevice(), m_Device.CbvSrvUavPool())) {
+        if (!m_FrameResources[i].Init(m_Device)) {
             return false;
         }
     }
@@ -488,15 +489,14 @@ bool Engine::InitApp() {
     // ファイルのロード
     {
         // ModelLoaderの初期化
-        if (!m_modelLoader.Init(m_Device.GetDevice(), m_Device.CbvSrvUavPool(),
-                &m_TextureManager)) {
+        if (!m_modelLoader.Init(m_Device, &m_TextureManager)) {
             MessageBoxW(
                 nullptr, L"Failed to initialize ModelLoader.", L"Error", MB_OK);
             return false;
         }
 
         // シーンの初期化
-        m_Scene.Init(m_Device.GetDevice(), m_Device.CbvSrvUavPool());
+        m_Scene.Init(m_Device);
 
         // TextureManagerの初期化
         if (!m_TextureManager.Init(m_Device.GetDevice())) {
@@ -517,8 +517,7 @@ bool Engine::InitApp() {
         }
 
         // IESProfileの初期化
-        if (!m_IESProfile.Init(
-                m_Device.GetDevice(), m_Device.CbvSrvUavPool())) {
+        if (!m_IESProfile.Init(m_Device)) {
             MessageBoxW(
                 nullptr, L"Failed to initialize IESProfile.", L"Error", MB_OK);
             return false;
@@ -654,9 +653,7 @@ bool Engine::InitApp() {
     }
 
     // ImGuiの初期化
-    if (!m_DebugUI.Init(m_Device.GetDevice(),
-            m_Device.GetCommandQueue().GetD3DQueue(), kUIRenderTargetFormat,
-            m_Device.CbvSrvUavPool(), m_hWnd)) {
+    if (!m_DebugUI.Init(m_Device, kUIRenderTargetFormat, m_hWnd)) {
         MessageBoxW(nullptr, L"Failed to initialize ImGui.", L"Error", MB_OK);
         return false;
     }
