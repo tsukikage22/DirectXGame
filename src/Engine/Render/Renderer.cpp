@@ -302,8 +302,7 @@ void Renderer::UploadDisplayConstants() {
     m_displayConstantsGPU.Update(dc);
 }
 
-bool Renderer::ResizeBuffers(
-    GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height) {
+bool Renderer::ResizeBuffers(uint32_t width, uint32_t height) {
     // サイズ確認
     ColorTarget& backBuffer = m_swapChain.GetBackBuffer();
     if (backBuffer.GetWidth() == width && backBuffer.GetHeight() == height) {
@@ -311,25 +310,24 @@ bool Renderer::ResizeBuffers(
     }
 
     // フェンス待機
-    graphicsDevice.WaitForGPU();
+    m_pDevice->WaitForGPU();
 
     // スワップチェインのリサイズ
-    if (!m_swapChain.Resize(graphicsDevice, width, height)) {
+    if (!m_swapChain.Resize(*m_pDevice, width, height)) {
         return false;
     }
 
     // 深度バッファのリサイズ（再生成）
     m_depthTarget.Term();
-    if (!m_depthTarget.Init(graphicsDevice.GetDevice(),
-            graphicsDevice.DsvPool(), width, height,
-            config::kDepthBufferFormat)) {
+    if (!m_depthTarget.Init(m_pDevice->GetDevice(), m_pDevice->DsvPool(), width,
+            height, config::kDepthBufferFormat)) {
         return false;
     }
 
     // UI用レンダーターゲットのリサイズ（再生成）
     m_uiTarget.Term();
-    if (!m_uiTarget.Init(graphicsDevice.GetDevice(), graphicsDevice.RtvPool(),
-            graphicsDevice.CbvSrvUavPool(), width, height,
+    if (!m_uiTarget.Init(m_pDevice->GetDevice(), m_pDevice->RtvPool(),
+            m_pDevice->CbvSrvUavPool(), width, height,
             config::kUIBufferFormat)) {
         return false;
     }

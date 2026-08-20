@@ -33,12 +33,6 @@ public:
     ~Renderer() = default;
 
     /// @brief レンダラーの初期化
-    /// @details スワップチェイン・深度バッファの生成
-    /// スワップチェイン・深度バッファの生成
-    /// UI用レンダーターゲットの生成
-    /// ディスプレイCBの生成
-    /// フレームリソースの生成
-    /// コマンドリストの生成
     /// @param device
     /// @param width
     /// @param height
@@ -86,8 +80,7 @@ public:
     /// @param device グラフィックスデバイス
     /// @param width 幅
     /// @param height 高さ
-    bool ResizeBuffers(
-        GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height);
+    bool ResizeBuffers(uint32_t width, uint32_t height);
 
     /// @brief パイプラインに渡す情報をまとめた構造体を作成する
     ScenePassBindings MakeScenePassBindings(AssetSystem& assetSystem);

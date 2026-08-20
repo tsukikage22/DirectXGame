@@ -8,16 +8,8 @@
 ///////////////////////////////////////////
 #include "Engine/Engine.h"
 
-#include <d3dcompiler.h>
-#include <dxgi1_6.h>
-
-#include <array>
 #include <cstdint>
-#include <filesystem>
-#include <memory>
-#include <vector>
 
-#include "Engine/Core/DescriptorPool.h"
 #include "Engine/Core/DxDebug.h"
 #include "Engine/Debug/DebugUI.h"
 #include "Engine/Resource/AssetLoadScope.h"
@@ -235,8 +227,7 @@ void Engine::WindowEventAdapter::OnWindowMoved() {
 void Engine::WindowEventAdapter::OnWindowResized(
     uint32_t width, uint32_t height) {
     // ウィンドウサイズ変更時の処理
-    if (!m_pEngine->m_Renderer.ResizeBuffers(
-            m_pEngine->m_Device, width, height)) {
+    if (!m_pEngine->m_Renderer.ResizeBuffers(width, height)) {
         OutputDebugStringW(L"Failed to resize render targets.\n");
         return;
     }
