@@ -121,22 +121,8 @@ void Engine::Render() {
 // コマンドリスト実行，フェンス発行
 // 描画コマンドの実行
 void Engine::EndFrame() {
-    // 1. リソースバリアの設定
+    // コマンドリストのクローズと実行，フェンス発行
     m_Renderer.EndFrame();
-
-    // 2. コマンドリストのクローズ
-    m_Renderer.GetCommandList()->Close();
-
-    // 3. コマンドリストの実行
-    ID3D12CommandList* ppCommandLists[] = { m_Renderer.GetCommandList() };
-    m_Device.GetCommandQueue().Execute(
-        ppCommandLists, _countof(ppCommandLists));
-
-    // 4. フェンスの発行
-    UINT64 fenceValue = m_Device.GetCommandQueue().Signal();
-
-    // 5. フェンス値の保存
-    m_Renderer.GetFrameResource().EndFrame(fenceValue);
 }
 
 // 画面表示，フレームインデックス更新

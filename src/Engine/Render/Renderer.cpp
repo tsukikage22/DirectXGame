@@ -206,11 +206,25 @@ void Renderer::UpdateConstants(Scene& scene, uint32_t debugView) {
 }
 
 void Renderer::EndFrame() {
-    // リソースバリアの設定（RT -> Present）
+    // 1. リソースバリアの設定（RT -> Present）
     D3D12_RESOURCE_BARRIER barrier =
         MakeTransitionBarrier(m_swapChain.GetBackBuffer().GetResource(),
             D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
     m_pCmdList->ResourceBarrier(1, &barrier);
+
+    // 2. コマンドリストのクローズ
+    m_pCmdList->Close();
+
+    // 3. コマンドリストの実行
+    ID3D12CommandList* ppCommandLists[] = { m_pCmdList.Get() };
+    m_pDevice->GetCommandQueue().Execute(
+        ppCommandLists, _countof(ppCommandLists));
+
+    // 4. フェンスの発行
+    UINT64 fenceValue = m_pDevice->GetCommandQueue().Signal();
+
+    // 5. フェンス値の保存
+    m_frameResources[m_swapChain.GetFrameIndex()].EndFrame(fenceValue);
 }
 
 // モニター変更の検出
