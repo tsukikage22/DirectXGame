@@ -19,23 +19,9 @@
 #include "Engine/Debug/DebugUI.h"
 #include "Engine/Input/IWindowEventListener.h"
 #include "Engine/Input/InputSystem.h"
+#include "Engine/Render/ScenePass.h"
 #include "Engine/Resource/AssetSystem.h"
 #include "Engine/Scene/Scene.h"
-
-namespace scene_rs {
-// ルートシグネチャ内でのルートパラメータ番号
-// Addxxxの呼び出し順と一致させる
-enum RootParam {
-    CBV_Scene      = 0,  // b0
-    CBV_Transform  = 1,  // b1
-    CBV_Material   = 2,  // b2
-    CBV_Display    = 3,  // b3
-    SRV_Texture    = 4,  // t0-t4
-    SRV_IESProfile = 5,  // t0, space1
-    SRV_Lights     = 6,  // t0, space2
-};
-
-}  // namespace scene_rs
 
 namespace ui_rs {
 enum RootParam {
@@ -108,11 +94,9 @@ private:
     //==============================================================
     // private variables
     //==============================================================
-    engine::ComPtr<ID3D12RootSignature> m_pRootSignature;  // ルートシグネチャ
-    engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
-
     GraphicsDevice m_Device;  // D3D12デバイスの管理クラス
     Renderer m_Renderer;      // レンダラーの管理クラス
+    ScenePass m_ScenePass;    // シーン描画パスの管理クラス
 
     AssetSystem m_AssetSystem;  // モデル読み込みなどのアセット管理クラス
     Scene m_Scene;              // シーン

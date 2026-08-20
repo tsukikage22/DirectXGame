@@ -27,7 +27,6 @@
 #include "Engine/Model/MaterialGPU.h"
 #include "Engine/Model/MeshGPU.h"
 #include "Engine/Model/Model.h"
-#include "Engine/Model/VertexTypes.h"
 #include "Engine/Resource/AssetLoadScope.h"
 #include "Engine/Resource/AssetPath.h"
 #include "Engine/Resource/GLBImporter.h"
@@ -117,89 +116,8 @@ void Engine::Update() {
 
 // 描画コマンドの記録
 void Engine::Render() {
-    uint32_t frameIndex = m_Renderer.GetFrameIndex();
-
-    // シーン描画処理
-    {
-        // パイプライン設定
-        auto pCmdList = m_Renderer.GetCommandList();
-        pCmdList->SetGraphicsRootSignature(m_pRootSignature.Get());
-        pCmdList->SetPipelineState(m_pPSO.Get());
-
-        ID3D12DescriptorHeap* ppHeaps = { m_Device.CbvSrvUavPool()->GetHeap() };
-        pCmdList->SetDescriptorHeaps(1, &ppHeaps);
-
-        // [b0] SceneConstants (共通)
-        pCmdList->SetGraphicsRootConstantBufferView(
-            scene_rs::RootParam::CBV_Scene,
-            m_Renderer.GetFrameResource().GetSceneConstants().GetGPUAddress());
-
-        // [b3] DisplayConstants (共通)
-        pCmdList->SetGraphicsRootConstantBufferView(
-            scene_rs::RootParam::CBV_Display,
-            m_Renderer.GetDisplayConstantsAddress());
-
-        // [t0, space1] IESプロファイルテクスチャ (共通)
-        pCmdList->SetGraphicsRootDescriptorTable(
-            scene_rs::RootParam::SRV_IESProfile,
-            m_AssetSystem.GetIesSrvGpuHandle());
-
-        // [t0, space2] Light StructuredBuffer (共通)
-        pCmdList->SetGraphicsRootDescriptorTable(
-            scene_rs::RootParam::SRV_Lights,
-            m_Renderer.GetFrameResource().GetLightBuffer().GetGPUHandle());
-
-        // PrimitiveTopologyの指定
-        pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-        // 全オブジェクトを描画
-        m_Scene.ForEachObject([&](GameObject& obj) {
-            // [b1] TransformConstants (モデル単位)
-            pCmdList->SetGraphicsRootConstantBufferView(
-                scene_rs::RootParam::CBV_Transform,
-                obj.GetTransformGPU(frameIndex).GetGPUAddress());
-
-            // 各メッシュを描画
-            const auto model = m_Scene.GetModel(obj.GetModelHandle());
-            if (model == nullptr) return;
-            const auto& meshes    = model->GetMeshes();
-            const auto& materials = model->GetMaterials();
-            for (auto& mesh : meshes) {
-                // このメッシュが使うマテリアルを取得
-                uint32_t materialID = mesh->GetMaterialID();
-
-                // マテリアルが存在しない場合は描画しない
-                if (materialID >= materials.size() ||
-                    materials[materialID] == nullptr) {
-                    assert(false && "Mesh has no valid material.");
-                    continue;
-                }
-
-                // マテリアルをバインド
-                if (materialID < materials.size()) {
-                    // [b2] MaterialConstants (マテリアル単位)
-                    pCmdList->SetGraphicsRootConstantBufferView(
-                        scene_rs::RootParam::CBV_Material,
-                        materials[materialID]->GetConstantBufferGPUAddress());
-
-                    // [t0-t4] PBR Textures
-                    pCmdList->SetGraphicsRootDescriptorTable(
-                        scene_rs::RootParam::SRV_Texture,
-                        materials[materialID]->GetSrvTableBaseGPUHandle());
-                }
-
-                // 頂点バッファ・インデックスバッファの設定
-                auto vbv = mesh->GetVertexBufferView();
-                auto ibv = mesh->GetIndexBufferView();
-                pCmdList->IASetVertexBuffers(0, 1, &vbv);
-                pCmdList->IASetIndexBuffer(&ibv);
-
-                // 描画コマンドの発行
-                pCmdList->DrawIndexedInstanced(
-                    mesh->GetIndexCount(), 1, 0, 0, 0);
-            }
-        });
-    }
+    // シーンの描画
+    m_ScenePass.Draw(m_Renderer.MakePassBindings(m_AssetSystem), m_Scene);
 
     // デバッグUIの描画
     m_DebugUI.Render(m_Renderer.GetUITarget(), m_Renderer.GetCommandList());
@@ -312,95 +230,17 @@ bool Engine::InitApp() {
         return false;
     }
 
-    // ルートシグネチャの生成
-    {
-        RootSignatureBuilder builder;
-
-        // SRVのレンジを作成
-        // [t0-t4, space0] PBR Textures (Descriptor Table SRV)
-        std::vector<D3D12_DESCRIPTOR_RANGE1> range;
-        range.push_back(
-            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                5, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
-
-        // [t0, space1] IES Profile Texture(Descriptor Table SRV)
-        std::vector<D3D12_DESCRIPTOR_RANGE1> iesRange;
-        iesRange.push_back(
-            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                1, 0, 1, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
-
-        // [t0, space2] Light StructuredBuffer (Descriptor Table SRV)
-        std::vector<D3D12_DESCRIPTOR_RANGE1> lightRange;
-        lightRange.push_back(RootSignatureBuilder::CreateRange(
-            D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 2,
-            D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE));
-
-        // ルートシグニチャ構成
-        // [b0] SceneConstants (Root CBV)
-        // [b1] TransformConstants (Root CBV)
-        // [b2] Material Constants (Root CBV)
-        // [b3] Display Constants (Root CBV)
-        // [t0-t4] PBR Textures (Descriptor Table SRV)
-        // baseColor, metallic-roughness, normal, emissive, occlusion
-        // [t0, space1] IES Profile Texture(Descriptor Table SRV)
-        // [t0, space2] Light StructuredBuffer (Descriptor Table SRV)
-        // [s0] Default Sampler (Static Sampler)
-        // [s1] IES Profile Sampler (Static Sampler)
-        builder
-            .SetFlags(
-                D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)
-            .AddCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL,
-                D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
-            .AddCBV(1, 0, D3D12_SHADER_VISIBILITY_VERTEX,
-                D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
-            .AddCBV(2, 0, D3D12_SHADER_VISIBILITY_PIXEL)
-            .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_PIXEL)
-            .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL)
-            .AddDescriptorTable(iesRange, D3D12_SHADER_VISIBILITY_PIXEL)
-            .AddDescriptorTable(lightRange, D3D12_SHADER_VISIBILITY_PIXEL)
-            .AddStaticSampler(0)
-            .AddStaticSampler(1, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // 垂直角は端で止める
-                D3D12_TEXTURE_ADDRESS_MODE_WRAP,   // 水平角は0-360°でループする
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
-
-        bool result = builder.Build(m_Device.GetDevice());
-        if (!result) {
-            MessageBoxW(
-                nullptr, L"Failed to build root signature.", L"Error", MB_OK);
-            return false;
-        }
-
-        m_pRootSignature = builder.Get();
+    // シーン描画パスの初期化
+    engine::ComPtr<ID3DBlob> vsBlob;
+    engine::ComPtr<ID3DBlob> psBlob;
+    if (!LoadShader(L"shader/TestVS.cso", vsBlob) ||
+        !LoadShader(L"shader/GGX_PS.cso", psBlob)) {
+        OutputDebugStringW(L"Failed to load shaders.\n");
+        return false;
     }
-
-    // パイプラインステートの生成
-    {
-        // シェーダの読み込み
-        engine::ComPtr<ID3DBlob> vsBlob;
-        engine::ComPtr<ID3DBlob> psBlob;
-        if (!LoadShader(L"shader/TestVS.cso", vsBlob) ||
-            !LoadShader(L"shader/GGX_PS.cso", psBlob)) {
-            OutputDebugStringW(L"Failed to load shaders.\n");
-            return false;
-        }
-
-        // グラフィックスパイプラインステートの設定
-        GraphicsPipelineBuilder pipelineBuilder;
-        pipelineBuilder.SetRootSignature(m_pRootSignature.Get())
-            .SetVertexShader(vsBlob.Get())
-            .SetPixelShader(psBlob.Get())
-            .SetInputLayout(StandardVertex::GetInputLayout())
-            .SetBlendState(BlendMode::Opaque)
-            .SetRenderTargetLayout(kSceneLayout);
-
-        if (!pipelineBuilder.Build(m_Device.GetDevice())) {
-            MessageBoxW(nullptr, L"Failed to build graphics pipeline state.",
-                L"Error", MB_OK);
-            return false;
-        }
-
-        m_pPSO = pipelineBuilder.Get();
+    if (!m_ScenePass.Init(m_Device, vsBlob.Get(), psBlob.Get())) {
+        OutputDebugStringW(L"Failed to initialize ScenePass.\n");
+        return false;
     }
 
     // ImGuiの初期化
@@ -470,9 +310,10 @@ void Engine::TermApp() {
     // デバッグUIの終了処理
     m_DebugUI.Term();
 
+    // シーン描画パスの終了処理
+    m_ScenePass.Term();
+
     // PSO，RootSignatureの破棄
-    m_pPSO.Reset();
-    m_pRootSignature.Reset();
     m_pUIPSO.Reset();
     m_pUIRootSignature.Reset();
 }
