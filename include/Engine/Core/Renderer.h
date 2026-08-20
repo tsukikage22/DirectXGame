@@ -87,7 +87,9 @@ public:
         GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height);
 
     /// @brief パイプラインに渡す情報をまとめた構造体を作成する
-    PassBindings MakePassBindings(AssetSystem& assetSystem);
+    ScenePassBindings MakeScenePassBindings(AssetSystem& assetSystem);
+
+    CompositePassBindings MakeCompositePassBindings();
 
     //==========================================================
     // アクセサ
@@ -103,11 +105,6 @@ public:
 
     /// @brief ディスプレイ情報
     DisplayInfo GetDisplayInfo() const { return m_displayInfo; }
-
-    /// @brief ディスプレイCBのGPUアドレス
-    D3D12_GPU_VIRTUAL_ADDRESS GetDisplayConstantsAddress() const {
-        return m_displayConstantsGPU.GetGPUAddress();
-    }
 
     /// @brief フレームリソース
     FrameResource& GetFrameResource() {

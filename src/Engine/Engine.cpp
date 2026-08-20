@@ -20,13 +20,6 @@
 #include "Engine/Core/DescriptorPool.h"
 #include "Engine/Core/DxDebug.h"
 #include "Engine/Debug/DebugUI.h"
-#include "Engine/Graphics/GraphicsPipelineBuilder.h"
-#include "Engine/Graphics/IndexBuffer.h"
-#include "Engine/Graphics/RootSignatureBuilder.h"
-#include "Engine/Graphics/VertexBuffer.h"
-#include "Engine/Model/MaterialGPU.h"
-#include "Engine/Model/MeshGPU.h"
-#include "Engine/Model/Model.h"
 #include "Engine/Resource/AssetLoadScope.h"
 #include "Engine/Resource/AssetPath.h"
 #include "Engine/Resource/GLBImporter.h"
@@ -104,7 +97,7 @@ void Engine::BeginFrame() {
     // レンダーターゲットの設定・クリア
     m_Renderer.BeginFrame();
 
-    // デバッグUIの描画開始
+    // デバッグUIのフレーム開始時処理
     m_DebugUI.BeginFrame(m_InputSystem, m_Scene.GetCamera(), m_Scene);
 }
 
@@ -117,38 +110,14 @@ void Engine::Update() {
 // 描画コマンドの記録
 void Engine::Render() {
     // シーンの描画
-    m_ScenePass.Draw(m_Renderer.MakePassBindings(m_AssetSystem), m_Scene);
+    m_ScenePass.Draw(m_Renderer.MakeScenePassBindings(m_AssetSystem), m_Scene);
 
     // デバッグUIの描画
     m_DebugUI.Render(m_Renderer.GetUITarget(), m_Renderer.GetCommandList());
 
     // シーン描画とUI描画の合成
-    {
-        // レンダーターゲットとビューポートの設定
-        m_Renderer.BeginCompositePass();
-
-        // ルートシグネチャとパイプラインステートの設定
-        auto pCmdList = m_Renderer.GetCommandList();
-        pCmdList->SetGraphicsRootSignature(m_pUIRootSignature.Get());
-        pCmdList->SetPipelineState(m_pUIPSO.Get());
-
-        // CBVとしてDisplayConstantsを設定
-        pCmdList->SetGraphicsRootConstantBufferView(
-            ui_rs::RootParam::CBV_Display,
-            m_Renderer.GetDisplayConstantsAddress());
-
-        // ディスクリプタヒープの設定
-        ID3D12DescriptorHeap* pHeaps[] = {
-            m_Device.CbvSrvUavPool()->GetHeap()
-        };
-        pCmdList->SetDescriptorHeaps(1, pHeaps);
-        pCmdList->SetGraphicsRootDescriptorTable(ui_rs::RootParam::SRV_UI,
-            m_Renderer.GetUITarget().GetSRVGPUHandle());
-
-        // 描画
-        pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        pCmdList->DrawInstanced(3, 1, 0, 0);  // フルスクリーン三角形を描画
-    }
+    m_Renderer.BeginCompositePass();
+    m_CompositePass.Draw(m_Renderer.MakeCompositePassBindings());
 }
 
 // コマンドリスト実行，フェンス発行
@@ -249,52 +218,15 @@ bool Engine::InitApp() {
         return false;
     }
 
-    // UI合成用PSO，ルートシグネチャの作成
-    {
-        // シェーダの読み込み
-        engine::ComPtr<ID3DBlob> vsBlob;
-        engine::ComPtr<ID3DBlob> psBlob;
-        if (!LoadShader(L"shader/UI_VS.cso", vsBlob) ||
-            !LoadShader(L"shader/UI_PS.cso", psBlob)) {
-            OutputDebugStringW(L"Failed to load UI shaders.\n");
-            return false;
-        }
-
-        // ルートシグネチャの生成
-        // ルートシグネチャの構成
-        // [b3] Display Constants (Root CBV)
-        // [t0] UI Texture (Descriptor Table SRV)
-        auto rsBuilder = RootSignatureBuilder{};
-        std::vector<D3D12_DESCRIPTOR_RANGE1> range;
-        range.push_back(
-            rsBuilder.CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0,
-                D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE));
-        rsBuilder
-            .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL,
-                D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
-            .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL);
-
-        if (!rsBuilder.Build(m_Device.GetDevice())) {
-            MessageBoxW(nullptr, L"Failed to build UI root signature.",
-                L"Error", MB_OK);
-            return false;
-        }
-        m_pUIRootSignature = rsBuilder.Get();
-
-        // パイプラインステートの生成
-        auto psoBuilder = GraphicsPipelineBuilder{};
-        psoBuilder.SetRootSignature(m_pUIRootSignature.Get())
-            .SetVertexShader(vsBlob.Get())
-            .SetPixelShader(psBlob.Get())
-            .SetBlendState(BlendMode::PremultipliedAlpha)
-            .SetRenderTargetLayout(kCompositeLayout);
-
-        if (!psoBuilder.Build(m_Device.GetDevice())) {
-            MessageBoxW(nullptr, L"Failed to build UI pipeline state.",
-                L"Error", MB_OK);
-            return false;
-        }
-        m_pUIPSO = psoBuilder.Get();
+    // UI合成パスの初期化
+    if (!LoadShader(L"shader/UI_VS.cso", vsBlob) ||
+        !LoadShader(L"shader/UI_PS.cso", psBlob)) {
+        OutputDebugStringW(L"Failed to load shaders.\n");
+        return false;
+    }
+    if (!m_CompositePass.Init(m_Device, vsBlob.Get(), psBlob.Get())) {
+        OutputDebugStringW(L"Failed to initialize CompositePass.\n");
+        return false;
     }
 
     return true;
@@ -310,12 +242,9 @@ void Engine::TermApp() {
     // デバッグUIの終了処理
     m_DebugUI.Term();
 
-    // シーン描画パスの終了処理
+    // 描画パスの終了処理
     m_ScenePass.Term();
-
-    // PSO，RootSignatureの破棄
-    m_pUIPSO.Reset();
-    m_pUIRootSignature.Reset();
+    m_CompositePass.Term();
 }
 
 void Engine::ApplyRenderSize(uint32_t width, uint32_t height) {
@@ -345,8 +274,8 @@ AssetLoadScope Engine::CreateAssetLoadScope() {
     }
 
     // シェーダの読み込み
-    CHECK_HR(m_Device.GetDevice(),
-        D3DReadFileToBlob(shaderPath.c_str(), outBlob.GetAddressOf()));
+    CHECK_HR(m_Device.GetDevice(), D3DReadFileToBlob(shaderPath.c_str(),
+                                       outBlob.ReleaseAndGetAddressOf()));
 
     return true;
 }

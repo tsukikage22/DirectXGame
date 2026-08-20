@@ -110,6 +110,7 @@
     <ClInclude Include="..\include\Engine\Core\SlotMap.h" />
     <ClInclude Include="..\include\Engine\Core\SwapChain.h" />
     <ClInclude Include="..\include\Engine\Debug\DebugUI.h" />
+    <ClInclude Include="..\include\Engine\Render\CompositePass.h" />
     <ClInclude Include="..\include\Engine\Render\PassBindings.h" />
     <ClInclude Include="..\include\Engine\Render\ScenePass.h" />
     <ClInclude Include="..\include\Engine\Resource\AssetSystem.h" />
@@ -169,6 +170,7 @@
     <ClCompile Include="..\src\Engine\Core\Renderer.cpp" />
     <ClCompile Include="..\src\Engine\Core\SwapChain.cpp" />
     <ClCompile Include="..\src\Engine\Debug\DebugUI.cpp" />
+    <ClCompile Include="..\src\Engine\Render\CompositePass.cpp" />
     <ClCompile Include="..\src\Engine\Render\ScenePass.cpp" />
     <ClCompile Include="..\src\Engine\Resource\AssetPath.cpp" />
     <ClCompile Include="..\src\Engine\Resource\AssetSystem.cpp" />

@@ -1,9 +1,6 @@
 #include "Engine/Render/ScenePass.h"
 
-#include <d3dcompiler.h>
-
 #include <cassert>
-#include <filesystem>
 
 #include "Engine/Core/DxDebug.h"
 #include "Engine/Core/GraphicsDevice.h"
@@ -106,7 +103,7 @@ void ScenePass::Term() {
     m_pRootSignature.Reset();
 }
 
-void ScenePass::Draw(const PassBindings& passBindings, Scene& scene) {
+void ScenePass::Draw(const ScenePassBindings& passBindings, Scene& scene) {
     auto pCmdList = passBindings.pCmdList;
 
     // パイプライン設定

@@ -7,7 +7,7 @@
 
 #include <cstdint>
 
-struct PassBindings {
+struct ScenePassBindings {
     ID3D12GraphicsCommandList* pCmdList;   // コマンドリスト
     uint32_t frameIndex;                   // フレーム番号
     ID3D12DescriptorHeap* pCbvSrvUavHeap;  // CBV/SRV/UAV用ディスクリプタヒープ
@@ -20,5 +20,17 @@ struct PassBindings {
         return pCmdList != nullptr && pCbvSrvUavHeap != nullptr &&
                sceneCB != 0 && displayCB != 0 && iesSRV.ptr != 0 &&
                lightSRV.ptr != 0;
+    }
+};
+
+struct CompositePassBindings {
+    ID3D12GraphicsCommandList* pCmdList;   // コマンドリスト
+    ID3D12DescriptorHeap* pCbvSrvUavHeap;  // CBV/SRV/UAV用ディスクリプタヒープ
+    D3D12_GPU_VIRTUAL_ADDRESS displayCB;   // b3  ディスプレイCBのGPUアドレス
+    D3D12_GPU_DESCRIPTOR_HANDLE uiSRV;     // t0, space1 UIテクスチャのSRV
+
+    bool IsValid() const {
+        return pCmdList != nullptr && pCbvSrvUavHeap != nullptr &&
+               displayCB != 0 && uiSRV.ptr != 0;
     }
 };

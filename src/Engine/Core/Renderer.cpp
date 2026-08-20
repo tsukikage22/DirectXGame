@@ -307,17 +307,32 @@ bool Renderer::ResizeBuffers(
     return true;
 }
 
-PassBindings Renderer::MakePassBindings(AssetSystem& assetSystem) {
+ScenePassBindings Renderer::MakeScenePassBindings(AssetSystem& assetSystem) {
     uint32_t frameIndex          = GetFrameIndex();
     FrameResource& frameResource = m_frameResources[frameIndex];
 
-    PassBindings context   = {};
-    context.pCmdList       = m_pCmdList.Get();
-    context.frameIndex     = frameIndex;
-    context.pCbvSrvUavHeap = m_pDevice->CbvSrvUavPool()->GetHeap();
-    context.sceneCB        = frameResource.GetSceneConstants().GetGPUAddress();
-    context.displayCB      = m_displayConstantsGPU.GetGPUAddress();
-    context.lightSRV       = frameResource.GetLightBuffer().GetGPUHandle();
-    context.iesSRV         = assetSystem.GetIesSrvGpuHandle();
+    ScenePassBindings context = {};
+    context.pCmdList          = m_pCmdList.Get();
+    context.frameIndex        = frameIndex;
+    context.pCbvSrvUavHeap    = m_pDevice->CbvSrvUavPool()->GetHeap();
+    context.sceneCB   = frameResource.GetSceneConstants().GetGPUAddress();
+    context.displayCB = m_displayConstantsGPU.GetGPUAddress();
+    context.lightSRV  = frameResource.GetLightBuffer().GetGPUHandle();
+    context.iesSRV    = assetSystem.GetIesSrvGpuHandle();
+
+    assert(context.IsValid() && "ScenePassBindings is not valid.");
+
+    return context;
+}
+
+CompositePassBindings Renderer::MakeCompositePassBindings() {
+    CompositePassBindings context = {};
+    context.pCmdList              = m_pCmdList.Get();
+    context.pCbvSrvUavHeap        = m_pDevice->CbvSrvUavPool()->GetHeap();
+    context.displayCB             = m_displayConstantsGPU.GetGPUAddress();
+    context.uiSRV                 = m_uiTarget.GetSRVGPUHandle();
+
+    assert(context.IsValid() && "CompositePassBindings is not valid.");
+
     return context;
 }

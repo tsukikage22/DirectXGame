@@ -1,5 +1,5 @@
-/// @file ScenePass.h
-/// @brief シーン描画パス
+/// @file CompositePass.h
+/// @brief UI合成パス
 
 #pragma once
 
@@ -8,14 +8,13 @@
 #include "Engine/Core/ComPtr.h"
 
 // 前方宣言
-struct ScenePassBindings;
+struct CompositePassBindings;
 class GraphicsDevice;
-class Scene;
 
-class ScenePass {
+class CompositePass {
 public:
-    ScenePass()  = default;
-    ~ScenePass() = default;
+    CompositePass()  = default;
+    ~CompositePass() = default;
 
     /// @brief PSOとRSの構築
     bool Init(GraphicsDevice& device, ID3DBlob* vsBlob, ID3DBlob* psBlob);
@@ -23,19 +22,14 @@ public:
     void Term();
 
     /// @brief 描画コマンドの記録を行う
-    void Draw(const ScenePassBindings& passBindings, Scene& scene);
+    void Draw(const CompositePassBindings& passBindings);
 
 private:
     // ルートシグネチャ内でのルートパラメータ番号
     // Addxxxの呼び出し順と一致させる
     enum RootParam {
-        CBV_Scene      = 0,  // b0
-        CBV_Transform  = 1,  // b1
-        CBV_Material   = 2,  // b2
-        CBV_Display    = 3,  // b3
-        SRV_Texture    = 4,  // t0-t4
-        SRV_IESProfile = 5,  // t0, space1
-        SRV_Lights     = 6,  // t0, space2
+        CBV_Display = 0,  // b3
+        SRV_UI      = 1,  // t0
     };
 
     GraphicsDevice* m_pDevice = nullptr;

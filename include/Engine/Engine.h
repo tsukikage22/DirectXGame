@@ -19,16 +19,10 @@
 #include "Engine/Debug/DebugUI.h"
 #include "Engine/Input/IWindowEventListener.h"
 #include "Engine/Input/InputSystem.h"
+#include "Engine/Render/CompositePass.h"
 #include "Engine/Render/ScenePass.h"
 #include "Engine/Resource/AssetSystem.h"
 #include "Engine/Scene/Scene.h"
-
-namespace ui_rs {
-enum RootParam {
-    CBV_Display = 0,  // b3
-    SRV_UI      = 1,  // t0
-};
-}  // namespace ui_rs
 
 // 前方宣言
 class AssetLoadScope;
@@ -94,9 +88,10 @@ private:
     //==============================================================
     // private variables
     //==============================================================
-    GraphicsDevice m_Device;  // D3D12デバイスの管理クラス
-    Renderer m_Renderer;      // レンダラーの管理クラス
-    ScenePass m_ScenePass;    // シーン描画パスの管理クラス
+    GraphicsDevice m_Device;        // D3D12デバイスの管理クラス
+    Renderer m_Renderer;            // レンダラーの管理クラス
+    ScenePass m_ScenePass;          // シーン描画パスの管理クラス
+    CompositePass m_CompositePass;  // UI合成パスの管理クラス
 
     AssetSystem m_AssetSystem;  // モデル読み込みなどのアセット管理クラス
     Scene m_Scene;              // シーン
@@ -107,10 +102,7 @@ private:
 
     WindowEventAdapter m_WindowEventAdapter{ this };
 
-    engine::ComPtr<ID3D12RootSignature>
-        m_pUIRootSignature;                        // UI用ルートシグネチャ
-    engine::ComPtr<ID3D12PipelineState> m_pUIPSO;  // UI用パイプラインステート
-    DebugUI m_DebugUI;                             // デバッグUI
+    DebugUI m_DebugUI;  // デバッグUI
 
     /////////////////////////////////////////////////////////////////////////
     // private methods
