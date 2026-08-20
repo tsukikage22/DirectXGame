@@ -6,7 +6,7 @@
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/GraphicsDevice.h"
 #include "Engine/Graphics/ColorTarget.h"
-#include "Engine/Graphics/GraphicsPipelineBuilder.h"
+#include "Engine/Graphics/RenderTargetLayout.h"
 #include "Engine/Input/InputSystem.h"
 #include "Engine/Scene/Camera.h"
 #include "Engine/Scene/Scene.h"
@@ -247,7 +247,7 @@ void DebugUI::Render(
 
     // UI用レンダーターゲットの設定
     auto rtvHandle = uiTarget.GetRTVCPUHandle();
-    BeginPass(pCmdList, kImGuiLayout, &rtvHandle, nullptr);
+    SetRenderTargets(pCmdList, kImGuiLayout, &rtvHandle, nullptr);
 
     // レンダーターゲットのクリア
     const float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };

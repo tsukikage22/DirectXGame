@@ -386,3 +386,5 @@ external/**/x64/
 external/**/*.obj
 
 imgui.ini
+
+.codacy

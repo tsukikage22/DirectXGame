@@ -14,36 +14,15 @@
 
 #include "Engine/Core/ComPtr.h"
 #include "Engine/Core/EngineConfig.h"
-#include "Engine/Core/FrameResource.h"
 #include "Engine/Core/GraphicsDevice.h"
-#include "Engine/Core/Renderer.h"
 #include "Engine/Debug/DebugUI.h"
 #include "Engine/Input/IWindowEventListener.h"
 #include "Engine/Input/InputSystem.h"
+#include "Engine/Render/CompositePass.h"
+#include "Engine/Render/Renderer.h"
+#include "Engine/Render/ScenePass.h"
 #include "Engine/Resource/AssetSystem.h"
 #include "Engine/Scene/Scene.h"
-
-namespace scene_rs {
-// ルートシグネチャ内でのルートパラメータ番号
-// Addxxxの呼び出し順と一致させる
-enum RootParam {
-    CBV_Scene      = 0,  // b0
-    CBV_Transform  = 1,  // b1
-    CBV_Material   = 2,  // b2
-    CBV_Display    = 3,  // b3
-    SRV_Texture    = 4,  // t0-t4
-    SRV_IESProfile = 5,  // t0, space1
-    SRV_Lights     = 6,  // t0, space2
-};
-
-}  // namespace scene_rs
-
-namespace ui_rs {
-enum RootParam {
-    CBV_Display = 0,  // b3
-    SRV_UI      = 1,  // t0
-};
-}  // namespace ui_rs
 
 // 前方宣言
 class AssetLoadScope;
@@ -56,21 +35,31 @@ public:
     //==================================================================
     // ライフサイクル管理
     //==================================================================
+    /// @brief 初期化
+    /// @param hWnd ウィンドウハンドル
+    /// @param width 描画領域の幅
+    /// @param height 描画領域の高さ
     bool Initialize(HWND hWnd, uint32_t width, uint32_t height);
 
+    /// @brief 終了処理
     void Shutdown();
 
     //==================================================================
     // フレーム制御
     //==================================================================
+    /// @brief フレーム開始時の処理
     void BeginFrame();
 
+    /// @brief 定数バッファの更新
     void Update();
 
+    /// @brief 描画コマンドの記録
     void Render();
 
+    /// @brief フレーム終了時の処理
     void EndFrame();
 
+    /// @brief フレーム表示
     void Present();
 
     /// @brief アセットロード用オブジェクトの作成
@@ -109,14 +98,10 @@ private:
     //==============================================================
     // private variables
     //==============================================================
-    engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList;  // コマンドリスト
-    engine::ComPtr<ID3D12RootSignature> m_pRootSignature;  // ルートシグネチャ
-    engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
-
-    GraphicsDevice m_Device;  // D3D12デバイスの管理クラス
-    Renderer m_Renderer;      // レンダラーの管理クラス
-
-    FrameResource m_FrameResources[config::kFrameCount];  // フレームリソース
+    GraphicsDevice m_Device;        // D3D12デバイスの管理クラス
+    Renderer m_Renderer;            // レンダラーの管理クラス
+    ScenePass m_ScenePass;          // シーン描画パスの管理クラス
+    CompositePass m_CompositePass;  // UI合成パスの管理クラス
 
     AssetSystem m_AssetSystem;  // モデル読み込みなどのアセット管理クラス
     Scene m_Scene;              // シーン
@@ -127,10 +112,7 @@ private:
 
     WindowEventAdapter m_WindowEventAdapter{ this };
 
-    engine::ComPtr<ID3D12RootSignature>
-        m_pUIRootSignature;                        // UI用ルートシグネチャ
-    engine::ComPtr<ID3D12PipelineState> m_pUIPSO;  // UI用パイプラインステート
-    DebugUI m_DebugUI;                             // デバッグUI
+    DebugUI m_DebugUI;  // デバッグUI
 
     /////////////////////////////////////////////////////////////////////////
     // private methods

@@ -64,6 +64,12 @@
     <Filter Include="ヘッダー ファイル\Debug">
       <UniqueIdentifier>{7587abc2-4ca1-402f-b20f-9018c9de91ba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\Render">
+      <UniqueIdentifier>{924be3de-b7c6-4616-b19a-d7a6113aa806}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Render">
+      <UniqueIdentifier>{275fddf8-10bb-4487-9889-3382c063aa6a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Engine\Core\DescriptorPool.h">
@@ -237,14 +243,29 @@
     <ClInclude Include="..\include\Engine\Core\GraphicsDevice.h">
       <Filter>ヘッダー ファイル\Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\Core\SwapChain.h">
-      <Filter>ヘッダー ファイル\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Engine\Core\Renderer.h">
-      <Filter>ヘッダー ファイル\Core</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\Engine\Resource\AssetSystem.h">
       <Filter>ヘッダー ファイル\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Engine\Render\PassBindings.h">
+      <Filter>ヘッダー ファイル\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Engine\Render\ScenePass.h">
+      <Filter>ヘッダー ファイル\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Engine\Render\CompositePass.h">
+      <Filter>ヘッダー ファイル\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Engine\Render\Renderer.h">
+      <Filter>ヘッダー ファイル\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Engine\Render\SwapChain.h">
+      <Filter>ヘッダー ファイル\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Engine\Resource\ShaderLoader.h">
+      <Filter>ヘッダー ファイル\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Engine\Graphics\RenderTargetLayout.h">
+      <Filter>ヘッダー ファイル\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -377,14 +398,20 @@
     <ClCompile Include="..\src\Engine\Core\GraphicsDevice.cpp">
       <Filter>ソース ファイル\Core</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Engine\Core\SwapChain.cpp">
-      <Filter>ソース ファイル\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\Engine\Core\Renderer.cpp">
-      <Filter>ソース ファイル\Core</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\Engine\Resource\AssetSystem.cpp">
       <Filter>ソース ファイル\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Engine\Render\ScenePass.cpp">
+      <Filter>ソース ファイル\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Engine\Render\CompositePass.cpp">
+      <Filter>ソース ファイル\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Engine\Render\Renderer.cpp">
+      <Filter>ソース ファイル\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Engine\Render\SwapChain.cpp">
+      <Filter>ソース ファイル\Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

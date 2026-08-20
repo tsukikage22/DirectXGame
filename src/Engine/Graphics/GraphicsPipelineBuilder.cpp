@@ -153,16 +153,3 @@ bool GraphicsPipelineBuilder::Build(ID3D12Device* pDevice) {
 
     return true;
 }
-
-void BeginPass(ID3D12GraphicsCommandList* pCmdList,
-    const RenderTargetLayout& layout,
-    const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles,
-    const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle) {
-    // DSVフォーマットが設定されている場合はDSVハンドルがnullptrでないことを確認
-    assert((layout.dsvFormat == DXGI_FORMAT_UNKNOWN || pDSVHandle != nullptr) &&
-           "DSV handle must be provided if DSV format is set.");
-
-    // レンダーターゲットと深度ステンシルを設定
-    pCmdList->OMSetRenderTargets(
-        layout.numRenderTargets, pRTVHandles, FALSE, pDSVHandle);
-}

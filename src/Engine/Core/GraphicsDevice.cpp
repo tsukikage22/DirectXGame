@@ -4,6 +4,9 @@
 #include "Engine/Core/EngineConfig.h"
 
 bool GraphicsDevice::Init() {
+    // デバッグレイヤーの有効化
+    dxdebug::EnableDebugLayer();
+
     // デバイスの生成
     auto hr = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0,
         IID_PPV_ARGS(m_pDevice.GetAddressOf()));
@@ -11,6 +14,9 @@ bool GraphicsDevice::Init() {
         OutputDebugStringW(L"Failed to create D3D12 Device.\n");
         return false;
     }
+
+    // InfoQueueの設定
+    dxdebug::SetupInfoQueue(m_pDevice.Get());
 
     // DXGIファクトリの生成
     m_pFactory.Reset();

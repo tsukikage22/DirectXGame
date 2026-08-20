@@ -5,12 +5,18 @@
 
 #include <cstdint>
 
-#include "Engine/Core/SwapChain.h"
+#include "Engine/Core/EngineConfig.h"
+#include "Engine/Core/FrameResource.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Graphics/DepthTarget.h"
+#include "Engine/Render/PassBindings.h"
+#include "Engine/Render/SwapChain.h"
 #include "Engine/Shader/DisplayConstantsGPU.h"
 
+// 前方宣言
 class GraphicsDevice;
+class Scene;
+class AssetSystem;
 
 /// @brief ディスプレイ情報
 struct DisplayInfo {
@@ -26,20 +32,32 @@ public:
     Renderer()  = default;
     ~Renderer() = default;
 
+    /// @brief レンダラーの初期化
+    /// @param device デバイス
+    /// @param width 幅
+    /// @param height 高さ
+    /// @param hWnd ウィンドウハンドル
     bool Init(
         GraphicsDevice& device, uint32_t width, uint32_t height, HWND hWnd);
     void Term();
 
-    /// @brief フレーム開始時の処理
-    /// @param pCmdList コマンドリスト
-    void BeginFrame(ID3D12GraphicsCommandList* pCmdList);
+    /// @brief
+    /// フレームレイテンシ待機，フェンス同期，コマンドリストのリセット，リソースバリア遷移
+    void BeginFrame();
+
+    /// @brief シーン描画パスの開始
+    void BeginScenePass();
 
     /// @brief UI合成パスの開始
-    void BeginCompositePass(ID3D12GraphicsCommandList* pCmdList);
+    void BeginCompositePass();
 
-    /// @brief  フレーム終了時の処理
-    /// @param pCmdList コマンドリスト
-    void EndFrame(ID3D12GraphicsCommandList* pCmdList);
+    /// @brief 定数バッファの更新
+    /// @param scene シーン
+    /// @param debugView デバッグビュー
+    void UpdateConstants(Scene& scene, uint32_t debugView);
+
+    /// @brief フレーム終了時の処理
+    void EndFrame();
 
     /// @brief 画面表示
     void Present() { m_swapChain.Present(); }
@@ -60,36 +78,37 @@ public:
     void UploadDisplayConstants();
 
     /// @brief バックバッファと深度バッファ，UI用RTのリサイズ
-    /// @param device グラフィックスデバイス
     /// @param width 幅
     /// @param height 高さ
-    bool ResizeBuffers(
-        GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height);
+    bool ResizeBuffers(uint32_t width, uint32_t height);
+
+    /// @brief シーン描画パスに渡す情報をまとめた構造体を作成する
+    ScenePassBindings MakeScenePassBindings(AssetSystem& assetSystem);
+
+    /// @brief 合成パスに渡す情報をまとめた構造体を作成する
+    CompositePassBindings MakeCompositePassBindings();
 
     //==========================================================
     // アクセサ
     //==========================================================
-    /// @brief 深度バッファ
-    DepthTarget& GetDepthBuffer() { return m_depthTarget; }
-
     /// @brief UI用レンダーターゲット
     ColorTarget& GetUITarget() { return m_uiTarget; }
 
     /// @brief 現在のフレーム番号
     uint32_t GetFrameIndex() const { return m_swapChain.GetFrameIndex(); }
 
-    /// @brief ディスプレイ情報
-    DisplayInfo GetDisplayInfo() const { return m_displayInfo; }
-
-    /// @brief ディスプレイCBのGPUアドレス
-    D3D12_GPU_VIRTUAL_ADDRESS GetDisplayConstantsAddress() const {
-        return m_displayConstantsGPU.GetGPUAddress();
-    }
+    /// @brief コマンドリスト
+    ID3D12GraphicsCommandList* GetCommandList() { return m_pCmdList.Get(); }
 
 private:
-    SwapChain m_swapChain;      // スワップチェイン
-    DepthTarget m_depthTarget;  // 深度バッファ
-    ColorTarget m_uiTarget;     // UI用レンダーターゲット
+    engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList;  // コマンドリスト
+
+    GraphicsDevice* m_pDevice = nullptr;  // グラフィックスデバイス
+    SwapChain m_swapChain;                // スワップチェイン
+    DepthTarget m_depthTarget;            // 深度バッファ
+    ColorTarget m_uiTarget;               // UI用レンダーターゲット
+
+    FrameResource m_frameResources[config::kFrameCount];  // フレームリソース
 
     DisplayInfo m_displayInfo = {};             // ディスプレイ情報
     DisplayConstantsGPU m_displayConstantsGPU;  // ディスプレイCB
