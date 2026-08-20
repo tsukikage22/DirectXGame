@@ -20,9 +20,10 @@ public:
     /// @brief PSOとRSの構築
     bool Init(GraphicsDevice& device, ID3DBlob* vsBlob, ID3DBlob* psBlob);
 
+    /// @brief 終了処理
     void Term();
 
-    /// @brief 描画コマンドの記録を行う
+    /// @brief 描画コマンドの記録
     void Draw(const ScenePassBindings& passBindings, Scene& scene);
 
 private:
