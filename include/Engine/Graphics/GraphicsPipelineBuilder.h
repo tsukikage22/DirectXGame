@@ -28,8 +28,8 @@ struct RenderTargetLayout {
     UINT sampleCount      = 1;                    // サンプル数
 };
 
-// ジオメトリパス：HDRバッファ＋深度
-inline constexpr RenderTargetLayout kGeometryLayout = {
+// シーン描画用：HDRバッファ＋深度
+inline constexpr RenderTargetLayout kSceneLayout = {
     { config::kBackBufferFormat },  // RTフォーマット
     1,                              // RTの数
     config::kDepthBufferFormat,     // DSVフォーマット

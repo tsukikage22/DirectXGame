@@ -392,7 +392,7 @@ bool Engine::InitApp() {
             .SetPixelShader(psBlob.Get())
             .SetInputLayout(StandardVertex::GetInputLayout())
             .SetBlendState(BlendMode::Opaque)
-            .SetRenderTargetLayout(kGeometryLayout);
+            .SetRenderTargetLayout(kSceneLayout);
 
         if (!pipelineBuilder.Build(m_Device.GetDevice())) {
             MessageBoxW(nullptr, L"Failed to build graphics pipeline state.",

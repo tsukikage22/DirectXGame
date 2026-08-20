@@ -129,7 +129,7 @@ void Renderer::BeginFrame() {
     // レンダーターゲットの設定
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = backBuffer.GetRTVCPUHandle();
     D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_depthTarget.GetCPUHandle();
-    BeginPass(m_pCmdList.Get(), kGeometryLayout, &rtvHandle, &dsvHandle);
+    BeginPass(m_pCmdList.Get(), kSceneLayout, &rtvHandle, &dsvHandle);
 
     // レンダーターゲットのクリア
     const float clearColor[] = { 0.25f, 0.25f, 0.25f, 1.0f };
