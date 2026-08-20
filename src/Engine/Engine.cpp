@@ -433,26 +433,14 @@ bool Engine::InitApp() {
 
     // パイプラインステートの生成
     {
-        // シェーダの検索と読み込み
-        std::filesystem::path vsPath;
-        std::filesystem::path psPath;
-        AssetPath assetPath;
-
-        // シェーダのパスを取得
-        if (!assetPath.GetAssetPath(L"shader/TestVS.cso", vsPath) ||
-            !assetPath.GetAssetPath(L"shader/GGX_PS.cso", psPath)) {
-            MessageBoxW(
-                nullptr, L"Failed to find shader files.", L"Error", MB_OK);
-            return false;
-        }
-
         // シェーダの読み込み
         engine::ComPtr<ID3DBlob> vsBlob;
         engine::ComPtr<ID3DBlob> psBlob;
-        CHECK_HR(m_Device.GetDevice(),
-            D3DReadFileToBlob(vsPath.c_str(), vsBlob.GetAddressOf()));
-        CHECK_HR(m_Device.GetDevice(),
-            D3DReadFileToBlob(psPath.c_str(), psBlob.GetAddressOf()));
+        if (!LoadShader(L"shader/TestVS.cso", vsBlob) ||
+            !LoadShader(L"shader/GGX_PS.cso", psBlob)) {
+            OutputDebugStringW(L"Failed to load shaders.\n");
+            return false;
+        }
 
         // グラフィックスパイプラインステートの設定
         GraphicsPipelineBuilder pipelineBuilder;
@@ -480,24 +468,14 @@ bool Engine::InitApp() {
 
     // UI合成用PSO，ルートシグネチャの作成
     {
-        // シェーダのパスを取得
-        std::filesystem::path vsPath;
-        std::filesystem::path psPath;
-        AssetPath assetPath;
-        if (!assetPath.GetAssetPath(L"shader/UI_VS.cso", vsPath) ||
-            !assetPath.GetAssetPath(L"shader/UI_PS.cso", psPath)) {
-            MessageBoxW(
-                nullptr, L"Failed to find shader files.", L"Error", MB_OK);
-            return false;
-        }
-
         // シェーダの読み込み
         engine::ComPtr<ID3DBlob> vsBlob;
         engine::ComPtr<ID3DBlob> psBlob;
-        CHECK_HR(m_Device.GetDevice(),
-            D3DReadFileToBlob(vsPath.c_str(), vsBlob.GetAddressOf()));
-        CHECK_HR(m_Device.GetDevice(),
-            D3DReadFileToBlob(psPath.c_str(), psBlob.GetAddressOf()));
+        if (!LoadShader(L"shader/UI_VS.cso", vsBlob) ||
+            !LoadShader(L"shader/UI_PS.cso", psBlob)) {
+            OutputDebugStringW(L"Failed to load UI shaders.\n");
+            return false;
+        }
 
         // ルートシグネチャの生成
         // ルートシグネチャの構成
@@ -578,6 +556,23 @@ void Engine::ApplyRenderSize(uint32_t width, uint32_t height) {
 // AssetLoadScopeの作成
 AssetLoadScope Engine::CreateAssetLoadScope() {
     return m_AssetSystem.CreateAssetLoadScope(m_Scene);
+}
+
+[[nodiscard]] bool Engine::LoadShader(
+    const wchar_t* filename, engine::ComPtr<ID3DBlob>& outBlob) {
+    // パスの取得
+    std::filesystem::path shaderPath;
+    AssetPath assetPath;
+    if (!assetPath.GetAssetPath(filename, shaderPath)) {
+        OutputDebugStringW(L"Failed to find shader file.\n");
+        return false;
+    }
+
+    // シェーダの読み込み
+    CHECK_HR(m_Device.GetDevice(),
+        D3DReadFileToBlob(shaderPath.c_str(), outBlob.GetAddressOf()));
+
+    return true;
 }
 
 //=============================================

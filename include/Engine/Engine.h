@@ -142,4 +142,10 @@ private:
 
     /// @brief 描画領域の大きさに合わせてカメラのアスペクト比を更新する
     void ApplyRenderSize(uint32_t width, uint32_t height);
+
+    /// @brief シェーダーを読み込む
+    /// @param filename シェーダーのファイル名
+    /// @param outBlob 出力先
+    [[nodiscard]] bool LoadShader(
+        const wchar_t* filename, engine::ComPtr<ID3DBlob>& outBlob);
 };
