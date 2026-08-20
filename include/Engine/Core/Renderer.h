@@ -10,11 +10,13 @@
 #include "Engine/Core/SwapChain.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Graphics/DepthTarget.h"
+#include "Engine/Render/PassBindings.h"
 #include "Engine/Shader/DisplayConstantsGPU.h"
 
 // 前方宣言
 class GraphicsDevice;
 class Scene;
+class AssetSystem;
 
 /// @brief ディスプレイ情報
 struct DisplayInfo {
@@ -84,6 +86,9 @@ public:
     bool ResizeBuffers(
         GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height);
 
+    /// @brief パイプラインに渡す情報をまとめた構造体を作成する
+    PassBindings MakePassBindings(AssetSystem& assetSystem);
+
     //==========================================================
     // アクセサ
     //==========================================================
@@ -115,9 +120,10 @@ public:
 private:
     engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList;  // コマンドリスト
 
-    SwapChain m_swapChain;      // スワップチェイン
-    DepthTarget m_depthTarget;  // 深度バッファ
-    ColorTarget m_uiTarget;     // UI用レンダーターゲット
+    GraphicsDevice* m_pDevice = nullptr;  // グラフィックスデバイス
+    SwapChain m_swapChain;                // スワップチェイン
+    DepthTarget m_depthTarget;            // 深度バッファ
+    ColorTarget m_uiTarget;               // UI用レンダーターゲット
 
     FrameResource m_frameResources[config::kFrameCount];  // フレームリソース
 

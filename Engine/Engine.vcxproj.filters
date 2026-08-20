@@ -64,6 +64,9 @@
     <Filter Include="ヘッダー ファイル\Debug">
       <UniqueIdentifier>{7587abc2-4ca1-402f-b20f-9018c9de91ba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\Render">
+      <UniqueIdentifier>{924be3de-b7c6-4616-b19a-d7a6113aa806}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Engine\Core\DescriptorPool.h">
@@ -245,6 +248,9 @@
     </ClInclude>
     <ClInclude Include="..\include\Engine\Resource\AssetSystem.h">
       <Filter>ヘッダー ファイル\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Engine\Render\FrameContext.h">
+      <Filter>ヘッダー ファイル\Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

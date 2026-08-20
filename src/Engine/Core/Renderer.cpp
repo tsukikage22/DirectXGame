@@ -8,6 +8,7 @@
 #include "Engine/Core/DxDebug.h"
 #include "Engine/Core/GraphicsDevice.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
+#include "Engine/Resource/AssetSystem.h"
 #include "Engine/Scene/Scene.h"
 #include "Engine/Shader/ShaderConstants.h"
 
@@ -41,6 +42,8 @@ shader::DisplayConstants MakeDisplayConstants(const DisplayInfo& info) {
 bool Renderer::Init(
     GraphicsDevice& device, uint32_t width, uint32_t height, HWND hWnd) {
     m_hWnd = hWnd;
+
+    m_pDevice = &device;
 
     // スワップチェインの生成
     if (!m_swapChain.Init(device, width, height, hWnd)) {
@@ -90,6 +93,8 @@ bool Renderer::Init(
 }
 
 void Renderer::Term() {
+    m_pDevice = nullptr;
+
     // ディスプレイCBの破棄
     m_displayConstantsGPU.Term();
 
@@ -300,4 +305,19 @@ bool Renderer::ResizeBuffers(
     }
 
     return true;
+}
+
+PassBindings Renderer::MakePassBindings(AssetSystem& assetSystem) {
+    uint32_t frameIndex          = GetFrameIndex();
+    FrameResource& frameResource = m_frameResources[frameIndex];
+
+    PassBindings context   = {};
+    context.pCmdList       = m_pCmdList.Get();
+    context.frameIndex     = frameIndex;
+    context.pCbvSrvUavHeap = m_pDevice->CbvSrvUavPool()->GetHeap();
+    context.sceneCB        = frameResource.GetSceneConstants().GetGPUAddress();
+    context.displayCB      = m_displayConstantsGPU.GetGPUAddress();
+    context.lightSRV       = frameResource.GetLightBuffer().GetGPUHandle();
+    context.iesSRV         = assetSystem.GetIesSrvGpuHandle();
+    return context;
 }
