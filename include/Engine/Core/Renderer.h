@@ -5,6 +5,8 @@
 
 #include <cstdint>
 
+#include "Engine/Core/EngineConfig.h"
+#include "Engine/Core/FrameResource.h"
 #include "Engine/Core/SwapChain.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Graphics/DepthTarget.h"
@@ -26,20 +28,30 @@ public:
     Renderer()  = default;
     ~Renderer() = default;
 
+    /// @brief レンダラーの初期化
+    /// @details スワップチェイン・深度バッファの生成
+    /// スワップチェイン・深度バッファの生成
+    /// UI用レンダーターゲットの生成
+    /// ディスプレイCBの生成
+    /// フレームリソースの生成
+    /// コマンドリストの生成
+    /// @param device
+    /// @param width
+    /// @param height
+    /// @param hWnd
+    /// @return
     bool Init(
         GraphicsDevice& device, uint32_t width, uint32_t height, HWND hWnd);
     void Term();
 
     /// @brief フレーム開始時の処理
-    /// @param pCmdList コマンドリスト
-    void BeginFrame(ID3D12GraphicsCommandList* pCmdList);
+    void BeginFrame();
 
     /// @brief UI合成パスの開始
-    void BeginCompositePass(ID3D12GraphicsCommandList* pCmdList);
+    void BeginCompositePass();
 
     /// @brief  フレーム終了時の処理
-    /// @param pCmdList コマンドリスト
-    void EndFrame(ID3D12GraphicsCommandList* pCmdList);
+    void EndFrame();
 
     /// @brief 画面表示
     void Present() { m_swapChain.Present(); }
@@ -86,10 +98,22 @@ public:
         return m_displayConstantsGPU.GetGPUAddress();
     }
 
+    /// @brief フレームリソース
+    FrameResource& GetFrameResource() {
+        return m_frameResources[m_swapChain.GetFrameIndex()];
+    }
+
+    /// @brief コマンドリスト
+    ID3D12GraphicsCommandList* GetCommandList() { return m_pCmdList.Get(); }
+
 private:
+    engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList;  // コマンドリスト
+
     SwapChain m_swapChain;      // スワップチェイン
     DepthTarget m_depthTarget;  // 深度バッファ
     ColorTarget m_uiTarget;     // UI用レンダーターゲット
+
+    FrameResource m_frameResources[config::kFrameCount];  // フレームリソース
 
     DisplayInfo m_displayInfo = {};             // ディスプレイ情報
     DisplayConstantsGPU m_displayConstantsGPU;  // ディスプレイCB

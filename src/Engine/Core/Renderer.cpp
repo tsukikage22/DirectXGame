@@ -3,7 +3,7 @@
 #include <Windows.h>
 
 #include "Engine/Core/ComPtr.h"
-#include "Engine/Core/EngineConfig.h"
+#include "Engine/Core/DxDebug.h"
 #include "Engine/Core/GraphicsDevice.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
 #include "Engine/Shader/ShaderConstants.h"
@@ -69,6 +69,20 @@ bool Renderer::Init(
     QueryDisplayInfo();
     UploadDisplayConstants();
 
+    // フレームリソースの初期化
+    for (int i = 0; i < config::kFrameCount; i++) {
+        if (!m_frameResources[i].Init(device)) {
+            return false;
+        }
+    }
+
+    // コマンドリストの生成
+    CHECK_HR(device.GetDevice(),
+        device.GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+            m_frameResources[GetFrameIndex()].GetCommandAllocator(), nullptr,
+            IID_PPV_ARGS(m_pCmdList.GetAddressOf())));
+    m_pCmdList->Close();
+
     return true;
 }
 
@@ -84,9 +98,17 @@ void Renderer::Term() {
 
     // スワップチェインの終了処理
     m_swapChain.Term();
+
+    // フレームリソースの解放
+    for (int i = 0; i < config::kFrameCount; i++) {
+        m_frameResources[i].Term();
+    }
+
+    // コマンドリストの解放
+    m_pCmdList.Reset();
 }
 
-void Renderer::BeginFrame(ID3D12GraphicsCommandList* pCmdList) {
+void Renderer::BeginFrame() {
     // バックバッファの取得
     ColorTarget& backBuffer = m_swapChain.GetBackBuffer();
 
@@ -94,47 +116,47 @@ void Renderer::BeginFrame(ID3D12GraphicsCommandList* pCmdList) {
     D3D12_RESOURCE_BARRIER barrier =
         MakeTransitionBarrier(backBuffer.GetResource(),
             D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-    pCmdList->ResourceBarrier(1, &barrier);
+    m_pCmdList->ResourceBarrier(1, &barrier);
 
     // レンダーターゲットの設定
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = backBuffer.GetRTVCPUHandle();
     D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_depthTarget.GetCPUHandle();
-    BeginPass(pCmdList, kGeometryLayout, &rtvHandle, &dsvHandle);
+    BeginPass(m_pCmdList.Get(), kGeometryLayout, &rtvHandle, &dsvHandle);
 
     // レンダーターゲットのクリア
     const float clearColor[] = { 0.25f, 0.25f, 0.25f, 1.0f };
-    pCmdList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-    pCmdList->ClearDepthStencilView(
+    m_pCmdList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+    m_pCmdList->ClearDepthStencilView(
         dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
     // ビューポートの設定
     auto viewport    = backBuffer.MakeViewport();
     auto scissorRect = backBuffer.MakeScissorRect();
-    pCmdList->RSSetViewports(1, &viewport);
-    pCmdList->RSSetScissorRects(1, &scissorRect);
+    m_pCmdList->RSSetViewports(1, &viewport);
+    m_pCmdList->RSSetScissorRects(1, &scissorRect);
 }
 
-void Renderer::BeginCompositePass(ID3D12GraphicsCommandList* pCmdList) {
+void Renderer::BeginCompositePass() {
     // バックバッファの取得
     ColorTarget& backBuffer = m_swapChain.GetBackBuffer();
 
     // レンダーターゲットの設定
     auto rtvHandle = backBuffer.GetRTVCPUHandle();
-    BeginPass(pCmdList, kCompositeLayout, &rtvHandle, nullptr);
+    BeginPass(m_pCmdList.Get(), kCompositeLayout, &rtvHandle, nullptr);
 
     // ビューポートの設定
     auto viewport = backBuffer.MakeViewport();
-    pCmdList->RSSetViewports(1, &viewport);
+    m_pCmdList->RSSetViewports(1, &viewport);
     auto scissorRect = backBuffer.MakeScissorRect();
-    pCmdList->RSSetScissorRects(1, &scissorRect);
+    m_pCmdList->RSSetScissorRects(1, &scissorRect);
 }
 
-void Renderer::EndFrame(ID3D12GraphicsCommandList* pCmdList) {
+void Renderer::EndFrame() {
     // リソースバリアの設定（RT -> Present）
     D3D12_RESOURCE_BARRIER barrier =
         MakeTransitionBarrier(m_swapChain.GetBackBuffer().GetResource(),
             D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-    pCmdList->ResourceBarrier(1, &barrier);
+    m_pCmdList->ResourceBarrier(1, &barrier);
 }
 
 // モニター変更の検出

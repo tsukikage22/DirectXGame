@@ -14,7 +14,6 @@
 
 #include "Engine/Core/ComPtr.h"
 #include "Engine/Core/EngineConfig.h"
-#include "Engine/Core/FrameResource.h"
 #include "Engine/Core/GraphicsDevice.h"
 #include "Engine/Core/Renderer.h"
 #include "Engine/Debug/DebugUI.h"
@@ -109,14 +108,11 @@ private:
     //==============================================================
     // private variables
     //==============================================================
-    engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList;  // コマンドリスト
     engine::ComPtr<ID3D12RootSignature> m_pRootSignature;  // ルートシグネチャ
     engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
 
     GraphicsDevice m_Device;  // D3D12デバイスの管理クラス
     Renderer m_Renderer;      // レンダラーの管理クラス
-
-    FrameResource m_FrameResources[config::kFrameCount];  // フレームリソース
 
     AssetSystem m_AssetSystem;  // モデル読み込みなどのアセット管理クラス
     Scene m_Scene;              // シーン
