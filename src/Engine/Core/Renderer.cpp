@@ -7,7 +7,7 @@
 #include "Engine/Core/ComPtr.h"
 #include "Engine/Core/DxDebug.h"
 #include "Engine/Core/GraphicsDevice.h"
-#include "Engine/Graphics/GraphicsPipelineBuilder.h"
+#include "Engine/Graphics/RenderTargetLayout.h"
 #include "Engine/Resource/AssetSystem.h"
 #include "Engine/Scene/Scene.h"
 #include "Engine/Shader/ShaderConstants.h"
@@ -129,7 +129,7 @@ void Renderer::BeginFrame() {
     // レンダーターゲットの設定
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = backBuffer.GetRTVCPUHandle();
     D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_depthTarget.GetCPUHandle();
-    BeginPass(m_pCmdList.Get(), kSceneLayout, &rtvHandle, &dsvHandle);
+    SetRenderTargets(m_pCmdList.Get(), kSceneLayout, &rtvHandle, &dsvHandle);
 
     // レンダーターゲットのクリア
     const float clearColor[] = { 0.25f, 0.25f, 0.25f, 1.0f };
@@ -150,7 +150,7 @@ void Renderer::BeginCompositePass() {
 
     // レンダーターゲットの設定
     auto rtvHandle = backBuffer.GetRTVCPUHandle();
-    BeginPass(m_pCmdList.Get(), kCompositeLayout, &rtvHandle, nullptr);
+    SetRenderTargets(m_pCmdList.Get(), kCompositeLayout, &rtvHandle, nullptr);
 
     // ビューポートの設定
     auto viewport = backBuffer.MakeViewport();

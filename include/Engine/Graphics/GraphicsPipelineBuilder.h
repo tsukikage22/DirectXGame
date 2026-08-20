@@ -5,11 +5,10 @@
 
 #include <d3d12.h>
 
-#include <array>
 #include <vector>
 
 #include "Engine/Core/ComPtr.h"
-#include "Engine/Core/EngineConfig.h"
+#include "Engine/Graphics/RenderTargetLayout.h"
 
 enum class BlendMode {
     Opaque,              // 不透明（既定）
@@ -17,50 +16,6 @@ enum class BlendMode {
     PremultipliedAlpha,  // 乗算アルファ合成
     Additive,            // 加算合成
 };
-
-/// @brief レンダーターゲットのレイアウト
-struct RenderTargetLayout {
-    // RTとDSのフォーマット，サンプル数は複数の場所で使用するため，ここでまとめて管理する
-    std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>
-        rtvFormats{};
-    UINT numRenderTargets = 1;                    // RTの数
-    DXGI_FORMAT dsvFormat = DXGI_FORMAT_UNKNOWN;  // DSVのフォーマット
-    UINT sampleCount      = 1;                    // サンプル数
-};
-
-// シーン描画用：HDRバッファ＋深度
-inline constexpr RenderTargetLayout kSceneLayout = {
-    { config::kBackBufferFormat },  // RTフォーマット
-    1,                              // RTの数
-    config::kDepthBufferFormat,     // DSVフォーマット
-    1                               // サンプル数
-};
-
-// ImGui用オフスクリーンパス：ガンマ空間＋深度なし
-inline constexpr RenderTargetLayout kImGuiLayout = {
-    { config::kUIBufferFormat },  // RTフォーマット
-    1,                            // RTの数
-    DXGI_FORMAT_UNKNOWN,          // DSVフォーマット
-    1                             // サンプル数
-};
-
-// 最終合成パス：scRGB＋深度なし
-inline constexpr RenderTargetLayout kCompositeLayout = {
-    { config::kBackBufferFormat },  // RTフォーマット
-    1,                              // RTの数
-    DXGI_FORMAT_UNKNOWN,            // DSVフォーマット
-    1                               // サンプル数
-};
-
-/// @brief RTLayout定数からSetRenderTargetsを呼び出す
-/// @param pCmdList コマンドリスト
-/// @param layout RTLayout定数
-/// @param pRTVHandles RTVハンドルの配列
-/// @param pDSVHandle DSVハンドル
-void BeginPass(ID3D12GraphicsCommandList* pCmdList,
-    const RenderTargetLayout& layout,
-    const D3D12_CPU_DESCRIPTOR_HANDLE* pRTVHandles,
-    const D3D12_CPU_DESCRIPTOR_HANDLE* pDSVHandle);
 
 class GraphicsPipelineBuilder {
 public:

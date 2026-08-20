@@ -249,7 +249,7 @@
     <ClInclude Include="..\include\Engine\Resource\AssetSystem.h">
       <Filter>ヘッダー ファイル\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Engine\Render\FrameContext.h">
+    <ClInclude Include="..\include\Engine\Render\PassBindings.h">
       <Filter>ヘッダー ファイル\Render</Filter>
     </ClInclude>
   </ItemGroup>
