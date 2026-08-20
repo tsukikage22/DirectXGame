@@ -108,6 +108,7 @@
     <ClInclude Include="..\include\Engine\Core\RetireQueue.h" />
     <ClInclude Include="..\include\Engine\Core\SlotMap.h" />
     <ClInclude Include="..\include\Engine\Debug\DebugUI.h" />
+    <ClInclude Include="..\include\Engine\Graphics\RenderTargetLayout.h" />
     <ClInclude Include="..\include\Engine\Render\CompositePass.h" />
     <ClInclude Include="..\include\Engine\Render\PassBindings.h" />
     <ClInclude Include="..\include\Engine\Render\Renderer.h" />

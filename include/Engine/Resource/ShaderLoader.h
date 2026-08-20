@@ -13,6 +13,7 @@
 /// @brief シェーダーを読み込む
 /// @param filename シェーダーのファイル名
 /// @param outBlob 出力先
+/// @return 成功した場合はtrue，失敗した場合はfalse
 [[nodiscard]] inline bool LoadShader(
     const wchar_t* filename, engine::ComPtr<ID3DBlob>& outBlob) {
     // パスの取得

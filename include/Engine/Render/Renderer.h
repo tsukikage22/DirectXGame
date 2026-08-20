@@ -33,16 +33,16 @@ public:
     ~Renderer() = default;
 
     /// @brief レンダラーの初期化
-    /// @param device
-    /// @param width
-    /// @param height
-    /// @param hWnd
-    /// @return
+    /// @param device デバイス
+    /// @param width 幅
+    /// @param height 高さ
+    /// @param hWnd ウィンドウハンドル
     bool Init(
         GraphicsDevice& device, uint32_t width, uint32_t height, HWND hWnd);
     void Term();
 
-    /// @brief フレーム開始時の処理
+    /// @brief
+    /// フレームレイテンシ待機，フェンス同期，コマンドリストのリセット，リソースバリア遷移
     void BeginFrame();
 
     /// @brief シーン描画パスの開始
@@ -52,7 +52,8 @@ public:
     void BeginCompositePass();
 
     /// @brief 定数バッファの更新
-    /// @param debugView
+    /// @param scene シーン
+    /// @param debugView デバッグビュー
     void UpdateConstants(Scene& scene, uint32_t debugView);
 
     /// @brief フレーム終了時の処理
@@ -77,14 +78,14 @@ public:
     void UploadDisplayConstants();
 
     /// @brief バックバッファと深度バッファ，UI用RTのリサイズ
-    /// @param device グラフィックスデバイス
     /// @param width 幅
     /// @param height 高さ
     bool ResizeBuffers(uint32_t width, uint32_t height);
 
-    /// @brief パイプラインに渡す情報をまとめた構造体を作成する
+    /// @brief シーン描画パスに渡す情報をまとめた構造体を作成する
     ScenePassBindings MakeScenePassBindings(AssetSystem& assetSystem);
 
+    /// @brief 合成パスに渡す情報をまとめた構造体を作成する
     CompositePassBindings MakeCompositePassBindings();
 
     //==========================================================

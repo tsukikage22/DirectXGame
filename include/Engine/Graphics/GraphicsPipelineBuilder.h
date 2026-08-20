@@ -1,5 +1,5 @@
 /// @file GraphicsPipelineBuilder.h
-/// @brief ルートシグニチャとPSO
+/// @brief PSOを作成するためのビルダークラス
 
 #pragma once
 

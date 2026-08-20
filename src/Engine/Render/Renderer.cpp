@@ -51,8 +51,8 @@ bool Renderer::Init(
     }
 
     // 深度バッファの生成
-    // 将来的にジオメトリパスのターゲットがバックバッファと一致しなくなった場合は，
-    // ここで幅と高さをジオメトリパスのRTの幅と高さに合わせる必要がある
+    // 将来的にシーン描画パスのターゲットがバックバッファと一致しなくなった場合は，
+    // ここで幅と高さをシーン描画パスのRTの幅と高さに合わせる必要がある
     if (!m_depthTarget.Init(device.GetDevice(), device.DsvPool(), width, height,
             config::kDepthBufferFormat)) {
         return false;
@@ -117,7 +117,7 @@ void Renderer::Term() {
 }
 
 void Renderer::BeginFrame() {
-    // DXGIフレームペーシング
+    // フレームレイテンシ待機
     WaitFrameLatency();
 
     // フェンス同期

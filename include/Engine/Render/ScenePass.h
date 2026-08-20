@@ -18,6 +18,8 @@ public:
     ~ScenePass() = default;
 
     /// @brief PSOとRSの構築
+    /// @param device デバイス
+    /// @return 成功した場合はtrue，失敗した場合はfalse
     bool Init(GraphicsDevice& device);
 
     /// @brief 終了処理

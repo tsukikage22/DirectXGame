@@ -10,10 +10,8 @@
 
 #include <cstdint>
 
-#include "Engine/Core/DxDebug.h"
 #include "Engine/Debug/DebugUI.h"
 #include "Engine/Resource/AssetLoadScope.h"
-#include "Engine/Resource/AssetPath.h"
 
 ///////////////////////////////////////////
 // Linker
@@ -66,18 +64,14 @@ void Engine::Shutdown() {
 
 // フェンス待機・コマンドリスト/アロケータのリセット
 void Engine::BeginFrame() {
-    // 遅延解放キューのクリア
     m_Scene.BeginFrame(m_Renderer.GetFrameIndex());
 
-    // フレーム開始時の処理
     m_Renderer.BeginFrame();
 
-    // デバッグUIのフレーム開始時処理
     m_DebugUI.BeginFrame(m_InputSystem, m_Scene.GetCamera(), m_Scene);
 }
 
-// ゲームロジック・シーン定数・transform更新
-// GPUバッファへの書き込み
+// 定数バッファの更新
 void Engine::Update() {
     m_Renderer.UpdateConstants(m_Scene, m_DebugUI.GetDebugView());
 }
@@ -103,30 +97,19 @@ void Engine::EndFrame() {
     m_Renderer.EndFrame();
 }
 
-// 画面表示，フレームインデックス更新
-// 結果の表示
-void Engine::Present() {
-    // 画面表示
-    m_Renderer.Present();
-}
+// フレーム表示
+void Engine::Present() { m_Renderer.Present(); }
 
 //==============================================
 // private methods
 //==============================================
 
 // D3D12を動かすための初期化
-// デバイス，コマンドキュー，スワップチェインの生成
 bool Engine::InitD3D(HWND hWnd, uint32_t width, uint32_t height) {
-    // デバッグレイヤーの有効化
-    dxdebug::EnableDebugLayer();
-
     // デバイスとコマンドキュー，フェンス，ディスクリプタプールの生成
     if (!m_Device.Init()) {
         return false;
     }
-
-    // InfoQueueの設定
-    dxdebug::SetupInfoQueue(m_Device.GetDevice());
 
     // ウィンドウハンドルの保存
     m_hWnd = hWnd;
@@ -151,7 +134,6 @@ void Engine::TermD3D() {
 }
 
 // アプリケーション固有の初期化
-// パイプライン，メッシュロード，バッファ生成など
 bool Engine::InitApp() {
     // シーンの初期化
     m_Scene.Init(m_Device);
