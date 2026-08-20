@@ -61,7 +61,7 @@ public:
     /// @param debugView
     void UpdateConstants(Scene& scene, uint32_t debugView);
 
-    /// @brief  フレーム終了時の処理
+    /// @brief フレーム終了時の処理
     void EndFrame();
 
     /// @brief 画面表示
@@ -97,22 +97,11 @@ public:
     //==========================================================
     // アクセサ
     //==========================================================
-    /// @brief 深度バッファ
-    DepthTarget& GetDepthBuffer() { return m_depthTarget; }
-
     /// @brief UI用レンダーターゲット
     ColorTarget& GetUITarget() { return m_uiTarget; }
 
     /// @brief 現在のフレーム番号
     uint32_t GetFrameIndex() const { return m_swapChain.GetFrameIndex(); }
-
-    /// @brief ディスプレイ情報
-    DisplayInfo GetDisplayInfo() const { return m_displayInfo; }
-
-    /// @brief フレームリソース
-    FrameResource& GetFrameResource() {
-        return m_frameResources[m_swapChain.GetFrameIndex()];
-    }
 
     /// @brief コマンドリスト
     ID3D12GraphicsCommandList* GetCommandList() { return m_pCmdList.Get(); }

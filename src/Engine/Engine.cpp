@@ -170,14 +170,7 @@ bool Engine::InitApp() {
     }
 
     // シーン描画パスの初期化
-    engine::ComPtr<ID3DBlob> vsBlob;
-    engine::ComPtr<ID3DBlob> psBlob;
-    if (!LoadShader(L"shader/TestVS.cso", vsBlob) ||
-        !LoadShader(L"shader/GGX_PS.cso", psBlob)) {
-        OutputDebugStringW(L"Failed to load shaders.\n");
-        return false;
-    }
-    if (!m_ScenePass.Init(m_Device, vsBlob.Get(), psBlob.Get())) {
+    if (!m_ScenePass.Init(m_Device)) {
         OutputDebugStringW(L"Failed to initialize ScenePass.\n");
         return false;
     }
@@ -189,12 +182,7 @@ bool Engine::InitApp() {
     }
 
     // UI合成パスの初期化
-    if (!LoadShader(L"shader/UI_VS.cso", vsBlob) ||
-        !LoadShader(L"shader/UI_PS.cso", psBlob)) {
-        OutputDebugStringW(L"Failed to load shaders.\n");
-        return false;
-    }
-    if (!m_CompositePass.Init(m_Device, vsBlob.Get(), psBlob.Get())) {
+    if (!m_CompositePass.Init(m_Device)) {
         OutputDebugStringW(L"Failed to initialize CompositePass.\n");
         return false;
     }
@@ -231,23 +219,6 @@ void Engine::ApplyRenderSize(uint32_t width, uint32_t height) {
 // AssetLoadScopeの作成
 AssetLoadScope Engine::CreateAssetLoadScope() {
     return m_AssetSystem.CreateAssetLoadScope(m_Scene);
-}
-
-[[nodiscard]] bool Engine::LoadShader(
-    const wchar_t* filename, engine::ComPtr<ID3DBlob>& outBlob) {
-    // パスの取得
-    std::filesystem::path shaderPath;
-    AssetPath assetPath;
-    if (!assetPath.GetAssetPath(filename, shaderPath)) {
-        OutputDebugStringW(L"Failed to find shader file.\n");
-        return false;
-    }
-
-    // シェーダの読み込み
-    CHECK_HR(m_Device.GetDevice(), D3DReadFileToBlob(shaderPath.c_str(),
-                                       outBlob.ReleaseAndGetAddressOf()));
-
-    return true;
 }
 
 //=============================================

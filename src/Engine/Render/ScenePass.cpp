@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include "Engine/Core/ComPtr.h"
 #include "Engine/Core/DxDebug.h"
 #include "Engine/Core/GraphicsDevice.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
@@ -9,11 +10,12 @@
 #include "Engine/Model/VertexTypes.h"
 #include "Engine/Render/PassBindings.h"
 #include "Engine/Resource/AssetPath.h"
+#include "Engine/Resource/ShaderLoader.h"
 #include "Engine/Scene/Scene.h"
 
-bool ScenePass::Init(
-    GraphicsDevice& device, ID3DBlob* vsBlob, ID3DBlob* psBlob) {
+bool ScenePass::Init(GraphicsDevice& device) {
     m_pDevice = &device;
+
     // ルートシグネチャの生成
     {
         RootSignatureBuilder builder;
@@ -76,11 +78,20 @@ bool ScenePass::Init(
 
     // パイプラインステートの生成
     {
+        // シェーダーの読み込み
+        engine::ComPtr<ID3DBlob> vsBlob;
+        engine::ComPtr<ID3DBlob> psBlob;
+        if (!LoadShader(L"shader/TestVS.cso", vsBlob) ||
+            !LoadShader(L"shader/GGX_PS.cso", psBlob)) {
+            OutputDebugStringW(L"Failed to load shaders.\n");
+            return false;
+        }
+
         // グラフィックスパイプラインステートの設定
         GraphicsPipelineBuilder pipelineBuilder;
         pipelineBuilder.SetRootSignature(m_pRootSignature.Get())
-            .SetVertexShader(vsBlob)
-            .SetPixelShader(psBlob)
+            .SetVertexShader(vsBlob.Get())
+            .SetPixelShader(psBlob.Get())
             .SetInputLayout(StandardVertex::GetInputLayout())
             .SetBlendState(BlendMode::Opaque)
             .SetRenderTargetLayout(kSceneLayout);

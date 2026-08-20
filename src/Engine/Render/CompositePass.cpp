@@ -1,51 +1,57 @@
 
 #include "Engine/Render/CompositePass.h"
 
+#include "Engine/Core/ComPtr.h"
 #include "Engine/Core/DxDebug.h"
 #include "Engine/Core/GraphicsDevice.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
 #include "Engine/Graphics/RootSignatureBuilder.h"
 #include "Engine/Render/PassBindings.h"
+#include "Engine/Resource/ShaderLoader.h"
 
-bool CompositePass::Init(
-    GraphicsDevice& device, ID3DBlob* vsBlob, ID3DBlob* psBlob) {
+bool CompositePass::Init(GraphicsDevice& device) {
     m_pDevice = &device;
-    // UI合成用PSO，ルートシグネチャの作成
-    {
-        // ルートシグネチャの生成
-        // ルートシグネチャの構成
-        // [b3] Display Constants (Root CBV)
-        // [t0] UI Texture (Descriptor Table SRV)
-        auto rsBuilder = RootSignatureBuilder{};
-        std::vector<D3D12_DESCRIPTOR_RANGE1> range;
-        range.push_back(
-            rsBuilder.CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0,
-                D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE));
-        rsBuilder
-            .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL,
-                D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
-            .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL);
+    // ルートシグネチャの生成
+    // ルートシグネチャの構成
+    // [b3] Display Constants (Root CBV)
+    // [t0] UI Texture (Descriptor Table SRV)
+    auto rsBuilder = RootSignatureBuilder{};
+    std::vector<D3D12_DESCRIPTOR_RANGE1> range;
+    range.push_back(rsBuilder.CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0,
+        0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE));
+    rsBuilder
+        .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL,
+            D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
+        .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL);
 
-        if (!rsBuilder.Build(m_pDevice->GetDevice())) {
-            OutputDebugStringW(L"Failed to build UI root signature.\n");
-            return false;
-        }
-        m_pRootSignature = rsBuilder.Get();
-
-        // パイプラインステートの生成
-        auto psoBuilder = GraphicsPipelineBuilder{};
-        psoBuilder.SetRootSignature(m_pRootSignature.Get())
-            .SetVertexShader(vsBlob)
-            .SetPixelShader(psBlob)
-            .SetBlendState(BlendMode::PremultipliedAlpha)
-            .SetRenderTargetLayout(kCompositeLayout);
-
-        if (!psoBuilder.Build(m_pDevice->GetDevice())) {
-            OutputDebugStringW(L"Failed to build UI pipeline state.\n");
-            return false;
-        }
-        m_pPSO = psoBuilder.Get();
+    if (!rsBuilder.Build(m_pDevice->GetDevice())) {
+        OutputDebugStringW(L"Failed to build UI root signature.\n");
+        return false;
     }
+    m_pRootSignature = rsBuilder.Get();
+
+    // シェーダーの読み込み
+    engine::ComPtr<ID3DBlob> vsBlob;
+    engine::ComPtr<ID3DBlob> psBlob;
+    if (!LoadShader(L"shader/UI_VS.cso", vsBlob) ||
+        !LoadShader(L"shader/UI_PS.cso", psBlob)) {
+        OutputDebugStringW(L"Failed to load shaders.\n");
+        return false;
+    }
+
+    // パイプラインステートの生成
+    auto psoBuilder = GraphicsPipelineBuilder{};
+    psoBuilder.SetRootSignature(m_pRootSignature.Get())
+        .SetVertexShader(vsBlob.Get())
+        .SetPixelShader(psBlob.Get())
+        .SetBlendState(BlendMode::PremultipliedAlpha)
+        .SetRenderTargetLayout(kCompositeLayout);
+
+    if (!psoBuilder.Build(m_pDevice->GetDevice())) {
+        OutputDebugStringW(L"Failed to build UI pipeline state.\n");
+        return false;
+    }
+    m_pPSO = psoBuilder.Get();
 
     return true;
 }

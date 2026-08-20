@@ -17,7 +17,7 @@ public:
     ~CompositePass() = default;
 
     /// @brief PSOとRSの構築
-    bool Init(GraphicsDevice& device, ID3DBlob* vsBlob, ID3DBlob* psBlob);
+    bool Init(GraphicsDevice& device);
 
     /// @brief 終了処理
     void Term();
