@@ -74,24 +74,10 @@ void Engine::Shutdown() {
 
 // フェンス待機・コマンドリスト/アロケータのリセット
 void Engine::BeginFrame() {
-    // 1. DXGIフレームペーシング
-    m_Renderer.WaitFrameLatency();
-
-    // 2. フェンス同期
-    uint32_t frameIndex = m_Renderer.GetFrameIndex();
-    uint64_t fenceValue = m_Renderer.GetFrameResource().GetFenceValue();
-    // 初回フレーム（fencevalue == 0）の場合は待機をスキップ
-    if (fenceValue != 0) {
-        m_Device.GetCommandQueue().Wait(fenceValue, INFINITE);
-    }
     // 遅延解放キューのクリア
-    m_Scene.BeginFrame(frameIndex);
+    m_Scene.BeginFrame(m_Renderer.GetFrameIndex());
 
-    // 3. コマンドリスト/アロケータのリセット
-    m_Renderer.GetFrameResource().BeginFrame(m_Renderer.GetCommandList());
-
-    // リソースバリア(Present -> RenderTarget)の設定と
-    // レンダーターゲットの設定・クリア
+    // フレーム開始時の処理
     m_Renderer.BeginFrame();
 
     // デバッグUIのフレーム開始時処理

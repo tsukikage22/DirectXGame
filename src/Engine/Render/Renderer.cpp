@@ -117,6 +117,20 @@ void Renderer::Term() {
 }
 
 void Renderer::BeginFrame() {
+    // DXGIフレームペーシング
+    WaitFrameLatency();
+
+    // フェンス同期
+    uint32_t frameIndex = GetFrameIndex();
+    uint64_t fenceValue = m_frameResources[frameIndex].GetFenceValue();
+    // 初回フレーム（fencevalue == 0）の場合は待機をスキップ
+    if (fenceValue != 0) {
+        m_pDevice->GetCommandQueue().Wait(fenceValue, INFINITE);
+    }
+
+    // コマンドリスト/アロケータのリセット
+    m_frameResources[frameIndex].BeginFrame(m_pCmdList.Get());
+
     // リソースバリア(Present -> RenderTarget)の設定
     D3D12_RESOURCE_BARRIER barrier =
         MakeTransitionBarrier(m_swapChain.GetBackBuffer().GetResource(),
