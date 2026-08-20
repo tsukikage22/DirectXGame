@@ -361,18 +361,12 @@ bool Engine::InitApp() {
         m_pCmdList->Close();
     }
 
+    // シーンの初期化
+    m_Scene.Init(m_Device);
+
     // アセット管理クラスの初期化
-    {
-        // シーンの初期化
-        m_Scene.Init(m_Device);
-
-        // アセット管理クラスの初期化
-        if (!m_AssetSystem.Init(m_Device)) {
-            return false;
-        }
-
-        // アップロードヒープの破棄
-        m_Scene.DiscardModelUploads();
+    if (!m_AssetSystem.Init(m_Device)) {
+        return false;
     }
 
     // ルートシグネチャの生成
