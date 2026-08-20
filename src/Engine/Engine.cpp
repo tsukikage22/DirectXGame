@@ -110,6 +110,7 @@ void Engine::Update() {
 // 描画コマンドの記録
 void Engine::Render() {
     // シーンの描画
+    m_Renderer.BeginScenePass();
     m_ScenePass.Draw(m_Renderer.MakeScenePassBindings(m_AssetSystem), m_Scene);
 
     // デバッグUIの描画

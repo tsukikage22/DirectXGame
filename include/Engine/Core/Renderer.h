@@ -51,6 +51,9 @@ public:
     /// @brief フレーム開始時の処理
     void BeginFrame();
 
+    /// @brief シーン描画パスの開始
+    void BeginScenePass();
+
     /// @brief UI合成パスの開始
     void BeginCompositePass();
 

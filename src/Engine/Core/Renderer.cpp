@@ -117,14 +117,16 @@ void Renderer::Term() {
 }
 
 void Renderer::BeginFrame() {
-    // バックバッファの取得
-    ColorTarget& backBuffer = m_swapChain.GetBackBuffer();
-
     // リソースバリア(Present -> RenderTarget)の設定
     D3D12_RESOURCE_BARRIER barrier =
-        MakeTransitionBarrier(backBuffer.GetResource(),
+        MakeTransitionBarrier(m_swapChain.GetBackBuffer().GetResource(),
             D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
     m_pCmdList->ResourceBarrier(1, &barrier);
+}
+
+void Renderer::BeginScenePass() {
+    // バックバッファの取得
+    ColorTarget& backBuffer = m_swapChain.GetBackBuffer();
 
     // レンダーターゲットの設定
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = backBuffer.GetRTVCPUHandle();
