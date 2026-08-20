@@ -7,10 +7,10 @@
 
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/FrameResource.h"
-#include "Engine/Core/SwapChain.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Graphics/DepthTarget.h"
 #include "Engine/Render/PassBindings.h"
+#include "Engine/Render/SwapChain.h"
 #include "Engine/Shader/DisplayConstantsGPU.h"
 
 // 前方宣言
