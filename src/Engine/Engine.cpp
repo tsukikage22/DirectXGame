@@ -22,9 +22,6 @@
 #include "Engine/Debug/DebugUI.h"
 #include "Engine/Resource/AssetLoadScope.h"
 #include "Engine/Resource/AssetPath.h"
-#include "Engine/Resource/GLBImporter.h"
-#include "Engine/Shader/SceneConstantsGPU.h"
-#include "Engine/Shader/TransformGPU.h"
 
 ///////////////////////////////////////////
 // Linker
