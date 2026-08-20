@@ -20,9 +20,7 @@
 #include "Engine/Debug/DebugUI.h"
 #include "Engine/Input/IWindowEventListener.h"
 #include "Engine/Input/InputSystem.h"
-#include "Engine/Resource/IESProfile.h"
-#include "Engine/Resource/ModelLoader.h"
-#include "Engine/Resource/TextureManager.h"
+#include "Engine/Resource/AssetSystem.h"
 #include "Engine/Scene/Scene.h"
 
 namespace scene_rs {
@@ -75,7 +73,7 @@ public:
 
     void Present();
 
-    /// @brief モデルロード用オブジェクトの作成
+    /// @brief アセットロード用オブジェクトの作成
     AssetLoadScope CreateAssetLoadScope();
 
     //==================================================================
@@ -120,11 +118,8 @@ private:
 
     FrameResource m_FrameResources[config::kFrameCount];  // フレームリソース
 
-    ModelLoader m_modelLoader;
-    TextureManager m_TextureManager;  // テクスチャマネージャ
-    Scene m_Scene;                    // シーン
-
-    IESProfile m_IESProfile;  // IESプロファイル
+    AssetSystem m_AssetSystem;  // モデル読み込みなどのアセット管理クラス
+    Scene m_Scene;              // シーン
 
     InputSystem m_InputSystem;  // 入力システム
 

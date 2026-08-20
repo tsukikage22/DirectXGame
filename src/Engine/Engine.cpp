@@ -17,7 +17,6 @@
 #include <memory>
 #include <vector>
 
-#include "Engine/Core/CommandQueue.h"
 #include "Engine/Core/DescriptorPool.h"
 #include "Engine/Core/DxDebug.h"
 #include "Engine/Debug/DebugUI.h"
@@ -182,7 +181,7 @@ void Engine::Render() {
         // [t0, space1] IESプロファイルテクスチャ (共通)
         m_pCmdList->SetGraphicsRootDescriptorTable(
             scene_rs::RootParam::SRV_IESProfile,
-            m_IESProfile.GetSrvGpuHandle());
+            m_AssetSystem.GetIesSrvGpuHandle());
 
         // [t0, space2] Light StructuredBuffer (共通)
         m_pCmdList->SetGraphicsRootDescriptorTable(
@@ -362,49 +361,12 @@ bool Engine::InitApp() {
         m_pCmdList->Close();
     }
 
-    // ファイルのロード
-    {
-        // ModelLoaderの初期化
-        if (!m_modelLoader.Init(m_Device, &m_TextureManager)) {
-            MessageBoxW(
-                nullptr, L"Failed to initialize ModelLoader.", L"Error", MB_OK);
-            return false;
-        }
+    // シーンの初期化
+    m_Scene.Init(m_Device);
 
-        // シーンの初期化
-        m_Scene.Init(m_Device);
-
-        // TextureManagerの初期化
-        if (!m_TextureManager.Init(m_Device.GetDevice())) {
-            MessageBoxW(nullptr, L"Failed to initialize TextureManager.",
-                L"Error", MB_OK);
-            return false;
-        }
-
-        // ResourceUploadBatchの生成
-        DirectX::ResourceUploadBatch batch(m_Device.GetDevice());
-        batch.Begin();
-
-        // デフォルトテクスチャの生成
-        if (!m_TextureManager.CreateDefaultTextures(batch)) {
-            MessageBoxW(nullptr, L"Failed to create default textures.",
-                L"Error", MB_OK);
-            return false;
-        }
-
-        // IESProfileの初期化
-        if (!m_IESProfile.Init(m_Device)) {
-            MessageBoxW(
-                nullptr, L"Failed to initialize IESProfile.", L"Error", MB_OK);
-            return false;
-        }
-
-        // 転送完了を待機
-        auto future = batch.End(m_Device.GetCommandQueue().GetD3DQueue());
-        future.wait();
-
-        // アップロードヒープの破棄
-        m_Scene.DiscardModelUploads();
+    // アセット管理クラスの初期化
+    if (!m_AssetSystem.Init(m_Device)) {
+        return false;
     }
 
     // ルートシグネチャの生成
@@ -581,14 +543,8 @@ void Engine::TermApp() {
     // シーンの破棄
     m_Scene.Term();
 
-    // テクスチャプールの解放
-    m_TextureManager.Term();
-
-    // IESProfileの解放
-    m_IESProfile.Term();
-
-    // ModelLoaderの解放
-    m_modelLoader.Term();
+    // アセット管理クラスの終了処理
+    m_AssetSystem.Term();
 
     // デバッグUIの終了処理
     m_DebugUI.Term();
@@ -619,15 +575,9 @@ void Engine::ApplyRenderSize(uint32_t width, uint32_t height) {
         static_cast<float>(width) / static_cast<float>(height));
 }
 
+// AssetLoadScopeの作成
 AssetLoadScope Engine::CreateAssetLoadScope() {
-    // ResourceUploadBatchのBegin
-    auto batch =
-        std::make_unique<DirectX::ResourceUploadBatch>(m_Device.GetDevice());
-    batch->Begin();
-
-    // ModelLoadScopeの初期化
-    return AssetLoadScope(std::move(batch), m_Device.GetCommandQueue(),
-        m_modelLoader, m_Scene, m_IESProfile);
+    return m_AssetSystem.CreateAssetLoadScope(m_Scene);
 }
 
 //=============================================

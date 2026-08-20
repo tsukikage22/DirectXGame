@@ -1,5 +1,5 @@
 /// @file AssetLoadScope.h
-/// @brief アセットロード用オブジェクト
+/// @brief コンストラクタでbatchを受け取り，デストラクタでEndする
 
 #pragma once
 

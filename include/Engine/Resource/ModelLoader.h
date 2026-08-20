@@ -16,7 +16,7 @@ class GraphicsDevice;
 class ModelLoader {
 public:
     /// @brief 初期化，必要なポインタの受け取り
-    bool Init(GraphicsDevice& graphicsDevice, TextureManager* pTextureManager);
+    bool Init(GraphicsDevice& graphicsDevice, TextureManager& textureManager);
 
     /// @brief 終了処理，ポインタの破棄
     void Term();

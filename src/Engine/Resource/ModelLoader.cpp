@@ -8,14 +8,9 @@
 #include "Engine/Resource/TextureManager.h"
 
 bool ModelLoader::Init(
-    GraphicsDevice& graphicsDevice, TextureManager* pTextureManager) {
-    // 引数チェック
-    if (!pTextureManager) {
-        return false;
-    }
-
+    GraphicsDevice& graphicsDevice, TextureManager& textureManager) {
     m_pGraphicsDevice = &graphicsDevice;
-    m_pTextureManager = pTextureManager;
+    m_pTextureManager = &textureManager;
 
     return true;
 }
