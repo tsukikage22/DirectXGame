@@ -12,7 +12,9 @@
 #include "Engine/Graphics/DepthTarget.h"
 #include "Engine/Shader/DisplayConstantsGPU.h"
 
+// 前方宣言
 class GraphicsDevice;
+class Scene;
 
 /// @brief ディスプレイ情報
 struct DisplayInfo {
@@ -49,6 +51,10 @@ public:
 
     /// @brief UI合成パスの開始
     void BeginCompositePass();
+
+    /// @brief 定数バッファの更新
+    /// @param debugView
+    void UpdateConstants(Scene& scene, uint32_t debugView);
 
     /// @brief  フレーム終了時の処理
     void EndFrame();

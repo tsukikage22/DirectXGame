@@ -112,47 +112,7 @@ void Engine::BeginFrame() {
 // ゲームロジック・シーン定数・transform更新
 // GPUバッファへの書き込み
 void Engine::Update() {
-    uint32_t frameIndex = m_Renderer.GetFrameIndex();
-
-    // 定数バッファの中身(行列やマテリアル情報)の更新
-    // シーン内の全ゲームオブジェクトのtransformを更新
-    m_Scene.ForEachObject(
-        [&](GameObject& obj) { obj.UpdateTransformGPU(frameIndex); });
-
-    // シーン内ライトの更新
-    std::array<shader::LightConstants, config::kMaxLights> lights = {};
-    uint32_t count = 0;  // 実際にコピーされたライトの数
-    m_Scene.ForEachLight([&](Light& light) {
-        if (!light.IsEnabled() || count >= config::kMaxLights) {
-            return;
-        }
-        lights[count++] = light.ToShaderConstants();
-    });
-    uint32_t uploadedCount =  // バッファにコピーされたライトの数
-        m_Renderer.GetFrameResource().GetLightBuffer().Update(
-            lights.data(), count);
-
-    // シーン定数の更新
-    shader::SceneConstants sc{};
-
-    // ビュー行列・射影行列を転置して格納
-    Camera& camera                 = m_Scene.GetCamera();
-    DirectX::XMFLOAT4X4 view       = camera.GetViewMatrix();
-    DirectX::XMFLOAT4X4 projection = camera.GetProjectionMatrix();
-    DirectX::XMMATRIX viewMat      = DirectX::XMLoadFloat4x4(&view);
-    DirectX::XMMATRIX projMat      = DirectX::XMLoadFloat4x4(&projection);
-    DirectX::XMStoreFloat4x4(&sc.view, DirectX::XMMatrixTranspose(viewMat));
-    DirectX::XMStoreFloat4x4(
-        &sc.projection, DirectX::XMMatrixTranspose(projMat));
-
-    // カメラ位置・時間・ライト数・露出・デバッグビューの設定
-    sc.cameraPosition = camera.GetTransform().GetPosition();
-    sc.time           = static_cast<float>(GetTickCount64()) / 1000.0f;
-    sc.lightCount     = uploadedCount;  // 実際にアップロードされたライトの数
-    sc.exposure       = camera.ComputeExposure();
-    sc.debugView      = static_cast<uint32_t>(m_DebugUI.GetDebugView());
-
-    m_Renderer.GetFrameResource().GetSceneConstants().Update(sc);
+    m_Renderer.UpdateConstants(m_Scene, m_DebugUI.GetDebugView());
 }
 
 // 描画コマンドの記録
