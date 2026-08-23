@@ -94,6 +94,7 @@ bool ScenePass::Init(GraphicsDevice& device) {
             .SetPixelShader(psData.data(), psData.size())
             .SetInputLayout(StandardVertex::GetInputLayout())
             .SetBlendState(BlendMode::Opaque)
+            .SetDepthMode(DepthMode::Default)
             .SetRenderTargetLayout(kSceneLayout);
 
         if (!pipelineBuilder.Build(m_pDevice->GetDevice())) {

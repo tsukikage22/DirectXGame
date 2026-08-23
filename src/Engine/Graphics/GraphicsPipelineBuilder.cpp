@@ -41,8 +41,8 @@ void GraphicsPipelineBuilder::SetDefault() {
 
     // 深度ステンシルステートの設定
     D3D12_DEPTH_STENCIL_DESC DSdesc = {};
-    DSdesc.DepthEnable              = TRUE;
-    DSdesc.DepthWriteMask           = D3D12_DEPTH_WRITE_MASK_ALL;
+    DSdesc.DepthEnable              = FALSE;
+    DSdesc.DepthWriteMask           = D3D12_DEPTH_WRITE_MASK_ZERO;
     DSdesc.DepthFunc                = D3D12_COMPARISON_FUNC_LESS_EQUAL;
     DSdesc.StencilEnable            = FALSE;
 
@@ -109,21 +109,42 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetBlendState(
     return *this;
 }
 
+// 深度バッファの設定を行う
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDepthMode(
+    DepthMode depthMode) {
+    switch (depthMode) {
+        case DepthMode::Default:
+            m_PSOdesc.DepthStencilState.DepthEnable = TRUE;
+            m_PSOdesc.DepthStencilState.DepthWriteMask =
+                D3D12_DEPTH_WRITE_MASK_ALL;
+            m_PSOdesc.DSVFormat = config::kDepthBufferFormat;
+            break;
+        case DepthMode::ReadOnly:
+            m_PSOdesc.DepthStencilState.DepthEnable = TRUE;
+            m_PSOdesc.DepthStencilState.DepthWriteMask =
+                D3D12_DEPTH_WRITE_MASK_ZERO;
+            m_PSOdesc.DSVFormat = config::kDepthBufferFormat;
+            break;
+        case DepthMode::Disabled:
+            m_PSOdesc.DepthStencilState.DepthEnable = FALSE;
+            m_PSOdesc.DepthStencilState.DepthWriteMask =
+                D3D12_DEPTH_WRITE_MASK_ZERO;
+            m_PSOdesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+            break;
+        default:
+            assert(false && "Invalid DepthMode");
+    }
+    return *this;
+}
+
 // RTLayout定数からPSOの設定を行う
 GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetRenderTargetLayout(
     const RenderTargetLayout& layout) {
     m_PSOdesc.NumRenderTargets = layout.numRenderTargets;
     std::copy(layout.rtvFormats.begin(), layout.rtvFormats.end(),
         m_PSOdesc.RTVFormats);
-    m_PSOdesc.DSVFormat          = layout.dsvFormat;
     m_PSOdesc.SampleDesc.Count   = layout.sampleCount;
     m_PSOdesc.SampleDesc.Quality = 0;
-
-    // 深度テストの有無の設定
-    const bool hasDSV = (layout.dsvFormat != DXGI_FORMAT_UNKNOWN);
-    m_PSOdesc.DepthStencilState.DepthEnable = hasDSV;
-    m_PSOdesc.DepthStencilState.DepthWriteMask =
-        hasDSV ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
 
     return *this;
 }
@@ -144,8 +165,9 @@ bool GraphicsPipelineBuilder::Build(ID3D12Device* pDevice) {
     const bool depthUsed = m_PSOdesc.DepthStencilState.DepthEnable ||
                            m_PSOdesc.DepthStencilState.StencilEnable;
     const bool hasDSV    = (m_PSOdesc.DSVFormat != DXGI_FORMAT_UNKNOWN);
-    assert(!depthUsed ||
-           hasDSV && "DSV format is required when depth or stencil is enabled");
+
+    assert((!depthUsed || hasDSV) &&
+           "DSV format is required when depth or stencil is enabled");
 
     // パイプラインステートの生成
     CHECK_HR(pDevice, pDevice->CreateGraphicsPipelineState(&m_PSOdesc,
