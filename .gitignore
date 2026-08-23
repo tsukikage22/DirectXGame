@@ -382,6 +382,9 @@ assets/model
 #Ignore ies files
 assets/ies
 
+#Ignore HDRI
+assets/HDRI
+
 external/**/x64/
 external/**/*.obj
 
