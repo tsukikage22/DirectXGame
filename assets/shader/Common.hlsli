@@ -48,6 +48,7 @@ struct SceneConstants
 {
     float4x4 view;        // ビュー行列
     float4x4 proj;        // プロジェクション行列
+    float4x4 invViewProj; // NDCからワールド座標に変換するための行列
     float3 cameraPos;     // カメラ位置（ワールド座標系）
     float time;           // 経過時間（秒）
     float exposure;       // 露出

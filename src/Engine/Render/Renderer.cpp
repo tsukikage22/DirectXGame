@@ -209,6 +209,13 @@ void Renderer::UpdateConstants(Scene& scene, uint32_t debugView) {
     DirectX::XMStoreFloat4x4(
         &sc.projection, DirectX::XMMatrixTranspose(projMat));
 
+    // NDCからワールド座標への変換行列を計算して格納
+    DirectX::XMMATRIX invViewProj =
+        DirectX::XMMatrixMultiply(DirectX::XMMatrixInverse(nullptr, projMat),
+            DirectX::XMMatrixInverse(nullptr, viewMat));
+    DirectX::XMStoreFloat4x4(
+        &sc.invViewProj, DirectX::XMMatrixTranspose(invViewProj));
+
     // カメラ位置・時間・ライト数・露出・デバッグビューの設定
     sc.cameraPosition = camera.GetTransform().GetPosition();
     sc.time           = static_cast<float>(GetTickCount64()) / 1000.0f;
