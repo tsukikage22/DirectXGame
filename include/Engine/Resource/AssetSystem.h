@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "Engine/Resource/EnvironmentMap.h"
 #include "Engine/Resource/IESProfile.h"
 #include "Engine/Resource/ModelLoader.h"
 #include "Engine/Resource/TextureManager.h"
@@ -29,15 +30,21 @@ public:
     /// @return AssetLoadScope
     AssetLoadScope CreateAssetLoadScope(Scene& scene);
 
-    /// @brief IESプロファイルのSRVハンドル
+    /// @brief IESプロファイルのSRVハンドルを取得する
     D3D12_GPU_DESCRIPTOR_HANDLE GetIesSrvGpuHandle() const {
         return m_iesProfile.GetSrvGpuHandle();
+    }
+
+    /// @brief EnvironmentMapのSRVハンドルを取得する
+    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvironmentMapSrvGpuHandle() const {
+        return m_environmentMap.GetSrvGpuHandle();
     }
 
 private:
     TextureManager m_textureManager;
     ModelLoader m_modelLoader;
     IESProfile m_iesProfile;
+    EnvironmentMap m_environmentMap;
 
     GraphicsDevice* m_pGraphicsDevice = nullptr;
 };

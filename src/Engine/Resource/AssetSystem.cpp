@@ -28,6 +28,13 @@ bool AssetSystem::Init(GraphicsDevice& graphicsDevice) {
         return false;
     }
 
+    // EnvironmentMapの初期化
+    if (!m_environmentMap.Init(
+            &graphicsDevice, graphicsDevice.CbvSrvUavPool())) {
+        OutputDebugStringW(L"Failed to initialize EnvironmentMap.\n");
+        return false;
+    }
+
     // ResourceUploadBatchの生成
     DirectX::ResourceUploadBatch batch(graphicsDevice.GetDevice());
     batch.Begin();
@@ -49,6 +56,9 @@ void AssetSystem::Term() {
     // TextureManagerの終了処理
     m_textureManager.Term();
 
+    // EnvironmentMapの終了処理
+    m_environmentMap.Term();
+
     // IESProfileの終了処理
     m_iesProfile.Term();
 
@@ -65,5 +75,5 @@ AssetLoadScope AssetSystem::CreateAssetLoadScope(Scene& scene) {
 
     return AssetLoadScope(std::move(batch),
         m_pGraphicsDevice->GetCommandQueue(), m_modelLoader, scene,
-        m_iesProfile);
+        m_iesProfile, m_environmentMap);
 }

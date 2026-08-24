@@ -41,6 +41,12 @@ void Game::Init(Engine* pEngine) {
     AssetPath().GetAssetPath(L"model/NormalTangentTest.glb", path);
     m_normalTestModel = loader.LoadModel(path);
 
+    // HDRIのロード
+    AssetPath().GetAssetPath(L"HDRI/venice_sunset_4k.hdr", path);
+    if (!loader.LoadEnvironmentMap(path)) {
+        OutputDebugStringW(L"Failed to load HDRI.\n");
+    }
+
     // ライトの作成
 
     // Directional

@@ -69,7 +69,11 @@
     </Link>
     <PostBuildEvent>
       <Command>if not exist "$(OutDir)assets\model" mkdir "$(OutDir)assets\model"
-xcopy /E /I /Y /D "$(SolutionDir)assets\model" "$(OutDir)assets\model"</Command>
+xcopy /E /I /Y /D "$(SolutionDir)assets\model" "$(OutDir)assets\model"
+if not exist "$(OutDir)assets\HDRI" mkdir "$(OutDir)assets\HDRI"
+xcopy /E /I /Y /D "$(SolutionDir)assets\HDRI" "$(OutDir)assets\HDRI"
+if not exist "$(OutDir)assets\ies" mkdir "$(OutDir)assets\ies"
+xcopy /E /I /Y /D "$(SolutionDir)assets\ies" "$(OutDir)assets\ies"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -94,7 +98,11 @@ xcopy /E /I /Y /D "$(SolutionDir)assets\model" "$(OutDir)assets\model"</Command>
     </Link>
     <PostBuildEvent>
       <Command>if not exist "$(OutDir)assets\model" mkdir "$(OutDir)assets\model"
-xcopy /E /I /Y /D "$(SolutionDir)assets\model" "$(OutDir)assets\model"</Command>
+xcopy /E /I /Y /D "$(SolutionDir)assets\model" "$(OutDir)assets\model"
+if not exist "$(OutDir)assets\HDRI" mkdir "$(OutDir)assets\HDRI"
+xcopy /E /I /Y /D "$(SolutionDir)assets\HDRI" "$(OutDir)assets\HDRI"
+if not exist "$(OutDir)assets\ies" mkdir "$(OutDir)assets\ies"
+xcopy /E /I /Y /D "$(SolutionDir)assets\ies" "$(OutDir)assets\ies"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
