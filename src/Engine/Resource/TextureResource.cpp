@@ -34,6 +34,7 @@ bool TextureResource::InitAsTexture2D(ID3D12Device* pDevice, UINT width,
     if (pDevice == nullptr || width == 0 || height == 0) {
         return false;
     }
+    Term();
 
     // ヒーププロパティの設定
     D3D12_HEAP_PROPERTIES prop = {};
@@ -79,6 +80,7 @@ bool TextureResource::InitAsTexture2DArray(ID3D12Device* pDevice, UINT width,
     if (pDevice == nullptr || width == 0 || height == 0 || arraySize == 0) {
         return false;
     }
+    Term();
 
     // ヒーププロパティの設定
     D3D12_HEAP_PROPERTIES prop = {};
