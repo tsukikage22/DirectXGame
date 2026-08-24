@@ -18,6 +18,12 @@ bool GraphicsDevice::Init() {
     // InfoQueueの設定
     dxdebug::SetupInfoQueue(m_pDevice.Get());
 
+    // Shader Model 6.0のサポート確認
+    D3D12_FEATURE_DATA_SHADER_MODEL shaderModel = { D3D_SHADER_MODEL_6_0 };
+    CHECK_HR(m_pDevice.Get(),
+        m_pDevice->CheckFeatureSupport(
+            D3D12_FEATURE_SHADER_MODEL, &shaderModel, sizeof(shaderModel)));
+
     // DXGIファクトリの生成
     m_pFactory.Reset();
     CHECK_HR(m_pDevice.Get(), CreateDXGIFactory1(IID_PPV_ARGS(&m_pFactory)));

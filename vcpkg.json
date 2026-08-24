@@ -4,6 +4,7 @@
   "dependencies": [
     "directxtk12",
     "assimp",
+    "directx-dxc",
     {
       "name": "directxtex",
       "features": ["dx12"]

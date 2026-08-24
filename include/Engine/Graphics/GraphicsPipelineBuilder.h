@@ -5,6 +5,7 @@
 
 #include <d3d12.h>
 
+#include <cstddef>
 #include <vector>
 
 #include "Engine/Core/ComPtr.h"
@@ -29,16 +30,20 @@ public:
         ID3D12RootSignature* pRootSignature);
 
     /// @brief 頂点シェーダーを設定する
-    /// @param pShaderBytecode
-    /// @param bytecodeLength
+    /// @param pShaderBytecode シェーダーのバイトコード
+    /// @param bytecodeLength バイトコードの長さ
+    /// @note バイトコードはBuildまで呼び出し側が保持する必要がある
     /// @return
-    GraphicsPipelineBuilder& SetVertexShader(ID3DBlob* pVSBlob);
+    GraphicsPipelineBuilder& SetVertexShader(
+        const std::byte* pShaderBytecode, std::size_t bytecodeLength);
 
     /// @brief ピクセルシェーダーを設定する
-    /// @param pShaderBytecode
-    /// @param bytecodeLength
+    /// @param pShaderBytecode シェーダーのバイトコード
+    /// @param bytecodeLength バイトコードの長さ
+    /// @note バイトコードはBuildまで呼び出し側が保持する必要がある
     /// @return
-    GraphicsPipelineBuilder& SetPixelShader(ID3DBlob* pPSBlob);
+    GraphicsPipelineBuilder& SetPixelShader(
+        const std::byte* pShaderBytecode, std::size_t bytecodeLength);
 
     /// @brief 入力レイアウトを設定する
     /// @param inputLayout

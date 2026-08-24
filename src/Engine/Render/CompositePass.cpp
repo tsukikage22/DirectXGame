@@ -1,7 +1,9 @@
 
 #include "Engine/Render/CompositePass.h"
 
-#include "Engine/Core/ComPtr.h"
+#include <cstddef>
+#include <vector>
+
 #include "Engine/Core/DxDebug.h"
 #include "Engine/Core/GraphicsDevice.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
@@ -31,10 +33,10 @@ bool CompositePass::Init(GraphicsDevice& device) {
     m_pRootSignature = rsBuilder.Get();
 
     // シェーダーの読み込み
-    engine::ComPtr<ID3DBlob> vsBlob;
-    engine::ComPtr<ID3DBlob> psBlob;
-    if (!LoadShader(L"shader/UI_VS.cso", vsBlob) ||
-        !LoadShader(L"shader/UI_PS.cso", psBlob)) {
+    std::vector<std::byte> vsData;
+    std::vector<std::byte> psData;
+    if (!LoadShader(L"shader/UI_VS.cso", vsData) ||
+        !LoadShader(L"shader/UI_PS.cso", psData)) {
         OutputDebugStringW(L"Failed to load shaders.\n");
         return false;
     }
@@ -42,8 +44,8 @@ bool CompositePass::Init(GraphicsDevice& device) {
     // パイプラインステートの生成
     auto psoBuilder = GraphicsPipelineBuilder{};
     psoBuilder.SetRootSignature(m_pRootSignature.Get())
-        .SetVertexShader(vsBlob.Get())
-        .SetPixelShader(psBlob.Get())
+        .SetVertexShader(vsData.data(), vsData.size())
+        .SetPixelShader(psData.data(), psData.size())
         .SetBlendState(BlendMode::PremultipliedAlpha)
         .SetRenderTargetLayout(kCompositeLayout);
 
