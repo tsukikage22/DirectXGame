@@ -75,17 +75,17 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetRootSignature(
 
 // 頂点シェーダーの設定
 GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetVertexShader(
-    ID3DBlob* pVSBlob) {
-    m_PSOdesc.VS.pShaderBytecode = pVSBlob->GetBufferPointer();
-    m_PSOdesc.VS.BytecodeLength  = pVSBlob->GetBufferSize();
+    const std::byte* pShaderBytecode, std::size_t bytecodeLength) {
+    m_PSOdesc.VS.pShaderBytecode = pShaderBytecode;
+    m_PSOdesc.VS.BytecodeLength  = bytecodeLength;
     return *this;
 }
 
 // ピクセルシェーダーの設定
 GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetPixelShader(
-    ID3DBlob* pPSBlob) {
-    m_PSOdesc.PS.pShaderBytecode = pPSBlob->GetBufferPointer();
-    m_PSOdesc.PS.BytecodeLength  = pPSBlob->GetBufferSize();
+    const std::byte* pShaderBytecode, std::size_t bytecodeLength) {
+    m_PSOdesc.PS.pShaderBytecode = pShaderBytecode;
+    m_PSOdesc.PS.BytecodeLength  = bytecodeLength;
     return *this;
 }
 

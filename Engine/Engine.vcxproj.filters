@@ -413,6 +413,9 @@
     <ClCompile Include="..\src\Engine\Render\SwapChain.cpp">
       <Filter>ソース ファイル\Render</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\Engine\Resource\ShaderLoader.cpp">
+      <Filter>ソース ファイル\Resource</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\assets\shader\TestVS.hlsl">

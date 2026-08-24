@@ -178,6 +178,7 @@
     <ClCompile Include="..\src\Engine\Resource\AssetSystem.cpp" />
     <ClCompile Include="..\src\Engine\Resource\IESProfile.cpp" />
     <ClCompile Include="..\src\Engine\Resource\AssetLoadScope.cpp" />
+    <ClCompile Include="..\src\Engine\Resource\ShaderLoader.cpp" />
     <ClCompile Include="..\src\Engine\Scene\Camera.cpp" />
     <ClCompile Include="..\src\Engine\Graphics\ColorTarget.cpp" />
     <ClCompile Include="..\src\Engine\Core\CommandQueue.cpp" />
