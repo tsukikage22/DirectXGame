@@ -84,7 +84,7 @@ float3 EvaluateDebugView(SurfaceParams surf, float3 finalColor) {
 //==============================================================
 // Main function
 //==============================================================
-PSOutput main(VSOutput input) : SV_TARGET
+PSOutput main(VSOutput input)  
 {
     PSOutput output;
 
