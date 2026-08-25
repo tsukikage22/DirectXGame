@@ -372,3 +372,19 @@ CompositePassBindings Renderer::MakeCompositePassBindings() {
 
     return context;
 }
+
+SkyboxPassBindings Renderer::MakeSkyboxPassBindings(AssetSystem& assetSystem) {
+    uint32_t frameIndex          = GetFrameIndex();
+    FrameResource& frameResource = m_frameResources[frameIndex];
+
+    SkyboxPassBindings context = {};
+    context.pCmdList           = m_pCmdList.Get();
+    context.pCbvSrvUavHeap     = m_pDevice->CbvSrvUavPool()->GetHeap();
+    context.sceneCB   = frameResource.GetSceneConstants().GetGPUAddress();
+    context.displayCB = m_displayConstantsGPU.GetGPUAddress();
+    context.skyboxSRV = assetSystem.GetEnvMapCubemapSrvGpuHandle();
+
+    assert(context.IsValid() && "SkyboxPassBindings is not valid.");
+
+    return context;
+}

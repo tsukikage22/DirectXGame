@@ -23,6 +23,7 @@
 #include "Engine/Render/CompositePass.h"
 #include "Engine/Render/Renderer.h"
 #include "Engine/Render/ScenePass.h"
+#include "Engine/Render/SkyboxPass.h"
 #include "Engine/Resource/AssetSystem.h"
 #include "Engine/Scene/Scene.h"
 
@@ -109,6 +110,7 @@ private:
     Renderer m_Renderer;            // レンダラーの管理クラス
     ScenePass m_ScenePass;          // シーン描画パスの管理クラス
     CompositePass m_CompositePass;  // UI合成パスの管理クラス
+    SkyboxPass m_SkyboxPass;        // スカイボックス描画パスの管理クラス
 
     AssetSystem m_AssetSystem;  // モデル読み込みなどのアセット管理クラス
     Scene m_Scene;              // シーン

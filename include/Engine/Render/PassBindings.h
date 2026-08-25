@@ -35,3 +35,16 @@ struct CompositePassBindings {
                displayCB != 0 && uiSRV.ptr != 0;
     }
 };
+
+struct SkyboxPassBindings {
+    ID3D12GraphicsCommandList* pCmdList;    // コマンドリスト
+    ID3D12DescriptorHeap* pCbvSrvUavHeap;   // CBV/SRV/UAV用ディスクリプタヒープ
+    D3D12_GPU_VIRTUAL_ADDRESS sceneCB;      // b0 スカイボックスCBのGPUアドレス
+    D3D12_GPU_VIRTUAL_ADDRESS displayCB;    // b3  ディスプレイCBのGPUアドレス
+    D3D12_GPU_DESCRIPTOR_HANDLE skyboxSRV;  // t0, space0 スカイボックスのSRV
+
+    bool IsValid() const {
+        return pCmdList != nullptr && pCbvSrvUavHeap != nullptr &&
+               sceneCB != 0 && displayCB != 0 && skyboxSRV.ptr != 0;
+    }
+};

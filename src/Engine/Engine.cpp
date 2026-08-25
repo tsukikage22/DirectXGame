@@ -81,6 +81,9 @@ void Engine::Render() {
     m_Renderer.BeginScenePass();
     m_ScenePass.Draw(m_Renderer.MakeScenePassBindings(m_AssetSystem), m_Scene);
 
+    // スカイボックスの描画
+    m_SkyboxPass.Draw(m_Renderer.MakeSkyboxPassBindings(m_AssetSystem));
+
     // デバッグUIの描画
     m_DebugUI.Render(m_Renderer.GetUITarget(), m_Renderer.GetCommandList());
 
@@ -148,6 +151,12 @@ bool Engine::InitApp() {
         return false;
     }
 
+    // スカイボックス描画パスの初期化
+    if (!m_SkyboxPass.Init(m_Device)) {
+        OutputDebugStringW(L"Failed to initialize SkyboxPass.\n");
+        return false;
+    }
+
     // ImGuiの初期化
     if (!m_DebugUI.Init(m_Device, config::kUIBufferFormat, m_hWnd)) {
         MessageBoxW(nullptr, L"Failed to initialize ImGui.", L"Error", MB_OK);
@@ -175,6 +184,7 @@ void Engine::TermApp() {
 
     // 描画パスの終了処理
     m_ScenePass.Term();
+    m_SkyboxPass.Term();
     m_CompositePass.Term();
 }
 

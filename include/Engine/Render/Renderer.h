@@ -88,6 +88,9 @@ public:
     /// @brief 合成パスに渡す情報をまとめた構造体を作成する
     CompositePassBindings MakeCompositePassBindings();
 
+    /// @brief スカイボックス描画パスに渡す情報をまとめた構造体を作成する
+    SkyboxPassBindings MakeSkyboxPassBindings(AssetSystem& assetSystem);
+
     //==========================================================
     // アクセサ
     //==========================================================
