@@ -37,6 +37,9 @@ public:
     /// @brief SRVディスクリプタの取得
     D3D12_GPU_DESCRIPTOR_HANDLE GetSrvGpuHandle() const;
 
+    /// @brief リソースの取得
+    ID3D12Resource* GetResource() const { return m_resource.GetResource(); }
+
 private:
     GraphicsDevice* m_pDevice = nullptr;   // デバイス
     TextureResource m_resource;            // 環境マップテクスチャのリソース
