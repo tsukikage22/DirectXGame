@@ -9,14 +9,12 @@
 /// @brief Begin済みのbatchを受け取り，モデルロードができるようにする
 AssetLoadScope::AssetLoadScope(
     std::unique_ptr<DirectX::ResourceUploadBatch> pbatch, CommandQueue& queue,
-    ModelLoader& loader, Scene& scene, IESProfile& iesProfile,
-    EnvironmentMap& environmentMap)
+    ModelLoader& loader, Scene& scene, IESProfile& iesProfile)
     : m_pbatch(std::move(pbatch)),
       m_queue(queue),
       m_loader(loader),
       m_scene(scene),
-      m_iesProfile(iesProfile),
-      m_environmentMap(environmentMap) {};
+      m_iesProfile(iesProfile) {};
 
 /// @brief デストラクタでResouceUploadBatchとUploadヒープの破棄をする
 AssetLoadScope::~AssetLoadScope() {
@@ -41,9 +39,4 @@ engine::ModelHandle AssetLoadScope::LoadModel(
 std::optional<uint32_t> AssetLoadScope::LoadIESProfile(
     const std::filesystem::path& path) {
     return m_iesProfile.CreateIESTexture(path, *m_pbatch);
-}
-
-/// @brief 環境マップを作成する
-bool AssetLoadScope::LoadEnvironmentMap(const std::filesystem::path& path) {
-    return m_environmentMap.LoadHDRI(path, *m_pbatch);
 }

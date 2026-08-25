@@ -16,14 +16,47 @@ bool EnvironmentMap::Init(GraphicsDevice* pDevice, DescriptorPool* pPoolSRV) {
     m_pDevice  = pDevice;
     m_pPoolSRV = pPoolSRV;
 
+    // キューブマップ用リソースの作成
+    if (!m_cubeMap.InitAsTexture2DArray(m_pDevice->GetDevice(), kCubeMapSize,
+            kCubeMapSize, DXGI_FORMAT_R16G16B16A16_FLOAT, 6, 1,
+            D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)) {
+        return false;
+    }
+
+    // UAVの作成
+    m_cubemapUav                             = m_pPoolSRV->Allocate();
+    D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+    uavDesc.ViewDimension                  = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+    uavDesc.Texture2DArray.MipSlice        = 0;
+    uavDesc.Texture2DArray.FirstArraySlice = 0;
+    uavDesc.Texture2DArray.ArraySize       = 6;
+    uavDesc.Format                         = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    m_pDevice->GetDevice()->CreateUnorderedAccessView(m_cubeMap.GetResource(),
+        nullptr, &uavDesc, m_cubemapUav.GetCPUHandle());
+
+    // SRVの作成
+    m_cubemapSrv                            = m_pPoolSRV->Allocate();
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.ViewDimension                   = D3D12_SRV_DIMENSION_TEXTURECUBE;
+    srvDesc.TextureCube.MostDetailedMip     = 0;
+    srvDesc.TextureCube.MipLevels           = 1;
+    srvDesc.Format                          = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    m_pDevice->GetDevice()->CreateShaderResourceView(
+        m_cubeMap.GetResource(), &srvDesc, m_cubemapSrv.GetCPUHandle());
+
     return true;
 }
 
 void EnvironmentMap::Term() {
-    m_resource.Term();
-    m_srv      = {};
-    m_pPoolSRV = nullptr;
-    m_pDevice  = nullptr;
+    m_equirectMap.Term();
+    m_cubeMap.Term();
+    m_equirectSrv = {};
+    m_cubemapUav  = {};
+    m_cubemapSrv  = {};
+    m_pPoolSRV    = nullptr;
+    m_pDevice     = nullptr;
 }
 
 bool EnvironmentMap::LoadHDRI(const std::filesystem::path& filePath,
@@ -68,7 +101,7 @@ bool EnvironmentMap::LoadHDRI(const std::filesystem::path& filePath,
     // 環境マップテクスチャのリソース作成
     UINT width  = static_cast<UINT>(convertedImage.GetMetadata().width);
     UINT height = static_cast<UINT>(convertedImage.GetMetadata().height);
-    if (!m_resource.InitAsTexture2D(m_pDevice->GetDevice(), width, height,
+    if (!m_equirectMap.InitAsTexture2D(m_pDevice->GetDevice(), width, height,
             convertedImage.GetMetadata().format, 1, D3D12_RESOURCE_FLAG_NONE,
             D3D12_RESOURCE_STATE_COPY_DEST)) {
         return false;
@@ -81,17 +114,18 @@ bool EnvironmentMap::LoadHDRI(const std::filesystem::path& filePath,
         subresources);
 
     // テクスチャのアップロード
-    batch.Upload(m_resource.GetResource(), 0, subresources.data(),
+    batch.Upload(m_equirectMap.GetResource(), 0, subresources.data(),
         static_cast<UINT>(subresources.size()));
 
     // PIXEL_SHADER_RESOURCEへ遷移
-    batch.Transition(m_resource.GetResource(), D3D12_RESOURCE_STATE_COPY_DEST,
+    batch.Transition(m_equirectMap.GetResource(),
+        D3D12_RESOURCE_STATE_COPY_DEST,
         D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
     // SRVの作成
     DescriptorAllocation allocation = m_pPoolSRV->Allocate();
 
-    D3D12_RESOURCE_DESC texDesc             = m_resource.GetDesc();
+    D3D12_RESOURCE_DESC texDesc             = m_equirectMap.GetDesc();
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.ViewDimension                   = D3D12_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MostDetailedMip       = 0;
@@ -102,16 +136,32 @@ bool EnvironmentMap::LoadHDRI(const std::filesystem::path& filePath,
     srvDesc.Format                  = texDesc.Format;
 
     m_pDevice->GetDevice()->CreateShaderResourceView(
-        m_resource.GetResource(), &srvDesc, allocation.GetCPUHandle());
+        m_equirectMap.GetResource(), &srvDesc, allocation.GetCPUHandle());
 
-    m_srv = std::move(allocation);
+    m_equirectSrv = std::move(allocation);
 
     return true;
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetSrvGpuHandle() const {
-    if (m_srv.IsValid() && m_pPoolSRV) {
-        return m_srv.GetGPUHandle();
+D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetEquirectSrvGpuHandle() const {
+    if (m_equirectSrv.IsValid() && m_pPoolSRV) {
+        return m_equirectSrv.GetGPUHandle();
+    }
+
+    return {};
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetCubemapUavGpuHandle() const {
+    if (m_cubemapUav.IsValid() && m_pPoolSRV) {
+        return m_cubemapUav.GetGPUHandle();
+    }
+
+    return {};
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetCubemapSrvGpuHandle() const {
+    if (m_cubemapSrv.IsValid() && m_pPoolSRV) {
+        return m_cubemapSrv.GetGPUHandle();
     }
 
     return {};

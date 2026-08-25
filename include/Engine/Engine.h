@@ -12,6 +12,8 @@
 #include <Windows.h>
 #include <d3d12.h>
 
+#include <filesystem>
+
 #include "Engine/Core/ComPtr.h"
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/GraphicsDevice.h"
@@ -61,6 +63,11 @@ public:
 
     /// @brief フレーム表示
     void Present();
+
+    /// @brief HDRIを読み込み，キューブマップを構築する
+    /// @param path HDRIファイルのパス
+    /// @return 読み込みに成功したかどうか
+    [[nodiscard]] bool BuildEnvironmentMap(const std::filesystem::path& path);
 
     /// @brief アセットロード用オブジェクトの作成
     AssetLoadScope CreateAssetLoadScope();

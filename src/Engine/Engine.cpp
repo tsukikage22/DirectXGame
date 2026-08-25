@@ -189,6 +189,11 @@ void Engine::ApplyRenderSize(uint32_t width, uint32_t height) {
         static_cast<float>(width) / static_cast<float>(height));
 }
 
+// HDRIを読み込み，キューブマップを構築する
+bool Engine::BuildEnvironmentMap(const std::filesystem::path& path) {
+    return m_AssetSystem.BuildEnvironmentMap(path);
+}
+
 // AssetLoadScopeの作成
 AssetLoadScope Engine::CreateAssetLoadScope() {
     return m_AssetSystem.CreateAssetLoadScope(m_Scene);

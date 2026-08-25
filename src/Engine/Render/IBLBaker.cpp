@@ -7,6 +7,7 @@
 #include "Engine/Core/GraphicsDevice.h"
 #include "Engine/Graphics/ComputePipelineBuilder.h"
 #include "Engine/Graphics/RootSignatureBuilder.h"
+#include "Engine/Resource/EnvironmentMap.h"
 #include "Engine/Resource/ShaderLoader.h"
 
 bool IBLBaker::Init(GraphicsDevice* pDevice) {
@@ -92,9 +93,7 @@ void IBLBaker::Term() {
     m_pCommandQueue     = nullptr;
 }
 
-bool IBLBaker::EquirectToCubemap(ID3D12Resource* srcRes, ID3D12Resource* dstRes,
-    D3D12_GPU_DESCRIPTOR_HANDLE srcEquirectSRV,
-    D3D12_GPU_DESCRIPTOR_HANDLE dstCubemapUAV, uint32_t size) {
+bool IBLBaker::EquirectToCubemap(EnvironmentMap& envMap) {
     if (!m_pDevice || !m_pCommandQueue) {
         return false;
     }
@@ -105,16 +104,25 @@ bool IBLBaker::EquirectToCubemap(ID3D12Resource* srcRes, ID3D12Resource* dstRes,
     m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
 
     // リソースバリアの遷移
-    D3D12_RESOURCE_BARRIER before = {};
+    D3D12_RESOURCE_BARRIER before[2] = {};
     // src：PS_SR -> NON_PS_SR
-    // dst：UAVで作成するので不要
-    before.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    before.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-    before.Transition.pResource   = srcRes;
-    before.Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-    before.Transition.StateAfter =
+    // dst：PS_SR -> UAV
+    before[0].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    before[0].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    before[1].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    before[0].Transition.pResource   = envMap.GetEquirectResource();
+    before[0].Transition.StateBefore =
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    before[0].Transition.StateAfter =
         D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-    m_pCommandList->ResourceBarrier(1, &before);
+    before[1].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    before[1].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    before[1].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    before[1].Transition.pResource   = envMap.GetCubemapResource();
+    before[1].Transition.StateBefore =
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    before[1].Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    m_pCommandList->ResourceBarrier(2, before);
 
     // ルートシグネチャとPSOの設定
     m_pCommandList->SetComputeRootSignature(m_pRootSignature.Get());
@@ -126,27 +134,29 @@ bool IBLBaker::EquirectToCubemap(ID3D12Resource* srcRes, ID3D12Resource* dstRes,
 
     // ルートパラメータの設定
     m_pCommandList->SetComputeRootDescriptorTable(
-        CubemapRootParam::EquirectSRV, srcEquirectSRV);
+        CubemapRootParam::EquirectSRV, envMap.GetEquirectSrvGpuHandle());
     m_pCommandList->SetComputeRootDescriptorTable(
-        CubemapRootParam::CubemapUAV, dstCubemapUAV);
+        CubemapRootParam::CubemapUAV, envMap.GetCubemapUavGpuHandle());
 
     // ディスパッチの実行
-    uint32_t groupCount = DivRoundUp(size, kGroupSize);
+    uint32_t groupCount = DivRoundUp(envMap.GetCubemapSize(), kGroupSize);
     m_pCommandList->Dispatch(groupCount, groupCount, 6);
 
     // リソースバリアの遷移
     D3D12_RESOURCE_BARRIER after[2] = {};
     // src：NON_PS_SR -> PS_SR
     // dst：UAV -> PS_SR
-    after[0].Type                 = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    after[0].Flags                = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-    after[0].Transition.pResource = srcRes;
+    after[0].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    after[0].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    after[0].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    after[0].Transition.pResource   = envMap.GetEquirectResource();
     after[0].Transition.StateBefore =
         D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
     after[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
     after[1].Type                  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     after[1].Flags                 = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-    after[1].Transition.pResource  = dstRes;
+    after[1].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    after[1].Transition.pResource   = envMap.GetCubemapResource();
     after[1].Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
     after[1].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
     m_pCommandList->ResourceBarrier(2, after);

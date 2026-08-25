@@ -34,15 +34,37 @@ public:
     bool LoadHDRI(const std::filesystem::path& filePath,
         DirectX::ResourceUploadBatch& batch);
 
-    /// @brief SRVディスクリプタの取得
-    D3D12_GPU_DESCRIPTOR_HANDLE GetSrvGpuHandle() const;
+    /// @brief  キューブマップのサイズを取得する
+    uint32_t GetCubemapSize() const { return kCubeMapSize; }
 
-    /// @brief リソースの取得
-    ID3D12Resource* GetResource() const { return m_resource.GetResource(); }
+    /// @brief equirect SRVディスクリプタの取得
+    D3D12_GPU_DESCRIPTOR_HANDLE GetEquirectSrvGpuHandle() const;
+
+    /// @brief キューブマップUAVディスクリプタの取得
+    D3D12_GPU_DESCRIPTOR_HANDLE GetCubemapUavGpuHandle() const;
+
+    /// @brief キューブマップSRVディスクリプタの取得
+    D3D12_GPU_DESCRIPTOR_HANDLE GetCubemapSrvGpuHandle() const;
+
+    /// @brief equirectリソースの取得
+    ID3D12Resource* GetEquirectResource() const {
+        return m_equirectMap.GetResource();
+    }
+
+    /// @brief  キューブマップリソースの取得
+    ID3D12Resource* GetCubemapResource() const {
+        return m_cubeMap.GetResource();
+    }
 
 private:
-    GraphicsDevice* m_pDevice = nullptr;   // デバイス
-    TextureResource m_resource;            // 環境マップテクスチャのリソース
+    constexpr static uint32_t kCubeMapSize = 1024;  // キューブマップのサイズ
+
+    GraphicsDevice* m_pDevice  = nullptr;  // デバイス
     DescriptorPool* m_pPoolSRV = nullptr;  // SRV用ディスクリプタプール
-    DescriptorAllocation m_srv;            // SRVディスクリプタ
+    DescriptorAllocation m_equirectSrv;    // SRVディスクリプタ
+    DescriptorAllocation m_cubemapUav;     // キューブマップUAVディスクリプタ
+    DescriptorAllocation m_cubemapSrv;     // キューブマップSRVディスクリプタ
+
+    TextureResource m_equirectMap;  // 環境マップテクスチャのリソース
+    TextureResource m_cubeMap;      // キューブマップテクスチャのリソース
 };

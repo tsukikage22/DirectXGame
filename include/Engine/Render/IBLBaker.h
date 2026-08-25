@@ -12,6 +12,7 @@
 
 class GraphicsDevice;
 class CommandQueue;
+class EnvironmentMap;
 
 class IBLBaker {
 public:
@@ -23,12 +24,9 @@ public:
     void Term();
 
     /// @brief キューブマップの作成
-    /// @param srcEquirectSRV
-    /// @param dstCubemapUAV
-    /// @return
-    bool EquirectToCubemap(ID3D12Resource* srcRes, ID3D12Resource* dstRes,
-        D3D12_GPU_DESCRIPTOR_HANDLE srcEquirectSRV,
-        D3D12_GPU_DESCRIPTOR_HANDLE dstCubemapUAV, uint32_t size);
+    /// @param envMap 環境マップ
+    /// @return キューブマップの作成に成功したかどうか
+    [[nodiscard]] bool EquirectToCubemap(EnvironmentMap& envMap);
 
 private:
     static uint32_t DivRoundUp(uint32_t value, uint32_t divisor);

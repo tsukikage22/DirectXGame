@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "Engine/Render/IBLBaker.h"
 #include "Engine/Resource/EnvironmentMap.h"
 #include "Engine/Resource/IESProfile.h"
 #include "Engine/Resource/ModelLoader.h"
@@ -24,6 +25,11 @@ public:
     /// @brief 終了処理
     void Term();
 
+    /// @brief 環境マップの読み込みとキューブマップの作成
+    /// @param path HDRIファイルのパス
+    /// @return 読み込みに成功したかどうか
+    [[nodiscard]] bool BuildEnvironmentMap(const std::filesystem::path& path);
+
     /// @brief AssetLoadScopeの作成
     /// @param queue コマンドキュー
     /// @param scene シーン
@@ -36,8 +42,18 @@ public:
     }
 
     /// @brief EnvironmentMapのSRVハンドルを取得する
-    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvironmentMapSrvGpuHandle() const {
-        return m_environmentMap.GetSrvGpuHandle();
+    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapEquirectSrvGpuHandle() const {
+        return m_environmentMap.GetEquirectSrvGpuHandle();
+    }
+
+    /// @brief EnvironmentMapのキューブマップSRVハンドルを取得する
+    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapCubemapSrvGpuHandle() const {
+        return m_environmentMap.GetCubemapSrvGpuHandle();
+    }
+
+    /// @brief EnvironmentMapのキューブマップUAVハンドルを取得する
+    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapCubemapUavGpuHandle() const {
+        return m_environmentMap.GetCubemapUavGpuHandle();
     }
 
 private:
@@ -45,6 +61,7 @@ private:
     ModelLoader m_modelLoader;
     IESProfile m_iesProfile;
     EnvironmentMap m_environmentMap;
+    IBLBaker m_iblBaker;
 
     GraphicsDevice* m_pGraphicsDevice = nullptr;
 };

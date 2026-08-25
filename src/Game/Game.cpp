@@ -27,9 +27,17 @@ void Game::Init(Engine* pEngine) {
 
     m_pEngine->GetScene().GetCamera().SetExposure(2.8f, 1.0f / 30.0f, 800.0f);
 
+    // HDRIの読み込みとキューブマップの構築
+    std::filesystem::path path;
+    if (!AssetPath().GetAssetPath(L"HDRI/venice_sunset_4k.hdr", path)) {
+        OutputDebugStringW(L"Failed to find HDRI file.\n");
+    }
+    if (!m_pEngine->BuildEnvironmentMap(path)) {
+        OutputDebugStringW(L"Failed to build environment map.\n");
+    }
+
     // モデルのロード
     auto loader = m_pEngine->CreateAssetLoadScope();
-    std::filesystem::path path;
     AssetPath().GetAssetPath(L"model/TextureSphere.glb", path);
     m_earthModel = loader.LoadModel(path);
     AssetPath().GetAssetPath(L"model/lowpoly_apple.glb", path);
@@ -40,12 +48,6 @@ void Game::Init(Engine* pEngine) {
     m_planeModel = loader.LoadModel(path);
     AssetPath().GetAssetPath(L"model/NormalTangentTest.glb", path);
     m_normalTestModel = loader.LoadModel(path);
-
-    // HDRIのロード
-    AssetPath().GetAssetPath(L"HDRI/venice_sunset_4k.hdr", path);
-    if (!loader.LoadEnvironmentMap(path)) {
-        OutputDebugStringW(L"Failed to load HDRI.\n");
-    }
 
     // ライトの作成
 
