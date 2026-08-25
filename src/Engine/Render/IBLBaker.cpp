@@ -109,7 +109,7 @@ bool IBLBaker::EquirectToCubemap(EnvironmentMap& envMap) {
     // dst：PS_SR -> UAV
     before[0].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     before[0].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-    before[1].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    before[0].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
     before[0].Transition.pResource   = envMap.GetEquirectResource();
     before[0].Transition.StateBefore =
         D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
