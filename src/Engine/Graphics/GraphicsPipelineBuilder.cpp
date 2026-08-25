@@ -170,8 +170,9 @@ bool GraphicsPipelineBuilder::Build(ID3D12Device* pDevice) {
            "DSV format is required when depth or stencil is enabled");
 
     // パイプラインステートの生成
-    CHECK_HR(pDevice, pDevice->CreateGraphicsPipelineState(&m_PSOdesc,
-                          IID_PPV_ARGS(m_pPipelineState.GetAddressOf())));
+    CHECK_HR(
+        pDevice, pDevice->CreateGraphicsPipelineState(&m_PSOdesc,
+                     IID_PPV_ARGS(m_pPipelineState.ReleaseAndGetAddressOf())));
 
     return true;
 }

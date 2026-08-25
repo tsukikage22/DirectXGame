@@ -28,8 +28,8 @@ bool ComputePipelineBuilder::Build(ID3D12Device* pDevice) {
     assert(
         m_PSOdesc.CS.pShaderBytecode != nullptr && "ComputeShader is not set.");
 
-    CHECK_HR(pDevice, pDevice->CreateComputePipelineState(
-                          &m_PSOdesc, IID_PPV_ARGS(m_pPSO.GetAddressOf())));
+    CHECK_HR(pDevice, pDevice->CreateComputePipelineState(&m_PSOdesc,
+                          IID_PPV_ARGS(m_pPSO.ReleaseAndGetAddressOf())));
     return true;
 }
 
