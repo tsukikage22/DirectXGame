@@ -222,6 +222,7 @@ void Renderer::UpdateConstants(Scene& scene, uint32_t debugView) {
     sc.lightCount     = uploadedCount;  // 実際にアップロードされたライトの数
     sc.exposure       = camera.ComputeExposure();
     sc.debugView      = debugView;
+    sc.envIntensity   = scene.GetEnvIntensity();
 
     frameResource.GetSceneConstants().Update(sc);
 }

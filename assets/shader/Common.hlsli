@@ -54,6 +54,7 @@ struct SceneConstants
     float exposure;       // 露出
     uint lightCount;      // ライトの数
     uint debugView;       // 表示モード
+    float envIntensity;   // 環境マップの輝度スケール係数
 };
 
 //==============================================================

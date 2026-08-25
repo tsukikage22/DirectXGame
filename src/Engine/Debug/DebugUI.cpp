@@ -330,6 +330,13 @@ void DebugUI::DrawLightPanel(Scene& scene) {
     ImGui::SetNextWindowSizeConstraints(
         ImVec2(320.0f, 0.0f), ImVec2(FLT_MAX, vp->WorkSize.y * 0.8f));
     if (ImGui::Begin("Light")) {
+        // 環境マップの輝度スケール係数の調整
+        float envIntensity = scene.GetEnvIntensity();
+        if (ImGui::SliderFloat("Env Intensity", &envIntensity, 0.1f, 1000000.0f,
+                "%.2f", ImGuiSliderFlags_Logarithmic)) {
+            scene.SetEnvIntensity(envIntensity);
+        }
+
         // すべてのライトに対してUIを描画する
         scene.ForEachLight([&](Light& light) {
             LightType type = light.GetType();  // ライトの種類を取得
