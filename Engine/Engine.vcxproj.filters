@@ -448,6 +448,9 @@
     <FxCompile Include="..\assets\shader\UI_VS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
+    <FxCompile Include="..\assets\shader\EquirectToCubemapCS.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shader\BRDF.hlsli">
