@@ -34,7 +34,7 @@ public:
         D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL,
         D3D12_ROOT_DESCRIPTOR_FLAGS flags  = D3D12_ROOT_DESCRIPTOR_FLAG_NONE);
 
-    /// @brief シェーダーリソースビュー(SRV)のルートパラメータ定義
+    /// @brief UAVのルートパラメータ定義
     /// @param shaderRegister
     /// @param registerSpace
     /// @param visibility

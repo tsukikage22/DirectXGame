@@ -81,6 +81,12 @@ public:
     /// @brief シーンのカメラを取得する
     Camera& GetCamera() { return m_camera; }
 
+    /// @brief 環境マップの輝度スケール係数を設定する
+    void SetEnvIntensity(float intensity) { m_envIntensity = intensity; }
+
+    /// @brief 環境マップの輝度スケール係数を取得する
+    float GetEnvIntensity() const { return m_envIntensity; }
+
 private:
     //==============================================================
     // メンバ変数
@@ -99,6 +105,8 @@ private:
 
     // カメラ
     Camera m_camera;  // シーンのカメラ
+
+    float m_envIntensity = 1.0f;  // 環境マップの輝度スケール係数
 
     // 遅延解放キュー
     RetireQueue<std::unique_ptr<GameObject>> m_retireQueue;

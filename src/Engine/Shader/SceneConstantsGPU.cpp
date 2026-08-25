@@ -40,6 +40,14 @@ bool SceneConstantsGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV) {
     DirectX::XMMATRIX projT = DirectX::XMMatrixTranspose(projMatrix);
     DirectX::XMStoreFloat4x4(&sc.projection, projT);
 
+    // invViewProj行列の初期化
+    DirectX::XMMATRIX invViewProjMatrix =
+        DirectX::XMMatrixMultiply(DirectX::XMMatrixInverse(nullptr, projMatrix),
+            DirectX::XMMatrixInverse(nullptr, viewMatrix));
+    DirectX::XMMATRIX invViewProjT =
+        DirectX::XMMatrixTranspose(invViewProjMatrix);
+    DirectX::XMStoreFloat4x4(&sc.invViewProj, invViewProjT);
+
     // カメラ位置・ゲーム時間・露出・表示モードの初期化
     sc.cameraPosition = DirectX::XMFLOAT3(0.0f, 0.0f, -5.0f);
     sc.time           = 0.0f;

@@ -18,6 +18,12 @@ enum class BlendMode {
     Additive,            // 加算合成
 };
 
+enum class DepthMode {
+    Default,   // 深度テスト有効，書き込み有効
+    ReadOnly,  // 深度テスト有効，書き込み無効
+    Disabled,  // 深度テスト無効，書き込み無効
+};
+
 class GraphicsPipelineBuilder {
 public:
     GraphicsPipelineBuilder();
@@ -53,6 +59,10 @@ public:
     /// @brief 全RTに指定したBlendModeを設定する
     /// @param blendMode ブレンドモード
     GraphicsPipelineBuilder& SetBlendState(BlendMode blendMode);
+
+    /// @brief 深度バッファの設定を行う
+    /// @param depthMode 深度モード
+    GraphicsPipelineBuilder& SetDepthMode(DepthMode depthMode);
 
     /// @brief RTLayout定数からPSOの設定を行う
     /// @param layout レンダーターゲットのレイアウト

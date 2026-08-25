@@ -47,6 +47,7 @@ bool CompositePass::Init(GraphicsDevice& device) {
         .SetVertexShader(vsData.data(), vsData.size())
         .SetPixelShader(psData.data(), psData.size())
         .SetBlendState(BlendMode::PremultipliedAlpha)
+        .SetDepthMode(DepthMode::Disabled)
         .SetRenderTargetLayout(kCompositeLayout);
 
     if (!psoBuilder.Build(m_pDevice->GetDevice())) {

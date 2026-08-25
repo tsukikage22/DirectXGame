@@ -32,10 +32,11 @@ inline constexpr uint32_t kCbvSrvUavCapacity =
     + kFrameCount                                // Light StructuredBuffer
     + kMiscSrvCbvReserve;                        // IES/IBLなど
 
-inline constexpr uint32_t kSamplerCapacity = 256;              // <= 2048
-inline constexpr uint32_t kRtvCapacity     = kFrameCount + 8;  // バックバッファ
-inline constexpr uint32_t kDsvCapacity     = 1 + 4;  // メイン深度 + 余白
-inline constexpr uint32_t kAssetSrvCapacity = 2048;  // アセット用SRVの最大数
+inline constexpr uint32_t kSamplerCapacity = 256;  // <= 2048
+inline constexpr uint32_t kRtvCapacity =
+    kFrameCount + 8 + 32;  // バックバッファ，キューブマップ，UI描画RT
+inline constexpr uint32_t kDsvCapacity      = 1 + 4;  // メイン深度 + 余白
+inline constexpr uint32_t kAssetSrvCapacity = 2048;   // アセット用SRVの最大数
 
 inline constexpr float kHDRPaperWhiteNits = 200.0f;  // HDRの紙白輝度（nits）
 inline constexpr float kSDRPaperWhiteNits = 80.0f;   // SDRの紙白輝度（nits）

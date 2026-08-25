@@ -34,14 +34,15 @@ static_assert(
 
 /// @brief シーン全体に関わる定数（フレーム毎更新）
 struct SceneConstants {
-    DirectX::XMFLOAT4X4 view;          // ビュー行列
-    DirectX::XMFLOAT4X4 projection;    // 射影行列
+    DirectX::XMFLOAT4X4 view;         // ビュー行列
+    DirectX::XMFLOAT4X4 projection;   // 射影行列
+    DirectX::XMFLOAT4X4 invViewProj;  // NDCからワールド座標に変換するための行列
     DirectX::XMFLOAT3 cameraPosition;  // カメラ位置
     float time;                        // ゲーム時間
     float exposure;                    // 露出調整値
     uint32_t lightCount;               // ライトの数
     uint32_t debugView;                // 表示モード DebugViewの値を格納
-    float _padding;                    // 16バイトアラインメント用
+    float envIntensity;                // 環境マップの輝度スケール係数
 };
 static_assert(sizeof(SceneConstants) % 16 == 0, "Must be 16-byte aligned");
 

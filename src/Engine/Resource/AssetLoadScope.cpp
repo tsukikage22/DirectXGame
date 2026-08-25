@@ -1,6 +1,7 @@
 #include "Engine/Resource/AssetLoadScope.h"
 
 #include "Engine/Core/CommandQueue.h"
+#include "Engine/Resource/EnvironmentMap.h"
 #include "Engine/Resource/IESProfile.h"
 #include "Engine/Resource/ModelLoader.h"
 #include "Engine/Scene/Scene.h"

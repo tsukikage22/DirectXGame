@@ -12,6 +12,8 @@
 #include <Windows.h>
 #include <d3d12.h>
 
+#include <filesystem>
+
 #include "Engine/Core/ComPtr.h"
 #include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/GraphicsDevice.h"
@@ -21,6 +23,7 @@
 #include "Engine/Render/CompositePass.h"
 #include "Engine/Render/Renderer.h"
 #include "Engine/Render/ScenePass.h"
+#include "Engine/Render/SkyboxPass.h"
 #include "Engine/Resource/AssetSystem.h"
 #include "Engine/Scene/Scene.h"
 
@@ -62,6 +65,11 @@ public:
     /// @brief フレーム表示
     void Present();
 
+    /// @brief HDRIを読み込み，キューブマップを構築する
+    /// @param path HDRIファイルのパス
+    /// @return 読み込みに成功したかどうか
+    [[nodiscard]] bool BuildEnvironmentMap(const std::filesystem::path& path);
+
     /// @brief アセットロード用オブジェクトの作成
     AssetLoadScope CreateAssetLoadScope();
 
@@ -102,6 +110,7 @@ private:
     Renderer m_Renderer;            // レンダラーの管理クラス
     ScenePass m_ScenePass;          // シーン描画パスの管理クラス
     CompositePass m_CompositePass;  // UI合成パスの管理クラス
+    SkyboxPass m_SkyboxPass;        // スカイボックス描画パスの管理クラス
 
     AssetSystem m_AssetSystem;  // モデル読み込みなどのアセット管理クラス
     Scene m_Scene;              // シーン
