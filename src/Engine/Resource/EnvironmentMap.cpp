@@ -2,10 +2,48 @@
 
 #include <DirectXTex.h>
 
+#include <cmath>
+#include <sstream>
 #include <vector>
 
 #include "Engine/Core/DxDebug.h"
 #include "Engine/Core/GraphicsDevice.h"
+
+namespace /* anonymous */ {
+/// @brief
+/// equirect画像が水平面に作る照度を求める（HDRIの値をcd/m²とみなした相対値）
+float ComputeUpperHemisphereIlluminance(const DirectX::ScratchImage& image) {
+    const auto& meta = image.GetMetadata();
+    double sum       = 0.0;
+
+    DirectX::EvaluateImage(*image.GetImage(0, 0, 0),
+        [&](const DirectX::XMVECTOR* pixels, size_t width, size_t y) {
+            // 行yが天頂角θに対応する（y=0が天頂）
+            const double theta =
+                (static_cast<double>(y) + 0.5) / meta.height * DirectX::XM_PI;
+
+            // 下半球は水平面を照らさない
+            if (theta >= DirectX::XM_PIDIV2) {
+                return;
+            }
+
+            double rowSum = 0.0;
+            for (size_t x = 0; x < width; ++x) {
+                DirectX::XMFLOAT3 c;
+                DirectX::XMStoreFloat3(&c, pixels[x]);
+                // Rec.709の輝度
+                rowSum += 0.2126 * c.x + 0.7152 * c.y + 0.0722 * c.z;
+            }
+
+            // cosθ（ランバート則）× sinθ（立体角のヤコビアン）
+            sum += rowSum * std::cos(theta) * std::sin(theta);
+        });
+
+    // dω = sinθ dθ dφ，dθ = π/height，dφ = 2π/width
+    return static_cast<float>(sum * 2.0 * DirectX::XM_PI * DirectX::XM_PI /
+                              (meta.width * meta.height));
+}
+}  // namespace
 
 bool EnvironmentMap::Init(GraphicsDevice* pDevice, DescriptorPool* pPoolSRV) {
     Term();
@@ -89,6 +127,12 @@ bool EnvironmentMap::LoadHDRI(const std::filesystem::path& filePath,
             },
             clampedImage));
     srcImage.Release();
+
+    // 水平面の照度を計算
+    float illuminance = ComputeUpperHemisphereIlluminance(clampedImage);
+    std::wstringstream ss;
+    ss << L"Upper hemisphere illuminance: " << illuminance << L" cd/m²";
+    OutputDebugStringW(ss.str().c_str());
 
     // R32G32B32A32_FLOATからR16G16B16A16_FLOATに変換
     DirectX::ScratchImage convertedImage;
