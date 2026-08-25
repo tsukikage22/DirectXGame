@@ -31,9 +31,11 @@ void Game::Init(Engine* pEngine) {
     std::filesystem::path path;
     if (!AssetPath().GetAssetPath(L"HDRI/venice_sunset_4k.hdr", path)) {
         OutputDebugStringW(L"Failed to find HDRI file.\n");
+        return;
     }
     if (!m_pEngine->BuildEnvironmentMap(path)) {
         OutputDebugStringW(L"Failed to build environment map.\n");
+        return;
     }
 
     // モデルのロード
@@ -56,7 +58,7 @@ void Game::Init(Engine* pEngine) {
         m_pEngine->GetScene().SpawnDirectionalLight({
             .direction   = { 0.0f, -1.0f, 0.0f },
             .color       = { 1.0f, 1.0f, 1.0f },
-            .illuminance = 100000.0f,
+            .illuminance = 2000.0f,
         });
     }
 
