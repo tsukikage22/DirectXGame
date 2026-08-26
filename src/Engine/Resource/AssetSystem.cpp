@@ -105,6 +105,7 @@ bool AssetSystem::BuildEnvironmentMap(const std::filesystem::path& path) {
 
     // 照度マップ構築
     if (!m_iblBaker.BakeIrradianceMap(m_environmentMap)) {
+        OutputDebugStringW(L"Failed to bake irradiance map.\n");
         return false;
     }
 
