@@ -1,6 +1,8 @@
 #include "Engine/Resource/EnvironmentMap.h"
 
+#include <DirectXPackedVector.h>
 #include <DirectXTex.h>
+#include <Windows.h>
 
 #include <cmath>
 #include <sstream>
@@ -10,6 +12,9 @@
 #include "Engine/Core/GraphicsDevice.h"
 
 namespace /* anonymous */ {
+constexpr static float kDefaultLuminance =
+    30.0f;  // デフォルトキューブマップの輝度
+
 /// @brief
 /// equirect画像が水平面に作る照度を求める（HDRIの値をcd/m²とみなした相対値）
 float ComputeUpperHemisphereIlluminance(const DirectX::ScratchImage& image) {
@@ -43,22 +48,66 @@ float ComputeUpperHemisphereIlluminance(const DirectX::ScratchImage& image) {
     return static_cast<float>(sum * 2.0 * DirectX::XM_PI * DirectX::XM_PI /
                               (meta.width * meta.height));
 }
+
+/// @brief デフォルトキューブマップの作成
+bool BuildDefaultCubemap(GraphicsDevice* pDevice, TextureResource& cubeMap,
+    DescriptorAllocation& srv, DirectX::ResourceUploadBatch& batch) {
+    if (!pDevice) {
+        return false;
+    }
+    // デフォルトキューブマップは，1x1の6面のテクスチャで，輝度30cd/m²のマゼンタ色を持つ
+    // リソースの作成
+    if (!cubeMap.InitAsTexture2DArray(pDevice->GetDevice(), 1, 1,
+            DXGI_FORMAT_R16G16B16A16_FLOAT, 6, 1, D3D12_RESOURCE_FLAG_NONE,
+            D3D12_RESOURCE_STATE_COPY_DEST)) {
+        OutputDebugStringW(L"Failed to create default cubemap resource.\n");
+        return false;
+    }
+
+    const DirectX::PackedVector::XMHALF4 kMagenta = { kDefaultLuminance, 0.0f,
+        kDefaultLuminance, 1.0f };
+    D3D12_SUBRESOURCE_DATA faces[6]               = {};
+    for (auto& f : faces) {
+        f.pData      = &kMagenta;
+        f.RowPitch   = sizeof(kMagenta);
+        f.SlicePitch = sizeof(kMagenta);
+    }
+    batch.Upload(cubeMap.GetResource(), 0, faces, 6);
+    batch.Transition(cubeMap.GetResource(), D3D12_RESOURCE_STATE_COPY_DEST,
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+    // SRVの作成
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.ViewDimension                   = D3D12_SRV_DIMENSION_TEXTURECUBE;
+    srvDesc.TextureCube.MostDetailedMip     = 0;
+    srvDesc.TextureCube.MipLevels           = 1;
+    srvDesc.Format                          = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srv                             = pDevice->CbvSrvUavPool()->Allocate();
+    pDevice->GetDevice()->CreateShaderResourceView(
+        cubeMap.GetResource(), &srvDesc, srv.GetCPUHandle());
+
+    return true;
+}
+
 }  // namespace
 
-bool EnvironmentMap::Init(GraphicsDevice* pDevice, DescriptorPool* pPoolSRV) {
+bool EnvironmentMap::Init(
+    GraphicsDevice* pDevice, DirectX::ResourceUploadBatch& batch) {
     Term();
-    if (!pDevice || !pPoolSRV) {
+    if (!pDevice) {
         return false;
     }
 
     m_pDevice  = pDevice;
-    m_pPoolSRV = pPoolSRV;
+    m_pPoolSRV = pDevice->CbvSrvUavPool();
 
     // キューブマップ用リソースの作成
     if (!m_cubeMap.InitAsTexture2DArray(m_pDevice->GetDevice(), kCubeMapSize,
             kCubeMapSize, DXGI_FORMAT_R16G16B16A16_FLOAT, 6, 1,
             D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
             D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)) {
+        OutputDebugStringW(L"Failed to create cubemap resource.\n");
         return false;
     }
 
@@ -84,15 +133,25 @@ bool EnvironmentMap::Init(GraphicsDevice* pDevice, DescriptorPool* pPoolSRV) {
     m_pDevice->GetDevice()->CreateShaderResourceView(
         m_cubeMap.GetResource(), &srvDesc, m_cubemapSrv.GetCPUHandle());
 
+    // デフォルトキューブマップの作成
+    if (!BuildDefaultCubemap(
+            m_pDevice, m_defaultCubeMap, m_defaultSrv, batch)) {
+        OutputDebugStringW(L"Failed to build default cubemap.\n");
+        return false;
+    }
+
     return true;
 }
 
 void EnvironmentMap::Term() {
+    m_canUseCubemap = false;
     m_equirectMap.Term();
     m_cubeMap.Term();
+    m_defaultCubeMap.Term();
     m_equirectSrv = {};
     m_cubemapUav  = {};
     m_cubemapSrv  = {};
+    m_defaultSrv  = {};
     m_pPoolSRV    = nullptr;
     m_pDevice     = nullptr;
 }
@@ -131,7 +190,7 @@ bool EnvironmentMap::LoadHDRI(const std::filesystem::path& filePath,
     // 水平面の照度を計算
     float illuminance = ComputeUpperHemisphereIlluminance(clampedImage);
     std::wstringstream ss;
-    ss << L"Upper hemisphere illuminance: " << illuminance << L" cd/m²";
+    ss << L"Upper hemisphere illuminance: " << illuminance << L" lx\n";
     OutputDebugStringW(ss.str().c_str());
 
     // R32G32B32A32_FLOATからR16G16B16A16_FLOATに変換
@@ -167,7 +226,7 @@ bool EnvironmentMap::LoadHDRI(const std::filesystem::path& filePath,
         D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
     // SRVの作成
-    DescriptorAllocation allocation = m_pPoolSRV->Allocate();
+    m_equirectSrv = m_pPoolSRV->Allocate();
 
     D3D12_RESOURCE_DESC texDesc             = m_equirectMap.GetDesc();
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -180,9 +239,10 @@ bool EnvironmentMap::LoadHDRI(const std::filesystem::path& filePath,
     srvDesc.Format                  = texDesc.Format;
 
     m_pDevice->GetDevice()->CreateShaderResourceView(
-        m_equirectMap.GetResource(), &srvDesc, allocation.GetCPUHandle());
+        m_equirectMap.GetResource(), &srvDesc, m_equirectSrv.GetCPUHandle());
 
-    m_equirectSrv = std::move(allocation);
+    m_canUseCubemap =
+        true;  // HDRIの読み込みに成功した場合はデフォルトでないキューブマップを使う
 
     return true;
 }
@@ -204,7 +264,13 @@ D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetCubemapUavGpuHandle() const {
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetCubemapSrvGpuHandle() const {
-    if (m_cubemapSrv.IsValid() && m_pPoolSRV) {
+    if (!m_pPoolSRV) {
+        return {};
+    }
+
+    if (m_defaultSrv.IsValid() && !m_canUseCubemap) {
+        return m_defaultSrv.GetGPUHandle();
+    } else if (m_cubemapSrv.IsValid()) {
         return m_cubemapSrv.GetGPUHandle();
     }
 

@@ -29,13 +29,6 @@ bool AssetSystem::Init(GraphicsDevice& graphicsDevice) {
         return false;
     }
 
-    // EnvironmentMapの初期化
-    if (!m_environmentMap.Init(
-            &graphicsDevice, graphicsDevice.CbvSrvUavPool())) {
-        OutputDebugStringW(L"Failed to initialize EnvironmentMap.\n");
-        return false;
-    }
-
     // IBLBakerの初期化
     if (!m_iblBaker.Init(&graphicsDevice)) {
         OutputDebugStringW(L"Failed to initialize IBLBaker.\n");
@@ -49,6 +42,12 @@ bool AssetSystem::Init(GraphicsDevice& graphicsDevice) {
     // デフォルトテクスチャの生成
     if (!m_textureManager.CreateDefaultTextures(batch)) {
         OutputDebugStringW(L"Failed to create default textures.\n");
+        return false;
+    }
+
+    // EnvironmentMapの初期化（デフォルトキューブマップの作成を含むのでbatchが必要）
+    if (!m_environmentMap.Init(&graphicsDevice, batch)) {
+        OutputDebugStringW(L"Failed to initialize EnvironmentMap.\n");
         return false;
     }
 
@@ -89,7 +88,9 @@ bool AssetSystem::BuildEnvironmentMap(const std::filesystem::path& path) {
     // HDRI読み込み
     if (!m_environmentMap.LoadHDRI(path, batch)) {
         OutputDebugStringW(L"Failed to load HDRI for EnvironmentMap.\n");
-        batch.End(m_pGraphicsDevice->GetCommandQueue().GetD3DQueue());
+        auto future =
+            batch.End(m_pGraphicsDevice->GetCommandQueue().GetD3DQueue());
+        future.wait();
         return false;
     }
     // アップロード待機

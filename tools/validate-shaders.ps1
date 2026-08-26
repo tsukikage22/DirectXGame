@@ -51,8 +51,11 @@ if (-not (Test-Path $shaderRoot)) {
 $jobs = @(
     @{ File = "TestVS.hlsl";               Stage = "vs"; Entry = "main" }
     @{ File = "UI_VS.hlsl";                Stage = "vs"; Entry = "main" }
+    @{ File = "SkyboxVS.hlsl";             Stage = "vs"; Entry = "main" }
     @{ File = "GGX_PS.hlsl";               Stage = "ps"; Entry = "main" }
     @{ File = "UI_PS.hlsl";                Stage = "ps"; Entry = "main" }
+    @{ File = "SkyboxPS.hlsl";             Stage = "ps"; Entry = "main" }
+    @{ File = "EquirectToCubemapCS.hlsl";     Stage = "cs"; Entry = "main" }
 )
 
 # --- 定義漏れの検出 -------------------------------------------------

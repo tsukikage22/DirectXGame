@@ -31,11 +31,8 @@ void Game::Init(Engine* pEngine) {
     std::filesystem::path path;
     if (!AssetPath().GetAssetPath(L"HDRI/venice_sunset_4k.hdr", path)) {
         OutputDebugStringW(L"Failed to find HDRI file.\n");
-        return;
-    }
-    if (!m_pEngine->BuildEnvironmentMap(path)) {
+    } else if (!m_pEngine->BuildEnvironmentMap(path)) {
         OutputDebugStringW(L"Failed to build environment map.\n");
-        return;
     }
 
     // モデルのロード
