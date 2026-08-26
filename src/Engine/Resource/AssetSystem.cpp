@@ -89,7 +89,9 @@ bool AssetSystem::BuildEnvironmentMap(const std::filesystem::path& path) {
     // HDRI読み込み
     if (!m_environmentMap.LoadHDRI(path, batch)) {
         OutputDebugStringW(L"Failed to load HDRI for EnvironmentMap.\n");
-        batch.End(m_pGraphicsDevice->GetCommandQueue().GetD3DQueue());
+        auto future =
+            batch.End(m_pGraphicsDevice->GetCommandQueue().GetD3DQueue());
+        future.wait();
         return false;
     }
     // アップロード待機
