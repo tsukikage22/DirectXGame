@@ -18,21 +18,21 @@ struct RenderTargetLayout {
     UINT sampleCount      = 1;  // サンプル数
 };
 
-// シーン描画用：HDRバッファ＋深度
+// シーン描画用：HDRバッファ
 inline constexpr RenderTargetLayout kSceneLayout = {
     { config::kBackBufferFormat },  // RTフォーマット
     1,                              // RTの数
     1                               // サンプル数
 };
 
-// ImGui用オフスクリーンパス：ガンマ空間＋深度なし
+// ImGui用オフスクリーンパス：ガンマ空間
 inline constexpr RenderTargetLayout kImGuiLayout = {
     { config::kUIBufferFormat },  // RTフォーマット
     1,                            // RTの数
     1                             // サンプル数
 };
 
-// 最終合成パス：scRGB＋深度なし
+// 最終合成パス：scRGB
 inline constexpr RenderTargetLayout kCompositeLayout = {
     { config::kBackBufferFormat },  // RTフォーマット
     1,                              // RTの数
