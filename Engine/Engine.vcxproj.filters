@@ -463,6 +463,9 @@
     <FxCompile Include="..\assets\shader\SkyboxVS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
+    <FxCompile Include="..\assets\shader\IrradianceCS.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shader\BRDF.hlsli">
@@ -484,6 +487,12 @@
       <Filter>リソース ファイル</Filter>
     </None>
     <None Include="..\assets\shader\Skybox.hlsli">
+      <Filter>リソース ファイル</Filter>
+    </None>
+    <None Include="..\assets\shader\IBLBake.hlsli">
+      <Filter>リソース ファイル</Filter>
+    </None>
+    <None Include="..\assets\shader\IBL.hlsli">
       <Filter>リソース ファイル</Filter>
     </None>
   </ItemGroup>

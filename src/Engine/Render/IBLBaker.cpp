@@ -32,48 +32,70 @@ bool IBLBaker::Init(GraphicsDevice* pDevice) {
     m_pCommandList->Close();
 
     // ルートシグネチャの構築
-    RootSignatureBuilder rsBuilder;
-    std::vector<D3D12_DESCRIPTOR_RANGE1> srvRange;
-    srvRange.push_back(
-        RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0,
-            0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE));
-    std::vector<D3D12_DESCRIPTOR_RANGE1> uavRange;
-    uavRange.push_back(
-        RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0,
-            0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE));
+    {
+        RootSignatureBuilder rsBuilder;
+        std::vector<D3D12_DESCRIPTOR_RANGE1> srvRange;
+        srvRange.push_back(
+            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE));
+        std::vector<D3D12_DESCRIPTOR_RANGE1> uavRange;
+        uavRange.push_back(
+            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
+                1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE));
 
-    // ルートシグネチャ構成
-    // [t0] SRV: Equirectangular map
-    // [s0] Sampler: Linear sampler
-    // [u0] UAV: Cubemap
-    rsBuilder.SetFlags(D3D12_ROOT_SIGNATURE_FLAG_NONE)
-        .AddStaticSampler(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-            D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
-            D3D12_TEXTURE_ADDRESS_MODE_CLAMP)
-        .AddDescriptorTable(srvRange, D3D12_SHADER_VISIBILITY_ALL)
-        .AddDescriptorTable(uavRange, D3D12_SHADER_VISIBILITY_ALL);
-    if (!rsBuilder.Build(m_pDevice->GetDevice())) {
-        return false;
+        // ルートシグネチャ構成
+        // [t0] SRV 入力テクスチャ（equirect / cubemap）
+        // [s0] Sampler WRAPはequirectのベイクでのみ有効（irradianceでは無効）
+        // [u0] UAV 出力テクスチャ（cubemap / irradiance）
+        rsBuilder.SetFlags(D3D12_ROOT_SIGNATURE_FLAG_NONE)
+            .AddStaticSampler(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+                D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP)
+            .AddDescriptorTable(srvRange, D3D12_SHADER_VISIBILITY_ALL)
+            .AddDescriptorTable(uavRange, D3D12_SHADER_VISIBILITY_ALL);
+        if (!rsBuilder.Build(m_pDevice->GetDevice())) {
+            return false;
+        }
+        m_pRootSignature = rsBuilder.Get();
     }
-    m_pRootSignature = rsBuilder.Get();
 
     // パイプラインステートの構築
     // Equirect To Cubemap
-    ComputePipelineBuilder psoBuilder;
-    std::vector<std::byte> csData;
-    if (!LoadShader(L"shader/EquirectToCubemapCS.cso", csData)) {
-        OutputDebugStringW(L"Failed to load shaders.\n");
-        return false;
+    {
+        ComputePipelineBuilder psoBuilder;
+        std::vector<std::byte> csData;
+        if (!LoadShader(L"shader/EquirectToCubemapCS.cso", csData)) {
+            OutputDebugStringW(L"Failed to load shaders.\n");
+            return false;
+        }
+        psoBuilder.SetRootSignature(m_pRootSignature.Get())
+            .SetComputeShader(csData.data(), csData.size());
+        if (!psoBuilder.Build(m_pDevice->GetDevice())) {
+            OutputDebugStringW(L"Failed to build compute pipeline state.\n");
+            return false;
+        }
+        m_pEquirectPSO = psoBuilder.Get();
     }
-    psoBuilder.SetRootSignature(m_pRootSignature.Get())
-        .SetComputeShader(csData.data(), csData.size());
-    if (!psoBuilder.Build(m_pDevice->GetDevice())) {
-        OutputDebugStringW(L"Failed to build compute pipeline state.\n");
-        return false;
-    }
-    m_pPSO = psoBuilder.Get();
 
-    // irradiance map（予定）
+    // irradiance map
+    // RSは同じものが使えるのでPSOだけ作る
+    {
+        ComputePipelineBuilder psoBuilder;
+        std::vector<std::byte> csData;
+        if (!LoadShader(L"shader/IrradianceCS.cso", csData)) {
+            OutputDebugStringW(L"Failed to load shaders.\n");
+            return false;
+        }
+        psoBuilder.SetRootSignature(m_pRootSignature.Get())
+            .SetComputeShader(csData.data(), csData.size());
+        if (!psoBuilder.Build(m_pDevice->GetDevice())) {
+            OutputDebugStringW(L"Failed to build compute pipeline state.\n");
+            return false;
+        }
+        m_pIrradiancePSO = psoBuilder.Get();
+    }
+
     // prefiltered map（予定）
     // BRDF LUT（予定）
 
@@ -86,7 +108,8 @@ void IBLBaker::Term() {
     }
 
     m_pRootSignature    = nullptr;
-    m_pPSO              = nullptr;
+    m_pEquirectPSO      = nullptr;
+    m_pIrradiancePSO    = nullptr;
     m_pDevice           = nullptr;
     m_pCommandAllocator = nullptr;
     m_pCommandList      = nullptr;
@@ -126,7 +149,7 @@ bool IBLBaker::EquirectToCubemap(EnvironmentMap& envMap) {
 
     // ルートシグネチャとPSOの設定
     m_pCommandList->SetComputeRootSignature(m_pRootSignature.Get());
-    m_pCommandList->SetPipelineState(m_pPSO.Get());
+    m_pCommandList->SetPipelineState(m_pEquirectPSO.Get());
 
     // ディスクリプタヒープの設定
     ID3D12DescriptorHeap* ppHeaps[] = { m_pDevice->CbvSrvUavPool()->GetHeap() };
@@ -134,9 +157,9 @@ bool IBLBaker::EquirectToCubemap(EnvironmentMap& envMap) {
 
     // ルートパラメータの設定
     m_pCommandList->SetComputeRootDescriptorTable(
-        CubemapRootParam::EquirectSRV, envMap.GetEquirectSrvGpuHandle());
+        RootParam::SRV_Source, envMap.GetEquirectSrvGpuHandle());
     m_pCommandList->SetComputeRootDescriptorTable(
-        CubemapRootParam::CubemapUAV, envMap.GetCubemapUavGpuHandle());
+        RootParam::UAV_Dest, envMap.GetCubemapUavGpuHandle());
 
     // ディスパッチの実行
     uint32_t groupCount = DivRoundUp(envMap.GetCubemapSize(), kGroupSize);
@@ -157,6 +180,85 @@ bool IBLBaker::EquirectToCubemap(EnvironmentMap& envMap) {
     after[1].Flags                 = D3D12_RESOURCE_BARRIER_FLAG_NONE;
     after[1].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
     after[1].Transition.pResource   = envMap.GetCubemapResource();
+    after[1].Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    after[1].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    m_pCommandList->ResourceBarrier(2, after);
+
+    // コマンドリストのクローズ
+    m_pCommandList->Close();
+    // コマンドリストの実行
+    ID3D12CommandList* ppCommandLists[] = { m_pCommandList.Get() };
+    m_pCommandQueue->Execute(ppCommandLists, _countof(ppCommandLists));
+    // GPUの処理が完了するまで待機
+    m_pCommandQueue->Flush();
+
+    return true;
+}
+
+bool IBLBaker::BakeIrradianceMap(EnvironmentMap& envMap) {
+    if (!m_pDevice || !m_pCommandQueue) {
+        return false;
+    }
+
+    // コマンドアロケータのリセット
+    m_pCommandAllocator->Reset();
+    // コマンドリストのリセット
+    m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
+
+    // リソースバリアの遷移
+    D3D12_RESOURCE_BARRIER before[2] = {};
+    // src：PS_SR -> NON_PS_SR
+    // dst：PS_SR -> UAV
+    before[0].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    before[0].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    before[0].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    before[0].Transition.pResource   = envMap.GetCubemapResource();
+    before[0].Transition.StateBefore =
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    before[0].Transition.StateAfter =
+        D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+    before[1].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    before[1].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    before[1].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    before[1].Transition.pResource   = envMap.GetIrradianceResource();
+    before[1].Transition.StateBefore =
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    before[1].Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    m_pCommandList->ResourceBarrier(2, before);
+
+    // ルートシグネチャとPSOの設定
+    m_pCommandList->SetComputeRootSignature(m_pRootSignature.Get());
+    m_pCommandList->SetPipelineState(m_pIrradiancePSO.Get());
+
+    // ディスクリプタヒープの設定
+    ID3D12DescriptorHeap* ppHeaps[] = { m_pDevice->CbvSrvUavPool()->GetHeap() };
+    m_pCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+
+    // ルートパラメータの設定
+    m_pCommandList->SetComputeRootDescriptorTable(
+        RootParam::SRV_Source, envMap.GetCubemapSrvGpuHandle());
+    m_pCommandList->SetComputeRootDescriptorTable(
+        RootParam::UAV_Dest, envMap.GetIrradianceUavGpuHandle());
+
+    // ディスパッチの実行
+    uint32_t groupCount = DivRoundUp(envMap.GetIrradianceSize(), kGroupSize);
+    m_pCommandList->Dispatch(groupCount, groupCount, 6);
+
+    // リソースバリアの遷移
+    D3D12_RESOURCE_BARRIER after[2] = {};
+    // src：NON_PS_SR -> PS_SR
+    // dst：UAV -> PS_SR
+    after[0].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    after[0].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    after[0].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    after[0].Transition.pResource   = envMap.GetCubemapResource();
+    after[0].Transition.StateBefore =
+        D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+    after[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    after[1].Type                  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    after[1].Flags                 = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    after[1].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    after[1].Transition.pResource   = envMap.GetIrradianceResource();
     after[1].Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
     after[1].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
     m_pCommandList->ResourceBarrier(2, after);

@@ -25,7 +25,8 @@ void Game::Init(Engine* pEngine) {
     m_pCameraController->Init(
         &m_pEngine->GetScene().GetCamera(), &m_pEngine->GetInputSystem());
 
-    m_pEngine->GetScene().GetCamera().SetExposure(2.8f, 1.0f / 30.0f, 800.0f);
+    // EV100 ≒ 10.3
+    m_pEngine->GetScene().GetCamera().SetExposure(4.0f, 1.0f / 80.0f, 100.0f);
 
     // HDRIの読み込みとキューブマップの構築
     std::filesystem::path path;
@@ -34,6 +35,11 @@ void Game::Init(Engine* pEngine) {
     } else if (!m_pEngine->BuildEnvironmentMap(path)) {
         OutputDebugStringW(L"Failed to build environment map.\n");
     }
+
+    // venice_sunset_4k.hdr の生の水平面照度 2.21 lx を、
+    // golden hour の実測相当 3000 lx に合わせる（3000 / 2.21）
+    // HDRIを差し替えたら、起動ログの Upper hemisphere illuminanceで割り直す
+    m_pEngine->GetScene().SetEnvIntensity(1357.5f);
 
     // モデルのロード
     auto loader = m_pEngine->CreateAssetLoadScope();
@@ -51,6 +57,7 @@ void Game::Init(Engine* pEngine) {
     // ライトの作成
 
     // Directional
+    /*
     {
         m_pEngine->GetScene().SpawnDirectionalLight({
             .direction   = { 0.0f, -1.0f, 0.0f },
@@ -58,6 +65,7 @@ void Game::Init(Engine* pEngine) {
             .illuminance = 2000.0f,
         });
     }
+        */
 
     // 2 Spot lights
     /*

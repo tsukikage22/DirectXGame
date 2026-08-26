@@ -15,6 +15,7 @@
 //   t0-t4 / s0  PBRテクスチャ … Materials.hlsli
 //   t0 space1 / s1  IES     … Lighting.hlsli
 //   t0 space2  ライトバッファ … Lighting.hlsli
+//   t0 space3  環境マップのirradiance map … IBL.hlsli
 //==============================================================
 
 //==============================================

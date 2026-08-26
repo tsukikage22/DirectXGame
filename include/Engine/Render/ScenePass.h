@@ -39,6 +39,7 @@ private:
         SRV_Texture    = 4,  // t0-t4
         SRV_IESProfile = 5,  // t0, space1
         SRV_Lights     = 6,  // t0, space2
+        SRV_Irradiance = 7,  // t0, space3
     };
 
     GraphicsDevice* m_pDevice = nullptr;

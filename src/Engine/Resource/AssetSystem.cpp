@@ -97,10 +97,19 @@ bool AssetSystem::BuildEnvironmentMap(const std::filesystem::path& path) {
     auto future = batch.End(m_pGraphicsDevice->GetCommandQueue().GetD3DQueue());
     future.wait();
 
-    // キューブマップ構築
-    bool result = m_iblBaker.EquirectToCubemap(m_environmentMap);
+    // 環境キューブマップ構築
+    if (!m_iblBaker.EquirectToCubemap(m_environmentMap)) {
+        OutputDebugStringW(L"Failed to build cubemap for EnvironmentMap.\n");
+        return false;
+    }
 
-    return result;
+    // 照度マップ構築
+    if (!m_iblBaker.BakeIrradianceMap(m_environmentMap)) {
+        OutputDebugStringW(L"Failed to bake irradiance map.\n");
+        return false;
+    }
+
+    return true;
 }
 
 // AssetLoadScopeの作成

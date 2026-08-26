@@ -1,6 +1,10 @@
 /// @file EquirectToCubemapCS.hlsl
 /// @brief HDRIからキューブマップを生成するコンピュートシェーダー
 
+//==============================================================
+// Includes
+//==============================================================
+#include "IBLBake.hlsli"
 
 //==============================================================
 // Resource Bindings
@@ -10,30 +14,8 @@ SamplerState             g_Linear   : register(s0);   // AddressU=WRAP, AddressV
 RWTexture2DArray<float4> g_Cube     : register(u0);
 
 //==============================================================
-// Constants
-//==============================================================
-static const float F_PI = 3.14159265359f; // 円周率
-
-//==============================================================
 // Helper Functions
 //==============================================================
-/// @brief キューブマップの各面に対応する方向ベクトルを取得する
-/// @param face キューブマップの面番号 (0: +X, 1: -X, 2: +Y, 3: -Y, 4: +Z, 5: -Z)
-/// @param uv UV座標 ([0,1]範囲)
-/// @return 方向ベクトル
-float3 FaceDirection(uint face, float2 uv)   // uv は [0,1]
-{
-    float2 c = uv * 2.0f - 1.0f;             // [-1,1]範囲に変換 
-    switch (face)
-    {
-        case 0: return float3( 1.0f, -c.y, -c.x); // +X
-        case 1: return float3(-1.0f, -c.y,  c.x); // -X
-        case 2: return float3( c.x,  1.0f,  c.y); // +Y
-        case 3: return float3( c.x, -1.0f, -c.y); // -Y
-        case 4: return float3( c.x, -c.y,  1.0f); // +Z
-        default:return float3(-c.x, -c.y, -1.0f); // -Z
-    }
-}
 
 /// @brief 方向ベクトルからEquirectのUV座標を取得する
 /// @param dir 方向ベクトル
@@ -65,7 +47,7 @@ void main(uint3 dtid : SV_DispatchThreadID)
     float2 uv  = (float2(dtid.xy) + 0.5f) / float2(w, h);
 
     // uv座標と面番号から，方向ベクトルを取得する
-    float3 dir = normalize(FaceDirection(dtid.z, uv));
+    float3 dir = normalize(TexelToDirection(dtid.z, uv));
 
     // 方向ベクトルからEquirectのUV座標を取得する
     float2 src = DirectionToEquirectUV(dir);

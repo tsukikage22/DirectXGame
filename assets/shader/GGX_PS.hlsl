@@ -9,6 +9,7 @@
 #include "Tonemap.hlsli"
 #include "Lighting.hlsli"
 #include "Materials.hlsli"
+#include "IBL.hlsli"
 
 //==============================================================
 // Constants
@@ -139,6 +140,11 @@ PSOutput main(VSOutput input)
         float3 BRDF = EvaluateBRDF(N, V, L, baseColor.rgb, metallic, roughness);
         litColor += E * NL * BRDF;
     }
+
+    // アンビエント項
+    float3 diffuseIBL = EvaluateDiffuseIBL(N, baseColor.rgb, metallic); // IBLによる拡散反射の計算
+    float3 ambient = diffuseIBL * ao; 
+    litColor += ambient;
 
     litColor *= g_scene.exposure;
 
