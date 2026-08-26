@@ -24,6 +24,9 @@ SamplerState g_irradianceSampler : register(s2); // 環境マップのirradiance
 //==============================================================
 /// @brief IBLによる拡散反射の計算
 /// @param N 法線ベクトル（ワールド座標系）
+/// @param baseColor ベースカラー
+/// @param metallic メタリック
+/// @return IBLによる拡散反射の結果
 float3 EvaluateDiffuseIBL(float3 N, float3 baseColor, float metallic) {
     // 環境マップのirradiance mapをサンプリング
     // E/piをirradiance mapに入れたので，そのまま渡せば正規化Lambertのpiで割った値になる
