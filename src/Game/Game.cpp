@@ -57,6 +57,7 @@ void Game::Init(Engine* pEngine) {
     // ライトの作成
 
     // Directional
+    /*
     {
         m_pEngine->GetScene().SpawnDirectionalLight({
             .direction   = { 0.0f, -1.0f, 0.0f },
@@ -64,6 +65,7 @@ void Game::Init(Engine* pEngine) {
             .illuminance = 2000.0f,
         });
     }
+        */
 
     // 2 Spot lights
     /*
