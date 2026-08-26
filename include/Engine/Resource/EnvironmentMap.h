@@ -20,9 +20,9 @@ public:
 
     /// @brief 初期化処理，
     /// @param pDevice デバイス
-    /// @param pPoolSRV SRV用ディスクリプタプール
+    /// @param batch リソースアップロードバッチ
     /// @return 初期化に成功したかどうか
-    bool Init(GraphicsDevice* pDevice, DescriptorPool* pPoolSRV);
+    bool Init(GraphicsDevice* pDevice, DirectX::ResourceUploadBatch& batch);
 
     /// @brief 終了処理，リソースの破棄
     void Term();
@@ -64,7 +64,13 @@ private:
     DescriptorAllocation m_equirectSrv;    // SRVディスクリプタ
     DescriptorAllocation m_cubemapUav;     // キューブマップUAVディスクリプタ
     DescriptorAllocation m_cubemapSrv;     // キューブマップSRVディスクリプタ
+    DescriptorAllocation
+        m_defaultSrv;  // デフォルトキューブマップSRVディスクリプタ
 
     TextureResource m_equirectMap;  // 環境マップテクスチャのリソース
     TextureResource m_cubeMap;      // キューブマップテクスチャのリソース
+    TextureResource
+        m_defaultCubeMap;  // デフォルトキューブマップテクスチャのリソース
+
+    bool m_canUseCubemap = false;  // キューブマップが使用可能かどうか
 };
