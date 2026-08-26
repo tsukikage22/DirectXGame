@@ -56,6 +56,11 @@ public:
         return m_environmentMap.GetCubemapUavGpuHandle();
     }
 
+    /// @brief EnvironmentMapのirradiance map SRVハンドルを取得する
+    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapIrradianceSrvGpuHandle() const {
+        return m_environmentMap.GetIrradianceSrvGpuHandle();
+    }
+
 private:
     TextureManager m_textureManager;
     ModelLoader m_modelLoader;

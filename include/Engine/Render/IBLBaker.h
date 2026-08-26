@@ -23,14 +23,14 @@ public:
 
     void Term();
 
-    /// @brief キューブマップの作成
+    /// @brief 環境キューブマップの作成
     /// @param envMap 環境マップ
-    /// @return キューブマップの作成に成功したかどうか
+    /// @return 環境キューブマップの作成に成功したかどうか
     [[nodiscard]] bool EquirectToCubemap(EnvironmentMap& envMap);
 
-    /// @brief 照度マップの作成
+    /// @brief irradiance mapの作成
     /// @param envMap 環境マップ
-    /// @return 照度マップの作成に成功したかどうか
+    /// @return irradiance mapの作成に成功したかどうか
     [[nodiscard]] bool BakeIrradianceMap(EnvironmentMap& envMap);
 
 private:
