@@ -131,7 +131,7 @@ bool EnvironmentMap::LoadHDRI(const std::filesystem::path& filePath,
     // 水平面の照度を計算
     float illuminance = ComputeUpperHemisphereIlluminance(clampedImage);
     std::wstringstream ss;
-    ss << L"Upper hemisphere illuminance: " << illuminance << L" cd/m²";
+    ss << L"Upper hemisphere illuminance: " << illuminance << L" lx\n";
     OutputDebugStringW(ss.str().c_str());
 
     // R32G32B32A32_FLOATからR16G16B16A16_FLOATに変換
