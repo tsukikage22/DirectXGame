@@ -90,6 +90,31 @@ bool BuildDefaultCubemap(GraphicsDevice* pDevice, TextureResource& cubeMap,
     return true;
 }
 
+/// @brief irradiance mapをゼロクリアする
+/// @param resource irradiance mapのリソース
+/// @param batch リソースアップロード用バッチ
+void ClearIrradianceMap(TextureResource& resource, uint32_t size,
+    DXGI_FORMAT format, DirectX::ResourceUploadBatch& batch) {
+    const UINT kPixelSize =
+        static_cast<UINT>(DirectX::BitsPerPixel(format) / 8);
+    const UINT kRowPitch   = size * kPixelSize;
+    const UINT kSlicePitch = kRowPitch * size;
+    const std::vector<uint8_t> zeroData(kSlicePitch, 0);
+
+    D3D12_SUBRESOURCE_DATA faces[6] = {};
+    for (auto& f : faces) {
+        f.pData      = zeroData.data();
+        f.RowPitch   = kRowPitch;
+        f.SlicePitch = kSlicePitch;
+    }
+    batch.Transition(resource.GetResource(),
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+        D3D12_RESOURCE_STATE_COPY_DEST);
+    batch.Upload(resource.GetResource(), 0, faces, 6);
+    batch.Transition(resource.GetResource(), D3D12_RESOURCE_STATE_COPY_DEST,
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+}
+
 /// @brief キューブマップ用リソースとUAV/SRVの作成
 bool CreateCubemapResourceAndViews(GraphicsDevice* pDevice,
     DescriptorPool* pPool, uint32_t size, DXGI_FORMAT format,
@@ -157,6 +182,10 @@ bool EnvironmentMap::Init(
         OutputDebugStringW(L"Failed to build default cubemap.\n");
         return false;
     }
+
+    // irradiance mapのゼロクリア
+    ClearIrradianceMap(
+        m_irradianceMap, kIrradianceMapSize, kIrradianceMapFormat, batch);
 
     return true;
 }
