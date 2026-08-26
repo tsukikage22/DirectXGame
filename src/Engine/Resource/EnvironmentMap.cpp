@@ -124,6 +124,7 @@ bool CreateCubemapResourceAndViews(GraphicsDevice* pDevice,
     if (!resource.InitAsTexture2DArray(pDevice->GetDevice(), size, size, format,
             6, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
             D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)) {
+        OutputDebugStringW(L"Failed to create cubemap resource.\n");
         return false;
     }
 
