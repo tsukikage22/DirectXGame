@@ -235,6 +235,12 @@
       <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatWarningAsError>
       <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatWarningAsError>
     </FxCompile>
+    <FxCompile Include="..\assets\shader\IrradianceCS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
+    </FxCompile>
     <FxCompile Include="..\assets\shader\SkyboxPS.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
@@ -276,6 +282,7 @@
     <None Include="..\assets\shader\BRDF.hlsli" />
     <None Include="..\assets\shader\Common.hlsli" />
     <None Include="..\assets\shader\Display.hlsli" />
+    <None Include="..\assets\shader\IBLBake.hlsli" />
     <None Include="..\assets\shader\Lighting.hlsli" />
     <None Include="..\assets\shader\Materials.hlsli" />
     <None Include="..\assets\shader\Skybox.hlsli" />
