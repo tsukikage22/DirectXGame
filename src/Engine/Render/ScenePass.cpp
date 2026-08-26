@@ -39,6 +39,12 @@ bool ScenePass::Init(GraphicsDevice& device) {
             D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 2,
             D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE));
 
+        // [t0, space3] irradiance map (Descriptor Table SRV)
+        std::vector<D3D12_DESCRIPTOR_RANGE1> irradianceRange;
+        irradianceRange.push_back(
+            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                1, 0, 3, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
+
         // ルートシグニチャ構成
         // [b0] SceneConstants (Root CBV)
         // [b1] TransformConstants (Root CBV)
@@ -48,8 +54,10 @@ bool ScenePass::Init(GraphicsDevice& device) {
         // baseColor, metallic-roughness, normal, emissive, occlusion
         // [t0, space1] IES Profile Texture(Descriptor Table SRV)
         // [t0, space2] Light StructuredBuffer (Descriptor Table SRV)
+        // [t0, space3] irradiance map (Descriptor Table SRV)
         // [s0] Default Sampler (Static Sampler)
         // [s1] IES Profile Sampler (Static Sampler)
+        // [s2] irradiance map Sampler (Static Sampler)
         builder
             .SetFlags(
                 D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)
@@ -62,11 +70,17 @@ bool ScenePass::Init(GraphicsDevice& device) {
             .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(iesRange, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(lightRange, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddDescriptorTable(irradianceRange, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddStaticSampler(0)
             .AddStaticSampler(1, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
                 D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // 垂直角は端で止める
                 D3D12_TEXTURE_ADDRESS_MODE_WRAP,   // 水平角は0-360°でループする
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP)
+            .AddStaticSampler(2, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP, 0,
+                D3D12_SHADER_VISIBILITY_PIXEL);
 
         if (!builder.Build(m_pDevice->GetDevice())) {
             OutputDebugStringW(L"Failed to build root signature.\n");
@@ -140,6 +154,10 @@ void ScenePass::Draw(const ScenePassBindings& passBindings, Scene& scene) {
     // [t0, space2] Light StructuredBuffer (共通)
     pCmdList->SetGraphicsRootDescriptorTable(
         RootParam::SRV_Lights, passBindings.lightSRV);
+
+    // [t0, space3] irradiance map (共通)
+    pCmdList->SetGraphicsRootDescriptorTable(
+        RootParam::SRV_Irradiance, passBindings.irradianceSRV);
 
     // PrimitiveTopologyの指定
     pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

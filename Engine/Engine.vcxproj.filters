@@ -492,5 +492,8 @@
     <None Include="..\assets\shader\IBLBake.hlsli">
       <Filter>リソース ファイル</Filter>
     </None>
+    <None Include="..\assets\shader\IBL.hlsli">
+      <Filter>リソース ファイル</Filter>
+    </None>
   </ItemGroup>
 </Project>

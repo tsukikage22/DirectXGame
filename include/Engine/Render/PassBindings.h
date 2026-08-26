@@ -15,12 +15,13 @@ struct ScenePassBindings {
     D3D12_GPU_VIRTUAL_ADDRESS displayCB;   // b3  ディスプレイCBのGPUアドレス
     D3D12_GPU_DESCRIPTOR_HANDLE iesSRV;    // t0, space1 iesSRV
     D3D12_GPU_DESCRIPTOR_HANDLE lightSRV;  // t0, space2 ライトバッファのSRV
+    D3D12_GPU_DESCRIPTOR_HANDLE irradianceSRV;  // t0, space3 irradiance SRV
 
     /// @brief 初期化漏れを検出するためのチェック
     bool IsValid() const {
         return pCmdList != nullptr && pCbvSrvUavHeap != nullptr &&
                sceneCB != 0 && displayCB != 0 && iesSRV.ptr != 0 &&
-               lightSRV.ptr != 0;
+               lightSRV.ptr != 0 && irradianceSRV.ptr != 0;
     }
 };
 
