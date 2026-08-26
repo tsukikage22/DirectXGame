@@ -162,6 +162,7 @@ bool EnvironmentMap::Init(
 }
 
 void EnvironmentMap::Term() {
+    m_canUseCubemap = false;
     m_equirectMap.Term();
     m_cubeMap.Term();
     m_defaultCubeMap.Term();
