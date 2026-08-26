@@ -28,12 +28,17 @@ public:
     /// @return キューブマップの作成に成功したかどうか
     [[nodiscard]] bool EquirectToCubemap(EnvironmentMap& envMap);
 
+    /// @brief 照度マップの作成
+    /// @param envMap 環境マップ
+    /// @return 照度マップの作成に成功したかどうか
+    [[nodiscard]] bool BakeIrradianceMap(EnvironmentMap& envMap);
+
 private:
     static uint32_t DivRoundUp(uint32_t value, uint32_t divisor);
 
-    enum CubemapRootParam {
-        EquirectSRV = 0,  // [t0] SRV: Equirectangular map
-        CubemapUAV,       // [u0] UAV: Cubemap
+    enum RootParam {
+        SRV_Source = 0,  // [t0]
+        UAV_Dest,        // [u0]
         Count
     };
 
@@ -45,5 +50,6 @@ private:
     engine::ComPtr<ID3D12CommandAllocator> m_pCommandAllocator = nullptr;
     engine::ComPtr<ID3D12GraphicsCommandList> m_pCommandList   = nullptr;
     engine::ComPtr<ID3D12RootSignature> m_pRootSignature       = nullptr;
-    engine::ComPtr<ID3D12PipelineState> m_pPSO                 = nullptr;
+    engine::ComPtr<ID3D12PipelineState> m_pEquirectPSO         = nullptr;
+    engine::ComPtr<ID3D12PipelineState> m_pIrradiancePSO       = nullptr;
 };
