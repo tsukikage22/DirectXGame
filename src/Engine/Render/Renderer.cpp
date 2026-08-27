@@ -223,6 +223,8 @@ void Renderer::UpdateConstants(Scene& scene, uint32_t debugView) {
     sc.exposure       = camera.ComputeExposure();
     sc.debugView      = debugView;
     sc.envIntensity   = scene.GetEnvIntensity();
+    sc.prefilteredMipCount =
+        EnvironmentMap::kPrefilteredMipLevels;  // prefilteredのmip数
 
     frameResource.GetSceneConstants().Update(sc);
 }

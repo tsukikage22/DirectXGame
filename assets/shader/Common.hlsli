@@ -56,6 +56,7 @@ struct SceneConstants
     uint lightCount;      // ライトの数
     uint debugView;       // 表示モード
     float envIntensity;   // 環境マップの輝度スケール係数
+    uint prefilteredMipCount; // prefilteredのmip数
 };
 
 //==============================================================

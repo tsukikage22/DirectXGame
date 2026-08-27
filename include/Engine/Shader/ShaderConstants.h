@@ -43,6 +43,8 @@ struct SceneConstants {
     uint32_t lightCount;               // ライトの数
     uint32_t debugView;                // 表示モード DebugViewの値を格納
     float envIntensity;                // 環境マップの輝度スケール係数
+    uint32_t prefilteredMipCount;      // prefilteredのmip数
+    float _padding[3];                 // 16バイトアラインメント用
 };
 static_assert(sizeof(SceneConstants) % 16 == 0, "Must be 16-byte aligned");
 

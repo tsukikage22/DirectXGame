@@ -142,10 +142,9 @@ PSOutput main(VSOutput input)
     }
 
     // アンビエント項
-    float3 diffuseIBL = EvaluateDiffuseIBL(N, baseColor.rgb, metallic); // IBLによる拡散反射の計算
-    float3 ambient = diffuseIBL * ao; 
-    litColor += ambient;
+    litColor += EvaluateIBL(N, V, baseColor.rgb, metallic, roughness, ao);
 
+    // 露出の適用
     litColor *= g_scene.exposure;
 
     // トーンマップの適用
