@@ -30,6 +30,16 @@ float2 Hammersley(uint i, uint N) {
     return float2(float(i) / float(N), ri);
 }
 
+// GGXによる法線分布関数 (D項)
+// D(h) = (a^2) / (π * ((N·H)^2 * (a^2 -1) +1)^2 )
+float D_GGX(float NH, float alpha) {
+    alpha = max(alpha, 1e-3f); // alphaが0になるのを防ぐ
+    float a2 = alpha * alpha;
+    float f = (NH * NH) * (a2 - 1.0f) + 1.0f;
+
+    return (a2) / (F_PI * f * f);
+}
+
 /// @brief キューブマップの各面に対応する方向ベクトルを取得する
 /// @param face キューブマップの面番号 (0: +X, 1: -X, 2: +Y, 3: -Y, 4: +Z, 5: -Z)
 /// @param uv UV座標 ([0,1]範囲)
@@ -47,4 +57,45 @@ float3 TexelToDirection(uint face, float2 uv)   // uv は [0,1]
         default:return float3(-c.x, -c.y, -1.0f); // -Z
     }
 }
+
+/// @brief Lambertの余弦則に従った重点サンプリング
+/// @param Xi 乱数 ([0,1]範囲)
+/// @param N 法線ベクトル
+/// @param T 接線ベクトル
+/// @param B 従法線ベクトル
+/// @return サンプリングされた方向ベクトル
+float3 SampleLambert(float2 Xi, float3 N, float3 T, float3 B) {
+    float phi = 2.0 * F_PI * Xi.x;
+    float cosTheta = sqrt(1.0 - Xi.y);
+    float sinTheta = sqrt(Xi.y);
+
+    float3 H;
+    H.x = sinTheta * cos(phi);
+    H.y = sinTheta * sin(phi);
+    H.z = cosTheta;
+
+    // 接空間からワールド空間に変換する
+    return normalize(T * H.x + B * H.y + N * H.z);
+}
+
+
+/// @brief GGX分布に従った重点サンプリング
+/// @param Xi 
+/// @param alpha roughnessの二乗
+/// @param N 法線ベクトル
+/// @return サンプリングされた方向ベクトル
+float3 SampleGGX(float2 Xi, float alpha, float3 N, float3 T, float3 B) {
+    float phi = 2.0 * F_PI * Xi.x;
+    float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (alpha * alpha - 1.0) * Xi.y));
+    float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+
+    float3 H;
+    H.x = sinTheta * cos(phi);
+    H.y = sinTheta * sin(phi);
+    H.z = cosTheta;
+
+    return normalize(T * H.x + B * H.y + N * H.z);
+}
+
+
 #endif // IBLBAKE_HLSLI

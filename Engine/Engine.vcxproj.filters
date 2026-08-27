@@ -469,6 +469,9 @@
     <FxCompile Include="..\assets\shader\DownSampleCubemapCS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
+    <FxCompile Include="..\assets\shader\PrefilteredEnvMapCS.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assets\shader\BRDF.hlsli">

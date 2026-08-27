@@ -116,6 +116,12 @@ bool AssetSystem::BuildEnvironmentMap(const std::filesystem::path& path) {
         return false;
     }
 
+    // prefiltered env map構築
+    if (!m_iblBaker.BakePrefilteredEnvMap(m_environmentMap)) {
+        OutputDebugStringW(L"Failed to bake prefiltered env map.\n");
+        return false;
+    }
+
     return true;
 }
 
