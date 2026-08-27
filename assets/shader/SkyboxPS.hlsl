@@ -23,7 +23,7 @@ float4 main(SkyboxVSOutput input) : SV_TARGET {
     float3 dir = normalize(input.worldDir);
 
     // スカイボックスのテクスチャをサンプリング
-    float4 color = g_skybox.Sample(g_sampler, dir);
+    float4 color = g_skybox.SampleLevel(g_sampler, dir, 0.0f);
 
     // 輝度スケール係数
     color *= g_scene.envIntensity; 

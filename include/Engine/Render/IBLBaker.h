@@ -28,6 +28,11 @@ public:
     /// @return 環境キューブマップの作成に成功したかどうか
     [[nodiscard]] bool EquirectToCubemap(EnvironmentMap& envMap);
 
+    /// @brief 環境キューブマップのミップマップを生成する
+    /// @param envMap 環境マップ
+    /// @return 成功したかどうか
+    [[nodiscard]] bool GenerateEnvCubemapMips(EnvironmentMap& envMap);
+
     /// @brief irradiance mapの作成
     /// @param envMap 環境マップ
     /// @return irradiance mapの作成に成功したかどうか
@@ -51,5 +56,6 @@ private:
     engine::ComPtr<ID3D12GraphicsCommandList> m_pCommandList   = nullptr;
     engine::ComPtr<ID3D12RootSignature> m_pRootSignature       = nullptr;
     engine::ComPtr<ID3D12PipelineState> m_pEquirectPSO         = nullptr;
+    engine::ComPtr<ID3D12PipelineState> m_pEnvmapMipsPSO       = nullptr;
     engine::ComPtr<ID3D12PipelineState> m_pIrradiancePSO       = nullptr;
 };

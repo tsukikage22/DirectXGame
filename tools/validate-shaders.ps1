@@ -56,6 +56,7 @@ $jobs = @(
     @{ File = "UI_PS.hlsl";                Stage = "ps"; Entry = "main" }
     @{ File = "SkyboxPS.hlsl";             Stage = "ps"; Entry = "main" }
     @{ File = "EquirectToCubemapCS.hlsl";     Stage = "cs"; Entry = "main" }
+    @{ File = "DownSampleCubemapCS.hlsl";     Stage = "cs"; Entry = "main" }
 )
 
 # --- 定義漏れの検出 -------------------------------------------------

@@ -117,41 +117,60 @@ void ClearIrradianceMap(TextureResource& resource, uint32_t size,
 
 /// @brief キューブマップ用リソースとUAV/SRVの作成
 bool CreateCubemapResourceAndViews(GraphicsDevice* pDevice,
-    DescriptorPool* pPool, uint32_t size, DXGI_FORMAT format,
-    TextureResource& resource, DescriptorAllocation& uav,
-    DescriptorAllocation& srv) {
+    DescriptorPool* pPool, uint32_t size, uint32_t miplevels,
+    DXGI_FORMAT format, TextureResource& resource, DescriptorAllocation& uav,
+    DescriptorAllocation& srv, DescriptorAllocation* mipSrv = nullptr) {
     // キューブマップ用リソースの作成
     if (!resource.InitAsTexture2DArray(pDevice->GetDevice(), size, size, format,
-            6, 1, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
+            6, miplevels, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
             D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)) {
         OutputDebugStringW(L"Failed to create cubemap resource.\n");
         return false;
     }
 
-    // UAVの作成
-    uav                                      = pPool->Allocate();
-    D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-    uavDesc.ViewDimension                  = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
-    uavDesc.Texture2DArray.MipSlice        = 0;
-    uavDesc.Texture2DArray.FirstArraySlice = 0;
-    uavDesc.Texture2DArray.ArraySize       = 6;
-    uavDesc.Format                         = format;
-    pDevice->GetDevice()->CreateUnorderedAccessView(
-        resource.GetResource(), nullptr, &uavDesc, uav.GetCPUHandle());
+    // UAVの作成 miplevels分のUAVを作成する
+    uav = pPool->AllocateRange(miplevels);
+    std::vector<D3D12_UNORDERED_ACCESS_VIEW_DESC> uavDesc(miplevels);
+    for (uint32_t i = 0; i < miplevels; ++i) {
+        uavDesc[i].ViewDimension           = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+        uavDesc[i].Texture2DArray.MipSlice = i;
+        uavDesc[i].Texture2DArray.FirstArraySlice = 0;
+        uavDesc[i].Texture2DArray.ArraySize       = 6;
+        uavDesc[i].Format                         = format;
+        pDevice->GetDevice()->CreateUnorderedAccessView(
+            resource.GetResource(), nullptr, &uavDesc[i], uav.GetCPUHandle(i));
+    }
 
     // SRVの作成
     srv                                     = pPool->Allocate();
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.ViewDimension                   = D3D12_SRV_DIMENSION_TEXTURECUBE;
     srvDesc.TextureCube.MostDetailedMip     = 0;
-    srvDesc.TextureCube.MipLevels           = 1;
+    srvDesc.TextureCube.MipLevels           = miplevels;
     srvDesc.Format                          = format;
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
     pDevice->GetDevice()->CreateShaderResourceView(
         resource.GetResource(), &srvDesc, srv.GetCPUHandle());
+
+    // ミップ単位のSRVの作成（mipSrvがあれば）
+    if (mipSrv) {
+        *mipSrv = pPool->AllocateRange(miplevels);
+        for (uint32_t i = 0; i < miplevels; ++i) {
+            D3D12_SHADER_RESOURCE_VIEW_DESC mipSrvDesc = {};
+            mipSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+            mipSrvDesc.TextureCube.MostDetailedMip     = i;
+            mipSrvDesc.TextureCube.MipLevels           = 1;
+            mipSrvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
+            mipSrvDesc.Format                          = format;
+            mipSrvDesc.Shader4ComponentMapping =
+                D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            pDevice->GetDevice()->CreateShaderResourceView(
+                resource.GetResource(), &mipSrvDesc, mipSrv->GetCPUHandle(i));
+        }
+    }
+
     return true;
 }
-
 }  // namespace
 
 bool EnvironmentMap::Init(
@@ -166,13 +185,14 @@ bool EnvironmentMap::Init(
 
     // キューブマップ用リソース，UAV，SRVの作成
     if (!CreateCubemapResourceAndViews(m_pDevice, m_pPoolSRV, kCubeMapSize,
-            kCubemapFormat, m_cubeMap, m_cubemapUav, m_cubemapSrv)) {
+            kMipLevels, kCubemapFormat, m_cubeMap, m_cubemapUav, m_cubemapSrv,
+            &m_cubemapMipSrv)) {
         return false;
     }
 
     // irradiance map用リソース，UAV，SRVの作成
     if (!CreateCubemapResourceAndViews(m_pDevice, m_pPoolSRV,
-            kIrradianceMapSize, kIrradianceMapFormat, m_irradianceMap,
+            kIrradianceMapSize, 1, kIrradianceMapFormat, m_irradianceMap,
             m_irradianceUav, m_irradianceSrv)) {
         return false;
     }
@@ -200,6 +220,7 @@ void EnvironmentMap::Term() {
     m_equirectSrv   = {};
     m_cubemapUav    = {};
     m_cubemapSrv    = {};
+    m_cubemapMipSrv = {};
     m_irradianceUav = {};
     m_irradianceSrv = {};
     m_defaultSrv    = {};
@@ -306,9 +327,10 @@ D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetEquirectSrvGpuHandle() const {
     return {};
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetCubemapUavGpuHandle() const {
+D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetCubemapUavGpuHandle(
+    uint32_t mip) const {
     if (m_cubemapUav.IsValid() && m_pPoolSRV) {
-        return m_cubemapUav.GetGPUHandle();
+        return m_cubemapUav.GetGPUHandle(mip);
     }
 
     return {};
@@ -323,6 +345,15 @@ D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetCubemapSrvGpuHandle() const {
         return m_defaultSrv.GetGPUHandle();
     } else if (m_cubemapSrv.IsValid()) {
         return m_cubemapSrv.GetGPUHandle();
+    }
+
+    return {};
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetCubemapMipSrvGpuHandle(
+    uint32_t mip) const {
+    if (m_cubemapMipSrv.IsValid() && m_pPoolSRV) {
+        return m_cubemapMipSrv.GetGPUHandle(mip);
     }
 
     return {};

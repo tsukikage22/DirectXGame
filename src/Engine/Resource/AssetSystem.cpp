@@ -103,6 +103,13 @@ bool AssetSystem::BuildEnvironmentMap(const std::filesystem::path& path) {
         return false;
     }
 
+    // 環境キューブマップのミップマップ生成
+    if (!m_iblBaker.GenerateEnvCubemapMips(m_environmentMap)) {
+        OutputDebugStringW(
+            L"Failed to generate mipmaps for EnvironmentMap cubemap.\n");
+        return false;
+    }
+
     // 照度マップ構築
     if (!m_iblBaker.BakeIrradianceMap(m_environmentMap)) {
         OutputDebugStringW(L"Failed to bake irradiance map.\n");

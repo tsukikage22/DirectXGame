@@ -43,11 +43,15 @@ public:
     /// @brief equirect SRVディスクリプタの取得
     D3D12_GPU_DESCRIPTOR_HANDLE GetEquirectSrvGpuHandle() const;
 
-    /// @brief キューブマップUAVディスクリプタの取得
-    D3D12_GPU_DESCRIPTOR_HANDLE GetCubemapUavGpuHandle() const;
+    /// @brief 環境キューブマップUAVディスクリプタの取得
+    /// @param mip ミップレベル（0～kMipLevels-1）
+    D3D12_GPU_DESCRIPTOR_HANDLE GetCubemapUavGpuHandle(uint32_t mip = 0) const;
 
-    /// @brief キューブマップSRVディスクリプタの取得
+    /// @brief 環境キューブマップSRVディスクリプタの取得
     D3D12_GPU_DESCRIPTOR_HANDLE GetCubemapSrvGpuHandle() const;
+
+    /// @brief 環境キューブマップミップSRVディスクリプタの取得
+    D3D12_GPU_DESCRIPTOR_HANDLE GetCubemapMipSrvGpuHandle(uint32_t mip) const;
 
     /// @brief 照度マップUAVディスクリプタの取得
     D3D12_GPU_DESCRIPTOR_HANDLE GetIrradianceUavGpuHandle() const;
@@ -70,6 +74,11 @@ public:
         return m_irradianceMap.GetResource();
     }
 
+    //======================================================================
+    // constants
+    //======================================================================
+    static constexpr uint32_t kMipLevels = 11;  // 環境マップのミップ
+
 private:
     constexpr static uint32_t kCubeMapSize = 1024;  // キューブマップのサイズ
     constexpr static DXGI_FORMAT kCubemapFormat =
@@ -80,13 +89,13 @@ private:
 
     GraphicsDevice* m_pDevice  = nullptr;  // デバイス
     DescriptorPool* m_pPoolSRV = nullptr;  // SRV用ディスクリプタプール
-    DescriptorAllocation m_equirectSrv;    // SRVディスクリプタ
-    DescriptorAllocation m_cubemapUav;     // キューブマップUAVディスクリプタ
-    DescriptorAllocation m_cubemapSrv;     // キューブマップSRVディスクリプタ
-    DescriptorAllocation m_irradianceUav;  // 照度マップUAVディスクリプタ
-    DescriptorAllocation m_irradianceSrv;  // 照度マップSRVディスクリプタ
-    DescriptorAllocation
-        m_defaultSrv;  // デフォルトキューブマップSRVディスクリプタ
+    DescriptorAllocation m_equirectSrv;    // HDRIのSRV
+    DescriptorAllocation m_cubemapUav;     // キューブマップUAV
+    DescriptorAllocation m_cubemapSrv;     // キューブマップSRV
+    DescriptorAllocation m_cubemapMipSrv;  // キューブマップミップSRV
+    DescriptorAllocation m_irradianceUav;  // 照度マップUAV
+    DescriptorAllocation m_irradianceSrv;  // 照度マップSRV
+    DescriptorAllocation m_defaultSrv;     // デフォルトキューブマップSRV
 
     TextureResource m_equirectMap;    // 環境マップテクスチャのリソース
     TextureResource m_cubeMap;        // キューブマップテクスチャのリソース
