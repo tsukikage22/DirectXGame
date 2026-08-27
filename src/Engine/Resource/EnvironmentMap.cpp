@@ -221,6 +221,33 @@ bool EnvironmentMap::Init(
         return false;
     }
 
+    // BRDF LUT用リソース，UAV，SRVの作成
+    if (!m_BrdfLut.InitAsTexture2D(m_pDevice->GetDevice(), kBrdfLutSize,
+            kBrdfLutSize, kBrdfLutFormat, 1,
+            D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)) {
+        OutputDebugStringW(L"Failed to create BRDF LUT resource.\n");
+        return false;
+    }
+    // UAVの作成
+    m_BrdfLutUav                             = m_pPoolSrvUav->Allocate();
+    D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+    uavDesc.ViewDimension                    = D3D12_UAV_DIMENSION_TEXTURE2D;
+    uavDesc.Texture2D.MipSlice               = 0;
+    uavDesc.Format                           = kBrdfLutFormat;
+    m_pDevice->GetDevice()->CreateUnorderedAccessView(m_BrdfLut.GetResource(),
+        nullptr, &uavDesc, m_BrdfLutUav.GetCPUHandle());
+    // SRVの作成
+    m_BrdfLutSrv                            = m_pPoolSrvUav->Allocate();
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.ViewDimension                   = D3D12_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MostDetailedMip       = 0;
+    srvDesc.Texture2D.MipLevels             = 1;
+    srvDesc.Format                          = kBrdfLutFormat;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    m_pDevice->GetDevice()->CreateShaderResourceView(
+        m_BrdfLut.GetResource(), &srvDesc, m_BrdfLutSrv.GetCPUHandle());
+
     // デフォルトキューブマップの作成
     if (!BuildDefaultCubemap(
             m_pDevice, m_defaultCubeMap, m_defaultSrv, batch)) {
@@ -417,6 +444,22 @@ D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetPrefilteredUavGpuHandle(
     uint32_t mip) const {
     if (m_prefilteredUav.IsValid() && m_pPoolSrvUav) {
         return m_prefilteredUav.GetGPUHandle(mip);
+    }
+
+    return {};
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetBrdfLutUavGpuHandle() const {
+    if (m_BrdfLutUav.IsValid() && m_pPoolSrvUav) {
+        return m_BrdfLutUav.GetGPUHandle();
+    }
+
+    return {};
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetBrdfLutSrvGpuHandle() const {
+    if (m_BrdfLutSrv.IsValid() && m_pPoolSrvUav) {
+        return m_BrdfLutSrv.GetGPUHandle();
     }
 
     return {};

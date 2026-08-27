@@ -59,6 +59,12 @@ public:
     /// @brief prefiltered map SRVディスクリプタの取得
     D3D12_GPU_DESCRIPTOR_HANDLE GetPrefilteredSrvGpuHandle() const;
 
+    /// @brief BRDF LUT UAVディスクリプタの取得
+    D3D12_GPU_DESCRIPTOR_HANDLE GetBrdfLutUavGpuHandle() const;
+
+    /// @brief BRDF LUT SRVディスクリプタの取得
+    D3D12_GPU_DESCRIPTOR_HANDLE GetBrdfLutSrvGpuHandle() const;
+
     /// @brief equirectリソースの取得
     ID3D12Resource* GetEquirectResource() const {
         return m_equirectMap.GetResource();
@@ -79,6 +85,11 @@ public:
         return m_prefilteredMap.GetResource();
     }
 
+    /// @brief  BRDF LUTリソースの取得
+    ID3D12Resource* GetBrdfLutResource() const {
+        return m_BrdfLut.GetResource();
+    }
+
     //======================================================================
     // constants
     //======================================================================
@@ -88,13 +99,16 @@ public:
     static constexpr uint32_t kPrefilteredSize =
         128;  // prefiltered mapのサイズ
     static constexpr uint32_t kPrefilteredMipLevels =
-        5;  // prefiltered mapのミップ
+        5;                                         // prefiltered mapのミップ
+    static constexpr uint32_t kBrdfLutSize = 512;  // BRDF LUTのサイズ
     static constexpr DXGI_FORMAT kPrefilteredFormat =
         DXGI_FORMAT_R16G16B16A16_FLOAT;  // prefiltered mapのフォーマット
     static constexpr DXGI_FORMAT kCubemapFormat =
         DXGI_FORMAT_R16G16B16A16_FLOAT;  // キューブマップのフォーマット
     static constexpr DXGI_FORMAT kIrradianceMapFormat =
         DXGI_FORMAT_R32G32B32A32_FLOAT;  // 照度マップのフォーマット
+    static constexpr DXGI_FORMAT kBrdfLutFormat =
+        DXGI_FORMAT_R16G16_FLOAT;  // BRDF LUTのフォーマット
 
 private:
     GraphicsDevice* m_pDevice     = nullptr;  // デバイス
@@ -107,12 +121,15 @@ private:
     DescriptorAllocation m_irradianceSrv;     // 照度マップSRV
     DescriptorAllocation m_prefilteredUav;    // prefiltered map UAV
     DescriptorAllocation m_prefilteredSrv;    // prefiltered map SRV
+    DescriptorAllocation m_BrdfLutSrv;        // BRDF LUT SRV
+    DescriptorAllocation m_BrdfLutUav;        // BRDF LUT UAV
     DescriptorAllocation m_defaultSrv;        // デフォルトキューブマップSRV
 
     TextureResource m_equirectMap;     // 環境マップのリソース
     TextureResource m_cubeMap;         // 環境キューブマップのリソース
     TextureResource m_irradianceMap;   // 照度マップのリソース
     TextureResource m_prefilteredMap;  // prefiltered mapのリソース
+    TextureResource m_BrdfLut;         // BRDF LUTのリソース
     TextureResource
         m_defaultCubeMap;  // デフォルトキューブマップテクスチャのリソース
 
