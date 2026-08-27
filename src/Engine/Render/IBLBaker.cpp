@@ -157,7 +157,36 @@ bool IBLBaker::Init(GraphicsDevice* pDevice) {
         m_pPrefilteredPSO = psoBuilder.Get();
     }
 
-    // BRDF LUT（予定）
+    // BRDF LUT
+    {
+        // ルートシグネチャの構築
+        // [u0] UAV 出力テクスチャ（2D LUT）
+        RootSignatureBuilder rsBuilder;
+        std::vector<D3D12_DESCRIPTOR_RANGE1> uavRange;
+        uavRange.push_back(
+            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
+                1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE));
+        rsBuilder.AddDescriptorTable(uavRange, D3D12_SHADER_VISIBILITY_ALL);
+        if (!rsBuilder.Build(m_pDevice->GetDevice())) {
+            return false;
+        }
+        m_pBrdfLutRS = rsBuilder.Get();
+
+        // PSOの構築
+        ComputePipelineBuilder psoBuilder;
+        std::vector<std::byte> csData;
+        if (!LoadShader(L"shader/IntegrateBRDFCS.cso", csData)) {
+            OutputDebugStringW(L"Failed to load shaders.\n");
+            return false;
+        }
+        psoBuilder.SetRootSignature(m_pBrdfLutRS.Get())
+            .SetComputeShader(csData.data(), csData.size());
+        if (!psoBuilder.Build(m_pDevice->GetDevice())) {
+            OutputDebugStringW(L"Failed to build compute pipeline state.\n");
+            return false;
+        }
+        m_pBrdfLutPSO = psoBuilder.Get();
+    }
 
     return true;
 }
@@ -169,10 +198,12 @@ void IBLBaker::Term() {
 
     m_pRootSignature    = nullptr;
     m_pPrefilteredRS    = nullptr;
+    m_pBrdfLutRS        = nullptr;
     m_pEquirectPSO      = nullptr;
     m_pEnvmapMipsPSO    = nullptr;
     m_pIrradiancePSO    = nullptr;
     m_pPrefilteredPSO   = nullptr;
+    m_pBrdfLutPSO       = nullptr;
     m_pDevice           = nullptr;
     m_pCommandAllocator = nullptr;
     m_pCommandList      = nullptr;
@@ -501,6 +532,66 @@ bool IBLBaker::BakePrefilteredEnvMap(EnvironmentMap& envMap) {
     after[1].Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
     after[1].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
     m_pCommandList->ResourceBarrier(2, after);
+
+    // コマンドリストのクローズ
+    m_pCommandList->Close();
+    // コマンドリストの実行
+    ID3D12CommandList* ppCommandLists[] = { m_pCommandList.Get() };
+    m_pCommandQueue->Execute(ppCommandLists, _countof(ppCommandLists));
+    // GPUの処理が完了するまで待機
+    m_pCommandQueue->Flush();
+
+    return true;
+}
+
+bool IBLBaker::BakeBrdfLut(EnvironmentMap& envMap) {
+    if (!m_pDevice || !m_pCommandQueue) {
+        return false;
+    }
+
+    // コマンドアロケータのリセット
+    m_pCommandAllocator->Reset();
+    // コマンドリストのリセット
+    m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
+
+    // リソースバリアの遷移
+    // PS_SR -> UAV
+    D3D12_RESOURCE_BARRIER before = {};
+    before.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    before.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    before.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    before.Transition.pResource   = envMap.GetBrdfLutResource();
+    before.Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    before.Transition.StateAfter  = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    m_pCommandList->ResourceBarrier(1, &before);
+
+    // ルートシグネチャとPSOの設定
+    m_pCommandList->SetComputeRootSignature(m_pBrdfLutRS.Get());
+    m_pCommandList->SetPipelineState(m_pBrdfLutPSO.Get());
+
+    // ディスクリプタヒープの設定
+    ID3D12DescriptorHeap* ppHeaps[] = { m_pDevice->CbvSrvUavPool()->GetHeap() };
+    m_pCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+
+    // ルートパラメータの設定
+    // 書き込み先のUAVだけなので0をいれる
+    m_pCommandList->SetComputeRootDescriptorTable(
+        0, envMap.GetBrdfLutUavGpuHandle());
+
+    // ディスパッチの実行
+    uint32_t groupCount = DivRoundUp(envMap.kBrdfLutSize, kGroupSize);
+    m_pCommandList->Dispatch(groupCount, groupCount, 1);
+
+    // リソースバリアの遷移
+    // UAV -> PS_SR
+    D3D12_RESOURCE_BARRIER after = {};
+    after.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    after.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    after.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    after.Transition.pResource   = envMap.GetBrdfLutResource();
+    after.Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    after.Transition.StateAfter  = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    m_pCommandList->ResourceBarrier(1, &after);
 
     // コマンドリストのクローズ
     m_pCommandList->Close();

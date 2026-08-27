@@ -59,6 +59,7 @@ $jobs = @(
     @{ File = "DownSampleCubemapCS.hlsl";     Stage = "cs"; Entry = "main" }
     @{ File = "PrefilteredEnvMapCS.hlsl";     Stage = "cs"; Entry = "main" }
     @{ File = "IrradianceCS.hlsl";     Stage = "cs"; Entry = "main" }
+    @{ File = "IntegrateBRDFCS.hlsl";     Stage = "cs"; Entry = "main" }
 )
 
 # --- 定義漏れの検出 -------------------------------------------------

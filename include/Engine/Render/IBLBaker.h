@@ -43,6 +43,11 @@ public:
     /// @return prefiltered env mapの作成に成功したかどうか
     [[nodiscard]] bool BakePrefilteredEnvMap(EnvironmentMap& envMap);
 
+    /// @brief BRDF LUTの作成
+    /// @param envMap 環境マップ
+    /// @return BRDF LUTの作成に成功したかどうか
+    [[nodiscard]] bool BakeBrdfLut(EnvironmentMap& envMap);
+
 private:
     static uint32_t DivRoundUp(uint32_t value, uint32_t divisor);
 
@@ -62,8 +67,10 @@ private:
     engine::ComPtr<ID3D12GraphicsCommandList> m_pCommandList   = nullptr;
     engine::ComPtr<ID3D12RootSignature> m_pRootSignature       = nullptr;
     engine::ComPtr<ID3D12RootSignature> m_pPrefilteredRS       = nullptr;
+    engine::ComPtr<ID3D12RootSignature> m_pBrdfLutRS           = nullptr;
     engine::ComPtr<ID3D12PipelineState> m_pEquirectPSO         = nullptr;
     engine::ComPtr<ID3D12PipelineState> m_pEnvmapMipsPSO       = nullptr;
     engine::ComPtr<ID3D12PipelineState> m_pIrradiancePSO       = nullptr;
     engine::ComPtr<ID3D12PipelineState> m_pPrefilteredPSO      = nullptr;
+    engine::ComPtr<ID3D12PipelineState> m_pBrdfLutPSO          = nullptr;
 };

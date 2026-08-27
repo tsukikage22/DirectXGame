@@ -51,6 +51,12 @@ bool AssetSystem::Init(GraphicsDevice& graphicsDevice) {
         return false;
     }
 
+    // BRDF LUT構築
+    if (!m_iblBaker.BakeBrdfLut(m_environmentMap)) {
+        OutputDebugStringW(L"Failed to bake BRDF LUT.\n");
+        return false;
+    }
+
     // アップロード待機
     auto future = batch.End(graphicsDevice.GetCommandQueue().GetD3DQueue());
     future.wait();
