@@ -61,6 +61,16 @@ public:
         return m_environmentMap.GetIrradianceSrvGpuHandle();
     }
 
+    /// @brief EnvironmentMapのprefiltered map SRVハンドルを取得する
+    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapPrefilteredSrvGpuHandle() const {
+        return m_environmentMap.GetPrefilteredSrvGpuHandle();
+    }
+
+    /// @brief EnvironmentMapのBRDF LUT SRVハンドルを取得する
+    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapBrdfLutSrvGpuHandle() const {
+        return m_environmentMap.GetBrdfLutSrvGpuHandle();
+    }
+
 private:
     TextureManager m_textureManager;
     ModelLoader m_modelLoader;

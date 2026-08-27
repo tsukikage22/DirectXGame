@@ -32,14 +32,16 @@ private:
     // ルートシグネチャ内でのルートパラメータ番号
     // Addxxxの呼び出し順と一致させる
     enum RootParam {
-        CBV_Scene      = 0,  // b0
-        CBV_Transform  = 1,  // b1
-        CBV_Material   = 2,  // b2
-        CBV_Display    = 3,  // b3
-        SRV_Texture    = 4,  // t0-t4
-        SRV_IESProfile = 5,  // t0, space1
-        SRV_Lights     = 6,  // t0, space2
-        SRV_Irradiance = 7,  // t0, space3
+        CBV_Scene       = 0,  // b0
+        CBV_Transform   = 1,  // b1
+        CBV_Material    = 2,  // b2
+        CBV_Display     = 3,  // b3
+        SRV_Texture     = 4,  // t0-t4
+        SRV_IESProfile  = 5,  // t0, space1
+        SRV_Lights      = 6,  // t0, space2
+        SRV_Irradiance  = 7,  // t0, space3
+        SRV_Prefiltered = 8,  // t1, space3
+        SRV_BrdfLut     = 9,  // t2, space3
     };
 
     GraphicsDevice* m_pDevice = nullptr;

@@ -45,6 +45,18 @@ bool ScenePass::Init(GraphicsDevice& device) {
             RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                 1, 0, 3, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
 
+        // [t1, space3] prefiltered map (Descriptor Table SRV)
+        std::vector<D3D12_DESCRIPTOR_RANGE1> prefilteredRange;
+        prefilteredRange.push_back(
+            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                1, 1, 3, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
+
+        // [t2, space3] BRDF LUT (Descriptor Table SRV)
+        std::vector<D3D12_DESCRIPTOR_RANGE1> brdfLutRange;
+        brdfLutRange.push_back(
+            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                1, 2, 3, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
+
         // ルートシグニチャ構成
         // [b0] SceneConstants (Root CBV)
         // [b1] TransformConstants (Root CBV)
@@ -55,9 +67,11 @@ bool ScenePass::Init(GraphicsDevice& device) {
         // [t0, space1] IES Profile Texture(Descriptor Table SRV)
         // [t0, space2] Light StructuredBuffer (Descriptor Table SRV)
         // [t0, space3] irradiance map (Descriptor Table SRV)
+        // [t1, space3] prefiltered map (Descriptor Table SRV)
+        // [t2, space3] BRDF LUT (Descriptor Table SRV)
         // [s0] Default Sampler (Static Sampler)
         // [s1] IES Profile Sampler (Static Sampler)
-        // [s2] irradiance map Sampler (Static Sampler)
+        // [s2] irradiance/LUT Sampler (Static Sampler)
         builder
             .SetFlags(
                 D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)
@@ -71,6 +85,8 @@ bool ScenePass::Init(GraphicsDevice& device) {
             .AddDescriptorTable(iesRange, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(lightRange, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(irradianceRange, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddDescriptorTable(prefilteredRange, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddDescriptorTable(brdfLutRange, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddStaticSampler(0)
             .AddStaticSampler(1, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
                 D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // 垂直角は端で止める
@@ -158,6 +174,14 @@ void ScenePass::Draw(const ScenePassBindings& passBindings, Scene& scene) {
     // [t0, space3] irradiance map (共通)
     pCmdList->SetGraphicsRootDescriptorTable(
         RootParam::SRV_Irradiance, passBindings.irradianceSRV);
+
+    // [t1, space3] prefiltered env map (共通)
+    pCmdList->SetGraphicsRootDescriptorTable(
+        RootParam::SRV_Prefiltered, passBindings.prefilteredSRV);
+
+    // [t2, space3] BRDF LUT (共通)
+    pCmdList->SetGraphicsRootDescriptorTable(
+        RootParam::SRV_BrdfLut, passBindings.brdfLutSRV);
 
     // PrimitiveTopologyの指定
     pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
