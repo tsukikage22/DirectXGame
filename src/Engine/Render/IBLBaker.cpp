@@ -180,7 +180,7 @@ bool IBLBaker::EquirectToCubemap(EnvironmentMap& envMap) {
         RootParam::UAV_Dest, envMap.GetCubemapUavGpuHandle());
 
     // ディスパッチの実行
-    uint32_t groupCount = DivRoundUp(envMap.GetCubemapSize(), kGroupSize);
+    uint32_t groupCount = DivRoundUp(envMap.kCubeMapSize, kGroupSize);
     m_pCommandList->Dispatch(groupCount, groupCount, 6);
 
     // リソースバリアの遷移
@@ -219,13 +219,13 @@ bool IBLBaker::GenerateEnvCubemapMips(EnvironmentMap& envMap) {
 
     // 生成ループ
     // リソースバリアの遷移
-    for (uint32_t mip = 1; mip < envMap.kMipLevels; mip++) {
+    for (uint32_t mip = 1; mip < envMap.kEnvCubeMipLevels; mip++) {
         D3D12_RESOURCE_BARRIER before[6] = {};
         // 6面について，書き込まれたmipをSRVに遷移させていく
         for (uint32_t face = 0; face < 6; face++) {
             // サブリソースのインデックスを計算
             // index = mipSlice + ArraySlice * mipLevel
-            const UINT sub = (mip - 1) + face * envMap.kMipLevels;
+            const UINT sub = (mip - 1) + face * envMap.kEnvCubeMipLevels;
             // UAVとして書き込まれた前のミップをSRVとして読み込むためにリソースバリアを設定
             before[face].Type  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
             before[face].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -257,7 +257,7 @@ bool IBLBaker::GenerateEnvCubemapMips(EnvironmentMap& envMap) {
 
         // ディスパッチの実行
         uint32_t groupCount =
-            DivRoundUp(envMap.GetCubemapSize() >> mip, kGroupSize);
+            DivRoundUp(envMap.kCubeMapSize >> mip, kGroupSize);
         m_pCommandList->Dispatch(groupCount, groupCount, 6);
     }
 
@@ -267,7 +267,8 @@ bool IBLBaker::GenerateEnvCubemapMips(EnvironmentMap& envMap) {
     for (uint32_t face = 0; face < 6; face++) {
         // サブリソースのインデックスを計算
         // index = mipSlice + ArraySlice * mipLevel
-        const UINT sub    = (envMap.kMipLevels - 1) + face * envMap.kMipLevels;
+        const UINT sub =
+            (envMap.kEnvCubeMipLevels - 1) + face * envMap.kEnvCubeMipLevels;
         after[face].Type  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
         after[face].Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
         after[face].Transition.Subresource = sub;
@@ -345,7 +346,7 @@ bool IBLBaker::BakeIrradianceMap(EnvironmentMap& envMap) {
         RootParam::UAV_Dest, envMap.GetIrradianceUavGpuHandle());
 
     // ディスパッチの実行
-    uint32_t groupCount = DivRoundUp(envMap.GetIrradianceSize(), kGroupSize);
+    uint32_t groupCount = DivRoundUp(envMap.kIrradianceMapSize, kGroupSize);
     m_pCommandList->Dispatch(groupCount, groupCount, 6);
 
     // リソースバリアの遷移

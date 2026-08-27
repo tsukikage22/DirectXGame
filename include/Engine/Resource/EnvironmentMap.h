@@ -34,17 +34,11 @@ public:
     bool LoadHDRI(const std::filesystem::path& filePath,
         DirectX::ResourceUploadBatch& batch);
 
-    /// @brief  キューブマップのサイズを取得する
-    static uint32_t GetCubemapSize() { return kCubeMapSize; }
-
-    /// @brief 照度マップのサイズを取得する
-    static uint32_t GetIrradianceSize() { return kIrradianceMapSize; }
-
     /// @brief equirect SRVディスクリプタの取得
     D3D12_GPU_DESCRIPTOR_HANDLE GetEquirectSrvGpuHandle() const;
 
     /// @brief 環境キューブマップUAVディスクリプタの取得
-    /// @param mip ミップレベル（0～kMipLevels-1）
+    /// @param mip ミップレベル（0～kEnvCubeMipLevels-1）
     D3D12_GPU_DESCRIPTOR_HANDLE GetCubemapUavGpuHandle(uint32_t mip = 0) const;
 
     /// @brief 環境キューブマップSRVディスクリプタの取得
@@ -58,6 +52,12 @@ public:
 
     /// @brief 照度マップSRVディスクリプタの取得
     D3D12_GPU_DESCRIPTOR_HANDLE GetIrradianceSrvGpuHandle() const;
+
+    /// @brief prefiltered map UAVディスクリプタの取得
+    D3D12_GPU_DESCRIPTOR_HANDLE GetPrefilteredUavGpuHandle(uint32_t mip) const;
+
+    /// @brief prefiltered map SRVディスクリプタの取得
+    D3D12_GPU_DESCRIPTOR_HANDLE GetPrefilteredSrvGpuHandle() const;
 
     /// @brief equirectリソースの取得
     ID3D12Resource* GetEquirectResource() const {
@@ -74,32 +74,45 @@ public:
         return m_irradianceMap.GetResource();
     }
 
+    /// @brief  prefiltered mapリソースの取得
+    ID3D12Resource* GetPrefilteredResource() const {
+        return m_prefilteredMap.GetResource();
+    }
+
     //======================================================================
     // constants
     //======================================================================
-    static constexpr uint32_t kMipLevels = 11;  // 環境マップのミップ
-
-private:
-    constexpr static uint32_t kCubeMapSize = 1024;  // キューブマップのサイズ
-    constexpr static DXGI_FORMAT kCubemapFormat =
+    static constexpr uint32_t kCubeMapSize = 1024;  // キューブマップのサイズ
+    static constexpr uint32_t kEnvCubeMipLevels  = 11;  // 環境マップのミップ
+    static constexpr uint32_t kIrradianceMapSize = 32;  // 照度マップのサイズ
+    static constexpr uint32_t kPrefilteredSize =
+        128;  // prefiltered mapのサイズ
+    static constexpr uint32_t kPrefilteredMipLevels =
+        5;  // prefiltered mapのミップ
+    static constexpr DXGI_FORMAT kPrefilteredFormat =
+        DXGI_FORMAT_R16G16B16A16_FLOAT;  // prefiltered mapのフォーマット
+    static constexpr DXGI_FORMAT kCubemapFormat =
         DXGI_FORMAT_R16G16B16A16_FLOAT;  // キューブマップのフォーマット
-    constexpr static uint32_t kIrradianceMapSize = 32;  // 照度マップのサイズ
-    constexpr static DXGI_FORMAT kIrradianceMapFormat =
+    static constexpr DXGI_FORMAT kIrradianceMapFormat =
         DXGI_FORMAT_R32G32B32A32_FLOAT;  // 照度マップのフォーマット
 
-    GraphicsDevice* m_pDevice  = nullptr;  // デバイス
-    DescriptorPool* m_pPoolSRV = nullptr;  // SRV用ディスクリプタプール
-    DescriptorAllocation m_equirectSrv;    // HDRIのSRV
-    DescriptorAllocation m_cubemapUav;     // キューブマップUAV
-    DescriptorAllocation m_cubemapSrv;     // キューブマップSRV
-    DescriptorAllocation m_cubemapMipSrv;  // キューブマップミップSRV
-    DescriptorAllocation m_irradianceUav;  // 照度マップUAV
-    DescriptorAllocation m_irradianceSrv;  // 照度マップSRV
-    DescriptorAllocation m_defaultSrv;     // デフォルトキューブマップSRV
+private:
+    GraphicsDevice* m_pDevice     = nullptr;  // デバイス
+    DescriptorPool* m_pPoolSrvUav = nullptr;  // SRV用ディスクリプタプール
+    DescriptorAllocation m_equirectSrv;       // HDRIのSRV
+    DescriptorAllocation m_cubemapUav;        // キューブマップUAV
+    DescriptorAllocation m_cubemapSrv;        // キューブマップSRV
+    DescriptorAllocation m_cubemapMipSrv;     // キューブマップミップSRV
+    DescriptorAllocation m_irradianceUav;     // 照度マップUAV
+    DescriptorAllocation m_irradianceSrv;     // 照度マップSRV
+    DescriptorAllocation m_prefilteredUav;    // prefiltered map UAV
+    DescriptorAllocation m_prefilteredSrv;    // prefiltered map SRV
+    DescriptorAllocation m_defaultSrv;        // デフォルトキューブマップSRV
 
-    TextureResource m_equirectMap;    // 環境マップテクスチャのリソース
-    TextureResource m_cubeMap;        // キューブマップテクスチャのリソース
-    TextureResource m_irradianceMap;  // 照度マップテクスチャのリソース
+    TextureResource m_equirectMap;     // 環境マップのリソース
+    TextureResource m_cubeMap;         // 環境キューブマップのリソース
+    TextureResource m_irradianceMap;   // 照度マップのリソース
+    TextureResource m_prefilteredMap;  // prefiltered mapのリソース
     TextureResource
         m_defaultCubeMap;  // デフォルトキューブマップテクスチャのリソース
 
