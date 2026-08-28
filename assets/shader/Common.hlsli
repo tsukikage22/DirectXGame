@@ -24,6 +24,14 @@
 static const float F_PI = 3.14159265359f; // 円周率
 static const float MIN_DIST = 0.01f;      // 光源との最小距離（距離減衰計算用）
 
+static const uint DEBUG_VIEW_FINAL_COLOR = 0;
+static const uint DEBUG_VIEW_BASE_COLOR = 1;
+static const uint DEBUG_VIEW_NORMAL = 2;
+static const uint DEBUG_VIEW_ROUGHNESS = 3;
+static const uint DEBUG_VIEW_METALLIC = 4;
+static const uint DEBUG_VIEW_AO = 5;
+static const uint DEBUG_VIEW_WHITE = 6;
+
 //==============================================================
 // Structures
 //==============================================================

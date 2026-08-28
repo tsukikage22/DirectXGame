@@ -42,8 +42,11 @@ float3 F_SchlickRoughness(float cosTheta, float3 F0, float roughness) {
 float3 EvaluateDiffuseIBL(float3 N, float3 baseColor, float3 Kd) {
     // 環境マップのirradiance mapをサンプリング
     // E/piをirradiance mapに入れたので，そのまま渡せば正規化Lambertのpiで割った値になる
-    float3 irradiance = g_irradianceMap.Sample(g_IBLSampler, N).rgb 
-            * g_scene.envIntensity; // 輝度スケール係数を掛ける
+    float3 irradiance = (g_scene.debugView == DEBUG_VIEW_WHITE) 
+        ? 1.0f.xxx  // white furnace test用のデバッグビュー
+        : g_irradianceMap.Sample(g_IBLSampler, N).rgb;
+
+    irradiance *= g_scene.envIntensity; // 輝度スケール係数を掛ける
 
     float3 diffuseIBL = Kd * irradiance *  baseColor; // IBLによる拡散反射の計算
 
@@ -56,8 +59,11 @@ float3 EvaluateSpecularIBL(float3 N, float3 V, float roughness, float3 F0) {
 
     // environment mapのprefiltered mapをサンプリング
     float lod = roughness * float(g_scene.prefilteredMipCount - 1); // roughnessに応じてmip levelを選択
-    float3 prefilteredColor = g_prefilteredMap.SampleLevel(g_IBLSampler, R, lod).rgb 
-            * g_scene.envIntensity; // 輝度スケール係数を掛ける
+    float3 prefilteredColor = (g_scene.debugView == DEBUG_VIEW_WHITE) 
+        ? 1.0f.xxx // white furnace test用のデバッグビュー
+        : g_prefilteredMap.SampleLevel(g_IBLSampler, R, lod).rgb;
+
+    prefilteredColor *= g_scene.envIntensity; // 輝度スケール係数を掛ける
     
     // BRDF LUTのサンプリング
     float2 brdfSample = g_brdfLUT.Sample(g_IBLSampler, float2(saturate(dot(N, V)), roughness)).rg;
@@ -69,7 +75,8 @@ float3 EvaluateSpecularIBL(float3 N, float3 V, float roughness, float3 F0) {
 }
 
 /// @brief IBLによる拡散反射と鏡面反射の計算
-float3 EvaluateIBL(float3 N, float3 V, float3 baseColor, float metallic, float roughness, float ao) {
+float3 EvaluateIBL(float3 N, float3 V, float3 baseColor, float metallic, 
+    float roughness, float ao) {
     // F0の計算
     float3 F0 = lerp(0.04f.xxx, baseColor, metallic);
     float3 Ks = F_SchlickRoughness(saturate(dot(N, V)), F0, roughness);

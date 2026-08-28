@@ -53,6 +53,8 @@ void Game::Init(Engine* pEngine) {
     m_planeModel = loader.LoadModel(path);
     AssetPath().GetAssetPath(L"model/NormalTangentTest.glb", path);
     m_normalTestModel = loader.LoadModel(path);
+    AssetPath().GetAssetPath(L"model/white_farness_sphere.glb", path);
+    m_testSphereModel = loader.LoadModel(path);
 
     // ライトの作成
 
@@ -144,11 +146,12 @@ void Game::Tick(float deltaTime) {
 
     // ゲームオブジェクトの生成削除
     if (m_pInputSystem->WasKeyPressed('1')) {
-        if (!m_earthObject.IsValid()) {
-            m_earthObject = m_pEngine->GetScene().SpawnObject(m_earthModel);
+        if (!m_testSphereObject.IsValid()) {
+            m_testSphereObject =
+                m_pEngine->GetScene().SpawnObject(m_testSphereModel);
         } else {
-            m_pEngine->GetScene().DespawnObject(m_earthObject);
-            m_earthObject = {};
+            m_pEngine->GetScene().DespawnObject(m_testSphereObject);
+            m_testSphereObject = {};
         }
     }
 

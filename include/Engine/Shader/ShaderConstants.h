@@ -10,18 +10,19 @@ namespace shader {
 
 /// @brief デバッグビューの種類
 enum class DebugView : uint32_t {
-    FinalColor = 0,  // 最終結果
-    BaseColor  = 1,  // baseColor
-    Normal     = 2,  // 法線
-    Roughness  = 3,  // roughness
-    Metallic   = 4,  // metallic
-    AO         = 5,  // Ambient Occlusion
-    size       = 6
+    FinalColor       = 0,  // 最終結果
+    BaseColor        = 1,  // baseColor
+    Normal           = 2,  // 法線
+    Roughness        = 3,  // roughness
+    Metallic         = 4,  // metallic
+    AO               = 5,  // Ambient Occlusion
+    WhiteFurnaceTest = 6,
+    size             = 7
 };
 
 // デバッグビューの名前
 constexpr const char* kDebugViewNames[] = { "Final Color", "Base Color",
-    "Normal", "Roughness", "Metallic", "AO" };
+    "Normal", "Roughness", "Metallic", "AO", "White Furnace Test" };
 
 // DebugViewとNamesの整合性チェック
 static_assert(

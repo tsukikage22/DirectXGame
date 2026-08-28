@@ -23,7 +23,9 @@ float4 main(SkyboxVSOutput input) : SV_TARGET {
     float3 dir = normalize(input.worldDir);
 
     // スカイボックスのテクスチャをサンプリング
-    float4 color = g_skybox.SampleLevel(g_sampler, dir, 0.0f);
+    float3 color = (g_scene.debugView == DEBUG_VIEW_WHITE) 
+        ? 1.0f.xxx // white furnace test用のデバッグビュー
+        : g_skybox.SampleLevel(g_sampler, dir, 0.0f).rgb;
 
     // 輝度スケール係数
     color *= g_scene.envIntensity; 

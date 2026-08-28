@@ -12,16 +12,6 @@
 #include "IBL.hlsli"
 
 //==============================================================
-// Constants
-//==============================================================
-static const uint DEBUG_VIEW_FINAL_COLOR = 0;
-static const uint DEBUG_VIEW_BASE_COLOR = 1;
-static const uint DEBUG_VIEW_NORMAL = 2;
-static const uint DEBUG_VIEW_ROUGHNESS = 3;
-static const uint DEBUG_VIEW_METALLIC = 4;
-static const uint DEBUG_VIEW_AO = 5;
-
-//==============================================================
 // structures
 //==============================================================
 //--------------------------------------------------------------
@@ -77,6 +67,7 @@ float3 EvaluateDebugView(SurfaceParams surf, float3 finalColor) {
             return ToDebugParam(float3(surf.metallic, surf.metallic, surf.metallic));
         case DEBUG_VIEW_AO:
             return ToDebugParam(float3(surf.ao, surf.ao, surf.ao));
+        case DEBUG_VIEW_WHITE:
         default:
             return finalColor;
     }
@@ -103,6 +94,13 @@ PSOutput main(VSOutput input)
     float metallic = metallicRoughnessTex.b * g_material.metallicFactor;
     float roughness = metallicRoughnessTex.g * g_material.roughnessFactor;
     float ao = aoTex * g_material.occlusionFactor;
+
+    // white furnace test用のデバッグビューでパラメータ固定
+    if(g_scene.debugView == DEBUG_VIEW_WHITE) {
+        metallic = 1.0f;
+        baseColor = 1.0f.xxxx;
+        roughness = 0.0f;
+    }
 
     //==============================================
     // 法線ベクトルのワールド変換
