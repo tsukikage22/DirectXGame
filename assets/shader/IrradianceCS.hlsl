@@ -17,6 +17,7 @@ RWTexture2DArray<float4> g_Irradiance : register(u0);
 // Constants
 //==============================================================
 static const uint SAMPLE_COUNT = 4096; // サンプリング数
+static const uint MIP_LEVEL = 5; // サンプリングする環境マップのmip level
 
 //==============================================================
 // Compute Shader Entry Point
@@ -47,7 +48,7 @@ void main(uint3 dtid : SV_DispatchThreadID) {
         /// ランバートの余弦則に従った重点サンプリング
         float3 L = SampleLambert(Xi, N, T, B);
 
-        sum += g_EnvMap.SampleLevel(g_Linear, L, 0).rgb;
+        sum += g_EnvMap.SampleLevel(g_Linear, L, MIP_LEVEL).rgb;
     }
 
     // irradiance mapに入れる値は E / pi
