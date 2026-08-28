@@ -8,6 +8,13 @@
 
 #include "Common.hlsli"
 
+//==============================================================
+// Constants
+//==============================================================
+// 法線と視線の内積の下限値（0除算を防ぐため）
+// IBLBake.hlsliと同じ値にする
+static const float MIN_NV = 1e-4f;    
+
 //--------------------------------------------------------------
 // 5乗の計算
 //--------------------------------------------------------------
@@ -41,11 +48,13 @@ float D_GGX(float NH, float alpha) {
 float G2_SmithCorrelated(float NL, float NV, float alpha) {
     float a2 = alpha * alpha;
 
+    NV = max(NV, MIN_NV); // 0除算を防ぐためNVに下限を設定する
+
     // 可視性関数 V = G / (4 * NL * NV) の形で直接計算する方が効率的
     float GGXV = NL * sqrt(NV * NV * (1.0f - a2) + a2);
     float GGXL = NV * sqrt(NL * NL * (1.0f - a2) + a2);
 
-    return 0.5f / (GGXV + GGXL + 1e-4f);
+    return 0.5f / (GGXV + GGXL);
 }
 
 //--------------------------------------------------------------
