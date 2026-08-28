@@ -12,6 +12,13 @@
 #include "IBL.hlsli"
 
 //==============================================================
+// Constants
+//==============================================================
+// roughnessが0に近い時，GGX分布の計算で不安定になるので，roughnessの下限値を設定する
+// 値の参考元：Frostbite，Filament
+static const float MIN_ROUGHNESS = 0.045f; // roughnessの下限値
+
+//==============================================================
 // structures
 //==============================================================
 //--------------------------------------------------------------
@@ -95,12 +102,8 @@ PSOutput main(VSOutput input)
     float roughness = metallicRoughnessTex.g * g_material.roughnessFactor;
     float ao = aoTex * g_material.occlusionFactor;
 
-    // white furnace test用のデバッグビューでパラメータ固定
-    if(g_scene.debugView == DEBUG_VIEW_WHITE) {
-        metallic = 1.0f;
-        baseColor = 1.0f.xxxx;
-        roughness = 0.0f;
-    }
+    // roughnessを0.045f以上に制限する（GGX分布の計算で0に近い値を使うと不安定になるため）
+    roughness = max(roughness, MIN_ROUGHNESS);
 
     //==============================================
     // 法線ベクトルのワールド変換

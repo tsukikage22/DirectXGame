@@ -101,9 +101,15 @@ float3 SampleLambert(float2 Xi, float3 N, float3 T, float3 B) {
 /// @param N 法線ベクトル
 /// @return サンプリングされた方向ベクトル
 float3 SampleGGX(float2 Xi, float alpha, float3 N, float3 T, float3 B) {
+    float alpha2 = alpha * alpha;
     float phi = 2.0 * F_PI * Xi.x;
-    float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (alpha * alpha - 1.0) * Xi.y));
-    float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+
+    // roughnessが0に近い時，alpha2がfloatの精度で0になりalpha2-1が-1になってしまう
+    // その場合，cos2thetaが1を超えてsqrt(1-cos2theta)がNaNになってしまうので，
+    // cos2thetaを[0,1]に制限する
+    float cos2theta = saturate((1.0 - Xi.y) / (1.0 + (alpha2 - 1.0) * Xi.y));
+    float cosTheta = sqrt(cos2theta);
+    float sinTheta = sqrt(1.0 - cos2theta);
 
     float3 H;
     H.x = sinTheta * cos(phi);
