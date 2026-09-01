@@ -260,17 +260,23 @@ bool IBLBaker::EquirectToCubemap(EnvironmentMap& envMap) {
     m_pCommandList->Dispatch(groupCount, groupCount, 6);
 
     // リソースバリアの遷移
-    D3D12_RESOURCE_BARRIER after = {};
+    D3D12_RESOURCE_BARRIER after[2] = {};
     // src：NON_PS_SR -> PS_SR
-    // dst：直後にmipの生成に進むのでUAVのままにしておく
-    after.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    after.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-    after.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-    after.Transition.pResource   = envMap.GetEquirectResource();
-    after.Transition.StateBefore =
+    // dst：UAV -> PS_SR
+    after[0].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    after[0].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    after[0].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    after[0].Transition.pResource   = envMap.GetEquirectResource();
+    after[0].Transition.StateBefore =
         D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-    after.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-    m_pCommandList->ResourceBarrier(1, &after);
+    after[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    after[1].Type                  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    after[1].Flags                 = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    after[1].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    after[1].Transition.pResource   = envMap.GetCubemapResource();
+    after[1].Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    after[1].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    m_pCommandList->ResourceBarrier(2, after);
 
     // コマンドリストのクローズ
     m_pCommandList->Close();
@@ -292,6 +298,20 @@ bool IBLBaker::GenerateEnvCubemapMips(EnvironmentMap& envMap) {
     m_pCommandAllocator->Reset();
     // コマンドリストのリセット
     m_pCommandList->Reset(m_pCommandAllocator.Get(), nullptr);
+
+    // キューブマップのリソースバリア遷移
+    // PS_SR -> UAV
+    D3D12_RESOURCE_BARRIER cubemapBarrier = {};
+    cubemapBarrier.Type  = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    cubemapBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+    cubemapBarrier.Transition.Subresource =
+        D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    cubemapBarrier.Transition.pResource = envMap.GetCubemapResource();
+    cubemapBarrier.Transition.StateBefore =
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    cubemapBarrier.Transition.StateAfter =
+        D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    m_pCommandList->ResourceBarrier(1, &cubemapBarrier);
 
     // 生成ループ
     // リソースバリアの遷移
