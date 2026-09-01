@@ -151,6 +151,12 @@ PSOutput main(VSOutput input)
         litColor += E * NL * BRDF;
     }
 
+    // デバッグビューがIBLのときは，IBLの計算結果だけを返す
+    if(g_scene.debugView == DEBUG_VIEW_DIFFUSE_IBL || 
+        g_scene.debugView == DEBUG_VIEW_SPECULAR_IBL) {
+        litColor = float3(0.0f, 0.0f, 0.0f);
+    }
+
     // IBL
     litColor += EvaluateIBL(N, V, baseColor.rgb, metallic, roughness, ao, F0, f_ab);
 

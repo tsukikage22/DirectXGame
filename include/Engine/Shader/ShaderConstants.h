@@ -17,12 +17,23 @@ enum class DebugView : uint32_t {
     Metallic         = 4,  // metallic
     AO               = 5,  // Ambient Occlusion
     WhiteFurnaceTest = 6,
-    size             = 7
+    DiffuseIBL       = 7,  // Diffuse IBL
+    SpecularIBL      = 8,  // Specular IBL
+    size             = 9
 };
 
 // デバッグビューの名前
-constexpr const char* kDebugViewNames[] = { "Final Color", "Base Color",
-    "Normal", "Roughness", "Metallic", "AO", "White Furnace Test" };
+constexpr const char* kDebugViewNames[] = {
+    "Final Color",         //
+    "Base Color",          //
+    "Normal",              //
+    "Roughness",           //
+    "Metallic",            //
+    "AO",                  //
+    "White Furnace Test",  //
+    "Diffuse IBL + Ms",    // 多重散乱補填を含む
+    "Specular IBL (ss)",   // 単一散乱のみ
+};
 
 // DebugViewとNamesの整合性チェック
 static_assert(

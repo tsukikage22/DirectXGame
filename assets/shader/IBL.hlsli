@@ -75,6 +75,15 @@ float3 EvaluateIBL(float3 N, float3 V, float3 baseColor, float metallic,
     // 拡散反射と鏡面反射の計算
     float3 specularIBL = radiance * FssEss;              // 単散乱の鏡面
     float3 diffuseIBL  = (FmsEms + kD) * irradiance;     // 多重散乱補填 + 拡散
+
+    // デバッグビュー
+    if(g_scene.debugView == DEBUG_VIEW_DIFFUSE_IBL) {
+        return diffuseIBL * ao;
+    }
+    else if(g_scene.debugView == DEBUG_VIEW_SPECULAR_IBL) {
+        return specularIBL;
+    }
+
     return ao * diffuseIBL + specularIBL;
 }
 
