@@ -49,10 +49,10 @@ if (-not (Test-Path $shaderRoot)) {
 # ファイルを追加したらここに 1 行足す。
 # 1 ファイルに複数エントリポイントがある場合は複数行書く。
 $jobs = @(
-    @{ File = "TestVS.hlsl";               Stage = "vs"; Entry = "main" }
+    @{ File = "SceneVS.hlsl";               Stage = "vs"; Entry = "main" }
     @{ File = "UI_VS.hlsl";                Stage = "vs"; Entry = "main" }
     @{ File = "SkyboxVS.hlsl";             Stage = "vs"; Entry = "main" }
-    @{ File = "GGX_PS.hlsl";               Stage = "ps"; Entry = "main" }
+    @{ File = "ScenePS.hlsl";               Stage = "ps"; Entry = "main" }
     @{ File = "UI_PS.hlsl";                Stage = "ps"; Entry = "main" }
     @{ File = "SkyboxPS.hlsl";             Stage = "ps"; Entry = "main" }
     @{ File = "EquirectToCubemapCS.hlsl";     Stage = "cs"; Entry = "main" }

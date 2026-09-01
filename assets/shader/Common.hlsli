@@ -9,7 +9,7 @@
 //==============================================================
 // レジスタ割り当て（ルートシグネチャと対応）
 //   b0 SceneConstants      … Common.hlsli
-//   b1 TransformConstants  … TestVS.hlsl
+//   b1 TransformConstants  … SceneVS.hlsl
 //   b2 MaterialConstants   … Materials.hlsli
 //   b3 DisplayConstants    … Tonemap.hlsli
 //   t0-t4 / s0  PBRテクスチャ … Materials.hlsli

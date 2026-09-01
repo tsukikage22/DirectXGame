@@ -111,8 +111,8 @@ bool ScenePass::Init(GraphicsDevice& device) {
         // シェーダーの読み込み
         std::vector<std::byte> vsData;
         std::vector<std::byte> psData;
-        if (!LoadShader(L"shader/TestVS.cso", vsData) ||
-            !LoadShader(L"shader/GGX_PS.cso", psData)) {
+        if (!LoadShader(L"shader/SceneVS.cso", vsData) ||
+            !LoadShader(L"shader/ScenePS.cso", psData)) {
             OutputDebugStringW(L"Failed to load shaders.\n");
             return false;
         }

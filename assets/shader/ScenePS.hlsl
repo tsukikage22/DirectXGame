@@ -1,5 +1,5 @@
-/// @file GGX_PS.hlsl
-/// @brief GGXモデルを使用したPBRのピクセルシェーダ
+/// @file ScenePS.hlsl
+/// @brief Scene描画用のピクセルシェーダ
 
 //==============================================================
 // includes
