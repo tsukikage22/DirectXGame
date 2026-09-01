@@ -53,7 +53,7 @@ void Game::Init(Engine* pEngine) {
     m_planeModel = loader.LoadModel(path);
     AssetPath().GetAssetPath(L"model/NormalTangentTest.glb", path);
     m_normalTestModel = loader.LoadModel(path);
-    AssetPath().GetAssetPath(L"model/white_farness_sphere.glb", path);
+    AssetPath().GetAssetPath(L"model/white_furnace_sphere.glb", path);
     m_testSphereModel = loader.LoadModel(path);
 
     // ライトの作成
