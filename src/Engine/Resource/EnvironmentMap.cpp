@@ -272,6 +272,7 @@ void EnvironmentMap::Term() {
     m_defaultCubeMap.Term();
     m_irradianceMap.Term();
     m_prefilteredMap.Term();
+    m_BrdfLut.Term();
     m_equirectSrv    = {};
     m_cubemapUav     = {};
     m_cubemapSrv     = {};
@@ -280,6 +281,8 @@ void EnvironmentMap::Term() {
     m_irradianceSrv  = {};
     m_prefilteredUav = {};
     m_prefilteredSrv = {};
+    m_BrdfLutUav     = {};
+    m_BrdfLutSrv     = {};
     m_defaultSrv     = {};
     m_pPoolSrvUav    = nullptr;
     m_pDevice        = nullptr;
