@@ -34,61 +34,51 @@ float3 F_SchlickRoughness(float cosTheta, float3 F0, float roughness) {
     return F0 + (Fr - F0) * pow(saturate(1.0f - cosTheta), 5.0f);
 }
 
-/// @brief IBLによる拡散反射の計算
-/// @param N 法線ベクトル（ワールド座標系）
-/// @param baseColor ベースカラー
-/// @param Kd 拡散反射率
-/// @return IBLによる拡散反射の結果
-float3 EvaluateDiffuseIBL(float3 N, float3 baseColor, float3 Kd) {
-    // 環境マップのirradiance mapをサンプリング
-    // E/piをirradiance mapに入れたので，そのまま渡せば正規化Lambertのpiで割った値になる
-    float3 irradiance = (g_scene.debugView == DEBUG_VIEW_WHITE) 
-        ? 1.0f.xxx  // white furnace test用のデバッグビュー
-        : g_irradianceMap.Sample(g_IBLSampler, N).rgb;
-
-    irradiance *= g_scene.envIntensity; // 輝度スケール係数を掛ける
-
-    float3 diffuseIBL = Kd * irradiance *  baseColor; // IBLによる拡散反射の計算
-
-    return diffuseIBL;
-}
-
-float3 EvaluateSpecularIBL(float3 N, float3 V, float roughness, float3 F0) {
-    // 反射ベクトルの計算
-    float3 R = reflect(-V, N);
-
-    // environment mapのprefiltered mapをサンプリング
-    float lod = roughness * float(g_scene.prefilteredMipCount - 1); // roughnessに応じてmip levelを選択
-    float3 prefilteredColor = (g_scene.debugView == DEBUG_VIEW_WHITE) 
-        ? 1.0f.xxx // white furnace test用のデバッグビュー
-        : g_prefilteredMap.SampleLevel(g_IBLSampler, R, lod).rgb;
-
-    prefilteredColor *= g_scene.envIntensity; // 輝度スケール係数を掛ける
-    
-    // BRDF LUTのサンプリング
-    float2 brdfSample = g_brdfLUT.Sample(g_IBLSampler, float2(saturate(dot(N, V)), roughness)).rg;
-
-    // IBLによる鏡面反射の計算
-    float3 specularIBL = prefilteredColor * (F0 * brdfSample.x + brdfSample.y);
-
-    return specularIBL;
-}
-
 /// @brief IBLによる拡散反射と鏡面反射の計算
+/// 参考: Fdez-Agüera, "A Multiple-Scattering Microfacet Model for Real-Time Image-based Lighting", 2019
 float3 EvaluateIBL(float3 N, float3 V, float3 baseColor, float metallic, 
     float roughness, float ao) {
     // F0の計算
     float3 F0 = lerp(0.04f.xxx, baseColor, metallic);
-    float3 Ks = F_SchlickRoughness(saturate(dot(N, V)), F0, roughness);
-    float3 Kd = (1.0f - Ks) * (1.0f - metallic);
+    float NV = saturate(dot(N, V));
+    float3 kS = F_SchlickRoughness(NV, F0, roughness);
+    float3 albedo = baseColor.rgb * (1.0f - metallic);
 
-    // IBLによる拡散反射の計算
-    float3 diffuseIBL = EvaluateDiffuseIBL(N, baseColor.rgb, Kd);
+    // BRDF LUTのサンプリング
+    float2 f_ab = g_brdfLUT.Sample(g_IBLSampler, float2(NV, roughness)).rg;
 
-    // IBLによる鏡面反射の計算
-    float3 specularIBL = EvaluateSpecularIBL(N, V, roughness, F0);
+    float3 R = reflect(-V, N);      // 反射ベクトルの計算
+    float lod = roughness * float(g_scene.prefilteredMipCount - 1); // roughnessに応じてmip levelを選択
 
-    // 拡散反射と鏡面反射を合成して返す
+    // environment mapのprefiltered mapをサンプリング
+    float3 radiance = g_prefilteredMap.SampleLevel(g_IBLSampler, R, lod).rgb; 
+    // environment mapのirradiance mapをサンプリング
+    float3 irradiance = g_irradianceMap.Sample(g_IBLSampler, N).rgb; 
+
+    // white furnace test
+    if(g_scene.debugView == DEBUG_VIEW_WHITE) {
+        radiance = 1.0f.xxx;
+        irradiance = 1.0f.xxx;
+    }
+
+    // 係数の適用
+    radiance *= g_scene.envIntensity;  
+    irradiance *= g_scene.envIntensity;
+
+    float3 FssEss = f_ab.x * kS + f_ab.y; 
+
+    // 多重散乱
+    float Ess = f_ab.x + f_ab.y;    // F0 = 1 の方向アルベド
+    float Ems = 1.0f - Ess;         // 失われたエネルギー
+    float3 Favg = F0 + (1.0f - F0) * 0.047619f; // 1/21
+    float3 FmsEms = Ems * FssEss * Favg / (1.0f - Ems * Favg);
+
+    // 誘電体の拡散項
+    float3 kD = albedo * (1.0f - FssEss - FmsEms);
+
+    // 拡散反射と鏡面反射の計算
+    float3 specularIBL = radiance * FssEss;              // 単散乱の鏡面
+    float3 diffuseIBL  = (FmsEms + kD) * irradiance;     // 多重散乱補填 + 拡散
     return ao * diffuseIBL + specularIBL;
 }
 
