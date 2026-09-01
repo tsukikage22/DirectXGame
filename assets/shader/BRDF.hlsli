@@ -63,7 +63,7 @@ float G2_SmithCorrelated(float NL, float NV, float alpha) {
 /// @brief BRDFの計算を行う（正規化Lambert + GGX）
 /// @note 余弦項は含まない．反射方程式 Lo = f(L,V)*E*(NL)のf(L,V)だけを返す
 float3 EvaluateBRDF(float3 N, float3 V, float3 L, float3 baseColor,
-    float metallic, float roughness) {
+    float metallic, float roughness, float3 F0, float3 energyCompensation) {
     // ハーフベクトルの計算
     float3 H = normalize(L + V);
 
@@ -78,12 +78,11 @@ float3 EvaluateBRDF(float3 N, float3 V, float3 L, float3 baseColor,
     float3 diffuse = Kd * (1.0f / F_PI);
 
     // 鏡面反射の計算
-    float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), baseColor, metallic);
     float a = roughness * roughness;
     float D = D_GGX(NH, a);
     float G = G2_SmithCorrelated(NL, NV, a);
     float3 Fr = SchlickFresnel(F0, VH);
-    float3 specular = D * G * Fr;
+    float3 specular = D * G * Fr * energyCompensation; // energyCompensationを掛けることで多重散乱の補正を行う
 
     // 物体の色を反映した最終カラーの計算
     float3 BRDF = diffuse + specular;

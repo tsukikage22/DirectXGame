@@ -122,6 +122,15 @@ PSOutput main(VSOutput input)
     float3 V = normalize(g_scene.cameraPos - input.worldPos);
 
     //==============================================
+    // 多重散乱の補正
+    // Turquin, "Practical multiple scattering compensation for microfacet models", 2018
+    //==============================================
+    float2 f_ab = g_brdfLUT.Sample(g_IBLSampler, float2(saturate(dot(N, V)), roughness)).rg;
+    float Ess = f_ab.x + f_ab.y;    // F0 = 1 の方向アルベド
+    float3 F0 = lerp(0.04f.xxx, baseColor.rgb, metallic);
+    float3 energyCompensation = 1.0f + F0 * (1.0f / max(Ess, 1e-4f) - 1.0f); // 多重散乱の補正係数
+
+    //==============================================
     // ライティング計算
     //==============================================
     float3 litColor = float3(0.0f, 0.0f, 0.0f);
@@ -138,12 +147,12 @@ PSOutput main(VSOutput input)
         float NL = saturate(dot(N, L));
 
         // BRDFの計算
-        float3 BRDF = EvaluateBRDF(N, V, L, baseColor.rgb, metallic, roughness);
+        float3 BRDF = EvaluateBRDF(N, V, L, baseColor.rgb, metallic, roughness, F0, energyCompensation);
         litColor += E * NL * BRDF;
     }
 
-    // アンビエント項
-    litColor += EvaluateIBL(N, V, baseColor.rgb, metallic, roughness, ao);
+    // IBL
+    litColor += EvaluateIBL(N, V, baseColor.rgb, metallic, roughness, ao, F0, f_ab);
 
     // 露出の適用
     litColor *= g_scene.exposure;
