@@ -1,5 +1,5 @@
-/// @file GGX_PS.hlsl
-/// @brief GGXモデルを使用したPBRのピクセルシェーダ
+/// @file ScenePS.hlsl
+/// @brief Scene描画用のピクセルシェーダ
 
 //==============================================================
 // includes
@@ -14,12 +14,9 @@
 //==============================================================
 // Constants
 //==============================================================
-static const uint DEBUG_VIEW_FINAL_COLOR = 0;
-static const uint DEBUG_VIEW_BASE_COLOR = 1;
-static const uint DEBUG_VIEW_NORMAL = 2;
-static const uint DEBUG_VIEW_ROUGHNESS = 3;
-static const uint DEBUG_VIEW_METALLIC = 4;
-static const uint DEBUG_VIEW_AO = 5;
+// roughnessが0に近い時，GGX分布の計算で不安定になるので，roughnessの下限値を設定する
+// 値の参考元：Frostbite，Filament
+static const float MIN_ROUGHNESS = 0.045f; // roughnessの下限値
 
 //==============================================================
 // structures
@@ -77,6 +74,7 @@ float3 EvaluateDebugView(SurfaceParams surf, float3 finalColor) {
             return ToDebugParam(float3(surf.metallic, surf.metallic, surf.metallic));
         case DEBUG_VIEW_AO:
             return ToDebugParam(float3(surf.ao, surf.ao, surf.ao));
+        case DEBUG_VIEW_WHITE:
         default:
             return finalColor;
     }
@@ -104,6 +102,9 @@ PSOutput main(VSOutput input)
     float roughness = metallicRoughnessTex.g * g_material.roughnessFactor;
     float ao = aoTex * g_material.occlusionFactor;
 
+    // roughnessを0.045f以上に制限する（GGX分布の計算で0に近い値を使うと不安定になるため）
+    roughness = max(roughness, MIN_ROUGHNESS);
+
     //==============================================
     // 法線ベクトルのワールド変換
     //==============================================
@@ -119,6 +120,15 @@ PSOutput main(VSOutput input)
 
     // viewベクトルの計算
     float3 V = normalize(g_scene.cameraPos - input.worldPos);
+
+    //==============================================
+    // 多重散乱の補正
+    // Turquin, "Practical multiple scattering compensation for microfacet models", 2018
+    //==============================================
+    float2 f_ab = g_brdfLUT.Sample(g_IBLSampler, float2(saturate(dot(N, V)), roughness)).rg;
+    float Ess = f_ab.x + f_ab.y;    // F0 = 1 の方向アルベド
+    float3 F0 = lerp(0.04f.xxx, baseColor.rgb, metallic);
+    float3 energyCompensation = 1.0f + F0 * (1.0f / max(Ess, 1e-4f) - 1.0f); // 多重散乱の補正係数
 
     //==============================================
     // ライティング計算
@@ -137,15 +147,21 @@ PSOutput main(VSOutput input)
         float NL = saturate(dot(N, L));
 
         // BRDFの計算
-        float3 BRDF = EvaluateBRDF(N, V, L, baseColor.rgb, metallic, roughness);
+        float3 BRDF = EvaluateBRDF(N, V, L, baseColor.rgb, metallic, roughness, F0, energyCompensation);
         litColor += E * NL * BRDF;
     }
 
-    // アンビエント項
-    float3 diffuseIBL = EvaluateDiffuseIBL(N, baseColor.rgb, metallic); // IBLによる拡散反射の計算
-    float3 ambient = diffuseIBL * ao; 
-    litColor += ambient;
+    // デバッグビューがIBLかWhite Furnace Testのときは，IBLの計算結果だけを返す
+    if(g_scene.debugView == DEBUG_VIEW_DIFFUSE_IBL || 
+        g_scene.debugView == DEBUG_VIEW_SPECULAR_IBL ||
+        g_scene.debugView == DEBUG_VIEW_WHITE) {
+        litColor = float3(0.0f, 0.0f, 0.0f);
+    }
 
+    // IBL
+    litColor += EvaluateIBL(N, V, baseColor.rgb, metallic, roughness, ao, F0, f_ab);
+
+    // 露出の適用
     litColor *= g_scene.exposure;
 
     // トーンマップの適用

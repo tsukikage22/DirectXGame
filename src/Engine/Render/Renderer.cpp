@@ -223,6 +223,8 @@ void Renderer::UpdateConstants(Scene& scene, uint32_t debugView) {
     sc.exposure       = camera.ComputeExposure();
     sc.debugView      = debugView;
     sc.envIntensity   = scene.GetEnvIntensity();
+    sc.prefilteredMipCount =
+        EnvironmentMap::kPrefilteredMipLevels;  // prefilteredのmip数
 
     frameResource.GetSceneConstants().Update(sc);
 }
@@ -351,11 +353,13 @@ ScenePassBindings Renderer::MakeScenePassBindings(AssetSystem& assetSystem) {
     context.pCmdList          = m_pCmdList.Get();
     context.frameIndex        = frameIndex;
     context.pCbvSrvUavHeap    = m_pDevice->CbvSrvUavPool()->GetHeap();
-    context.sceneCB       = frameResource.GetSceneConstants().GetGPUAddress();
-    context.displayCB     = m_displayConstantsGPU.GetGPUAddress();
-    context.lightSRV      = frameResource.GetLightBuffer().GetGPUHandle();
-    context.iesSRV        = assetSystem.GetIesSrvGpuHandle();
-    context.irradianceSRV = assetSystem.GetEnvMapIrradianceSrvGpuHandle();
+    context.sceneCB        = frameResource.GetSceneConstants().GetGPUAddress();
+    context.displayCB      = m_displayConstantsGPU.GetGPUAddress();
+    context.lightSRV       = frameResource.GetLightBuffer().GetGPUHandle();
+    context.iesSRV         = assetSystem.GetIesSrvGpuHandle();
+    context.irradianceSRV  = assetSystem.GetEnvMapIrradianceSrvGpuHandle();
+    context.prefilteredSRV = assetSystem.GetEnvMapPrefilteredSrvGpuHandle();
+    context.brdfLutSRV     = assetSystem.GetEnvMapBrdfLutSrvGpuHandle();
 
     assert(context.IsValid() && "ScenePassBindings is not valid.");
 

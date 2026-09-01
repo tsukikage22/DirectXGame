@@ -16,28 +16,62 @@
 // Resource Bindings
 //=============================================================
 TextureCube<float4> g_irradianceMap : register(t0, space3); // 環境マップのirradiance map
-SamplerState g_irradianceSampler : register(s2); // 環境マップのirradiance map用サンプラー
+TextureCube<float4> g_prefilteredMap : register(t1, space3); // 環境マップのprefiltered map
+Texture2D<float2> g_brdfLUT : register(t2, space3); // 環境マップのBRDF LUT
+SamplerState g_IBLSampler : register(s2); // 環境マップのirradiance map用サンプラー
 
 
 //==============================================================
 // Functions
 //==============================================================
-/// @brief IBLによる拡散反射の計算
-/// @param N 法線ベクトル（ワールド座標系）
-/// @param baseColor ベースカラー
-/// @param metallic メタリック
-/// @return IBLによる拡散反射の結果
-float3 EvaluateDiffuseIBL(float3 N, float3 baseColor, float metallic) {
-    // 環境マップのirradiance mapをサンプリング
-    // E/piをirradiance mapに入れたので，そのまま渡せば正規化Lambertのpiで割った値になる
-    float3 irradiance = g_irradianceMap.Sample(g_irradianceSampler, N).rgb 
-            * g_scene.envIntensity; // 輝度スケール係数を掛ける
+/// @brief IBLによる拡散反射と鏡面反射の計算
+/// 参考: Fdez-Agüera, "A Multiple-Scattering Microfacet Model for Real-Time Image-based Lighting", 2019
+float3 EvaluateIBL(float3 N, float3 V, float3 baseColor, float metallic, 
+    float roughness, float ao, float3 F0, float2 f_ab) {
+    float NV = saturate(dot(N, V));
+    float3 albedo = baseColor.rgb * (1.0f - metallic);
+    float3 R = reflect(-V, N);      // 反射ベクトルの計算
+    float lod = roughness * float(g_scene.prefilteredMipCount - 1); // roughnessに応じてmip levelを選択
 
-    float3 Kd = baseColor.rgb * (1.0f - metallic); // 拡散反射率
-    float3 diffuseIBL = irradiance * Kd; // IBLによる拡散反射の計算
+    // environment mapのprefiltered mapをサンプリング
+    float3 radiance = g_prefilteredMap.SampleLevel(g_IBLSampler, R, lod).rgb; 
+    // environment mapのirradiance mapをサンプリング
+    float3 irradiance = g_irradianceMap.Sample(g_IBLSampler, N).rgb; 
 
-    return diffuseIBL;
+    // white furnace test
+    if(g_scene.debugView == DEBUG_VIEW_WHITE) {
+        radiance = 1.0f.xxx;
+        irradiance = 1.0f.xxx;
+    }
+
+    // 係数の適用
+    radiance *= g_scene.envIntensity;  
+    irradiance *= g_scene.envIntensity;
+
+    float3 FssEss = f_ab.x * F0 + f_ab.y; 
+
+    // 多重散乱
+    float Ess = f_ab.x + f_ab.y;    // F0 = 1 の方向アルベド
+    float Ems = 1.0f - Ess;         // 失われたエネルギー
+    float3 Favg = F0 + (1.0f - F0) * 0.047619f; // 1/21
+    float3 FmsEms = Ems * FssEss * Favg / (1.0f - Ems * Favg);
+
+    // 誘電体の拡散項
+    float3 kD = albedo * (1.0f - FssEss - FmsEms);
+
+    // 拡散反射と鏡面反射の計算
+    float3 specularIBL = radiance * FssEss;              // 単散乱の鏡面
+    float3 diffuseIBL  = (FmsEms + kD) * irradiance;     // 多重散乱補填 + 拡散
+
+    // デバッグビュー
+    if(g_scene.debugView == DEBUG_VIEW_DIFFUSE_IBL) {
+        return diffuseIBL * ao;
+    }
+    else if(g_scene.debugView == DEBUG_VIEW_SPECULAR_IBL) {
+        return specularIBL;
+    }
+
+    return ao * diffuseIBL + specularIBL;
 }
-
 
 #endif // IBL_HLSLI

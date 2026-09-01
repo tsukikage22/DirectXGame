@@ -442,12 +442,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\assets\shader\TestVS.hlsl">
-      <Filter>リソース ファイル</Filter>
-    </FxCompile>
-    <FxCompile Include="..\assets\shader\GGX_PS.hlsl">
-      <Filter>リソース ファイル</Filter>
-    </FxCompile>
     <FxCompile Include="..\assets\shader\UI_PS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
@@ -464,6 +458,21 @@
       <Filter>リソース ファイル</Filter>
     </FxCompile>
     <FxCompile Include="..\assets\shader\IrradianceCS.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
+    <FxCompile Include="..\assets\shader\DownSampleCubemapCS.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
+    <FxCompile Include="..\assets\shader\PrefilteredEnvMapCS.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
+    <FxCompile Include="..\assets\shader\IntegrateBRDFCS.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
+    <FxCompile Include="..\assets\shader\ScenePS.hlsl">
+      <Filter>リソース ファイル</Filter>
+    </FxCompile>
+    <FxCompile Include="..\assets\shader\SceneVS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
   </ItemGroup>

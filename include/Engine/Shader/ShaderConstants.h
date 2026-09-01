@@ -10,18 +10,30 @@ namespace shader {
 
 /// @brief デバッグビューの種類
 enum class DebugView : uint32_t {
-    FinalColor = 0,  // 最終結果
-    BaseColor  = 1,  // baseColor
-    Normal     = 2,  // 法線
-    Roughness  = 3,  // roughness
-    Metallic   = 4,  // metallic
-    AO         = 5,  // Ambient Occlusion
-    size       = 6
+    FinalColor       = 0,  // 最終結果
+    BaseColor        = 1,  // baseColor
+    Normal           = 2,  // 法線
+    Roughness        = 3,  // roughness
+    Metallic         = 4,  // metallic
+    AO               = 5,  // Ambient Occlusion
+    WhiteFurnaceTest = 6,
+    DiffuseIBL       = 7,  // Diffuse IBL
+    SpecularIBL      = 8,  // Specular IBL
+    size             = 9
 };
 
 // デバッグビューの名前
-constexpr const char* kDebugViewNames[] = { "Final Color", "Base Color",
-    "Normal", "Roughness", "Metallic", "AO" };
+constexpr const char* kDebugViewNames[] = {
+    "Final Color",         //
+    "Base Color",          //
+    "Normal",              //
+    "Roughness",           //
+    "Metallic",            //
+    "AO",                  //
+    "White Furnace Test",  //
+    "Diffuse IBL + Ms",    // 多重散乱補填を含む
+    "Specular IBL (ss)",   // 単一散乱のみ
+};
 
 // DebugViewとNamesの整合性チェック
 static_assert(
@@ -43,6 +55,8 @@ struct SceneConstants {
     uint32_t lightCount;               // ライトの数
     uint32_t debugView;                // 表示モード DebugViewの値を格納
     float envIntensity;                // 環境マップの輝度スケール係数
+    uint32_t prefilteredMipCount;      // prefilteredのmip数
+    float _padding[3];                 // 16バイトアラインメント用
 };
 static_assert(sizeof(SceneConstants) % 16 == 0, "Must be 16-byte aligned");
 

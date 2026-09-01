@@ -194,7 +194,7 @@ bool GLBImporter::ParseMaterial(
 
     // baseColor
     aiColor4D baseColor;
-    if (srcMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, baseColor) == AI_SUCCESS) {
+    if (srcMaterial->Get(AI_MATKEY_BASE_COLOR, baseColor) == AI_SUCCESS) {
         outMaterial.baseColorFactor = DirectX::XMFLOAT4(
             baseColor.r, baseColor.g, baseColor.b, baseColor.a);
     }

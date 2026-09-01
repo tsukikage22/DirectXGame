@@ -1,5 +1,5 @@
-/// @file TestVS.hlsl
-/// @brief 頂点シェーダ
+/// @file SceneVS.hlsl
+/// @brief Scene描画用の頂点シェーダ
 
 #include "Common.hlsli"
 

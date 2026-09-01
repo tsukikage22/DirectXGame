@@ -51,6 +51,12 @@ bool AssetSystem::Init(GraphicsDevice& graphicsDevice) {
         return false;
     }
 
+    // BRDF LUT構築
+    if (!m_iblBaker.BakeBrdfLut(m_environmentMap)) {
+        OutputDebugStringW(L"Failed to bake BRDF LUT.\n");
+        return false;
+    }
+
     // アップロード待機
     auto future = batch.End(graphicsDevice.GetCommandQueue().GetD3DQueue());
     future.wait();
@@ -103,9 +109,22 @@ bool AssetSystem::BuildEnvironmentMap(const std::filesystem::path& path) {
         return false;
     }
 
+    // 環境キューブマップのミップマップ生成
+    if (!m_iblBaker.GenerateEnvCubemapMips(m_environmentMap)) {
+        OutputDebugStringW(
+            L"Failed to generate mipmaps for EnvironmentMap cubemap.\n");
+        return false;
+    }
+
     // 照度マップ構築
     if (!m_iblBaker.BakeIrradianceMap(m_environmentMap)) {
         OutputDebugStringW(L"Failed to bake irradiance map.\n");
+        return false;
+    }
+
+    // prefiltered env map構築
+    if (!m_iblBaker.BakePrefilteredEnvMap(m_environmentMap)) {
+        OutputDebugStringW(L"Failed to bake prefiltered env map.\n");
         return false;
     }
 

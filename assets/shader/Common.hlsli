@@ -9,7 +9,7 @@
 //==============================================================
 // レジスタ割り当て（ルートシグネチャと対応）
 //   b0 SceneConstants      … Common.hlsli
-//   b1 TransformConstants  … TestVS.hlsl
+//   b1 TransformConstants  … SceneVS.hlsl
 //   b2 MaterialConstants   … Materials.hlsli
 //   b3 DisplayConstants    … Tonemap.hlsli
 //   t0-t4 / s0  PBRテクスチャ … Materials.hlsli
@@ -23,6 +23,17 @@
 //==============================================
 static const float F_PI = 3.14159265359f; // 円周率
 static const float MIN_DIST = 0.01f;      // 光源との最小距離（距離減衰計算用）
+
+// デバッグビュー
+static const uint DEBUG_VIEW_FINAL_COLOR = 0;
+static const uint DEBUG_VIEW_BASE_COLOR = 1;
+static const uint DEBUG_VIEW_NORMAL = 2;
+static const uint DEBUG_VIEW_ROUGHNESS = 3;
+static const uint DEBUG_VIEW_METALLIC = 4;
+static const uint DEBUG_VIEW_AO = 5;
+static const uint DEBUG_VIEW_WHITE = 6;
+static const uint DEBUG_VIEW_DIFFUSE_IBL = 7;
+static const uint DEBUG_VIEW_SPECULAR_IBL = 8;
 
 //==============================================================
 // Structures
@@ -56,6 +67,7 @@ struct SceneConstants
     uint lightCount;      // ライトの数
     uint debugView;       // 表示モード
     float envIntensity;   // 環境マップの輝度スケール係数
+    uint prefilteredMipCount; // prefilteredのmip数
 };
 
 //==============================================================

@@ -8,6 +8,13 @@
 
 #include "Common.hlsli"
 
+//==============================================================
+// Constants
+//==============================================================
+// 法線と視線の内積の下限値（0除算を防ぐため）
+// IBLBake.hlsliと同じ値にする
+static const float MIN_NV = 1e-3f;    
+
 //--------------------------------------------------------------
 // 5乗の計算
 //--------------------------------------------------------------
@@ -41,11 +48,13 @@ float D_GGX(float NH, float alpha) {
 float G2_SmithCorrelated(float NL, float NV, float alpha) {
     float a2 = alpha * alpha;
 
+    NV = max(NV, MIN_NV); // 0除算を防ぐためNVに下限を設定する
+
     // 可視性関数 V = G / (4 * NL * NV) の形で直接計算する方が効率的
     float GGXV = NL * sqrt(NV * NV * (1.0f - a2) + a2);
     float GGXL = NV * sqrt(NL * NL * (1.0f - a2) + a2);
 
-    return 0.5f / (GGXV + GGXL + 1e-4f);
+    return 0.5f / (GGXV + GGXL);
 }
 
 //--------------------------------------------------------------
@@ -54,7 +63,7 @@ float G2_SmithCorrelated(float NL, float NV, float alpha) {
 /// @brief BRDFの計算を行う（正規化Lambert + GGX）
 /// @note 余弦項は含まない．反射方程式 Lo = f(L,V)*E*(NL)のf(L,V)だけを返す
 float3 EvaluateBRDF(float3 N, float3 V, float3 L, float3 baseColor,
-    float metallic, float roughness) {
+    float metallic, float roughness, float3 F0, float3 energyCompensation) {
     // ハーフベクトルの計算
     float3 H = normalize(L + V);
 
@@ -69,12 +78,11 @@ float3 EvaluateBRDF(float3 N, float3 V, float3 L, float3 baseColor,
     float3 diffuse = Kd * (1.0f / F_PI);
 
     // 鏡面反射の計算
-    float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), baseColor, metallic);
     float a = roughness * roughness;
     float D = D_GGX(NH, a);
     float G = G2_SmithCorrelated(NL, NV, a);
     float3 Fr = SchlickFresnel(F0, VH);
-    float3 specular = D * G * Fr;
+    float3 specular = D * G * Fr * energyCompensation; // energyCompensationを掛けることで多重散乱の補正を行う
 
     // 物体の色を反映した最終カラーの計算
     float3 BRDF = diffuse + specular;
