@@ -24,25 +24,12 @@ SamplerState g_IBLSampler : register(s2); // 環境マップのirradiance map用
 //==============================================================
 // Functions
 //==============================================================
-/// @brief roughnessを考慮したSchlickのフレネル近似式
-/// @param cosTheta 法線と視線の角度の余弦値
-/// @param F0 反射率
-/// @param roughness 粗さ
-/// @return フレネル項の計算結果
-float3 F_SchlickRoughness(float cosTheta, float3 F0, float roughness) {
-    float3 Fr = max((1.0f - roughness).xxx, F0);
-    return F0 + (Fr - F0) * pow(saturate(1.0f - cosTheta), 5.0f);
-}
-
 /// @brief IBLによる拡散反射と鏡面反射の計算
 /// 参考: Fdez-Agüera, "A Multiple-Scattering Microfacet Model for Real-Time Image-based Lighting", 2019
 float3 EvaluateIBL(float3 N, float3 V, float3 baseColor, float metallic, 
     float roughness, float ao, float3 F0, float2 f_ab) {
-    // F0の計算
     float NV = saturate(dot(N, V));
-    float3 kS = F_SchlickRoughness(NV, F0, roughness);
     float3 albedo = baseColor.rgb * (1.0f - metallic);
-
     float3 R = reflect(-V, N);      // 反射ベクトルの計算
     float lod = roughness * float(g_scene.prefilteredMipCount - 1); // roughnessに応じてmip levelを選択
 
@@ -61,7 +48,7 @@ float3 EvaluateIBL(float3 N, float3 V, float3 baseColor, float metallic,
     radiance *= g_scene.envIntensity;  
     irradiance *= g_scene.envIntensity;
 
-    float3 FssEss = f_ab.x * kS + f_ab.y; 
+    float3 FssEss = f_ab.x * F0 + f_ab.y; 
 
     // 多重散乱
     float Ess = f_ab.x + f_ab.y;    // F0 = 1 の方向アルベド
