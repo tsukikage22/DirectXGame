@@ -222,7 +222,7 @@ bool EnvironmentMap::Init(
     }
 
     // BRDF LUT用リソース，UAV，SRVの作成
-    if (!m_BrdfLut.InitAsTexture2D(m_pDevice->GetDevice(), kBrdfLutSize,
+    if (!m_brdfLut.InitAsTexture2D(m_pDevice->GetDevice(), kBrdfLutSize,
             kBrdfLutSize, kBrdfLutFormat, 1,
             D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS,
             D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)) {
@@ -230,15 +230,15 @@ bool EnvironmentMap::Init(
         return false;
     }
     // UAVの作成
-    m_BrdfLutUav                             = m_pPoolSrvUav->Allocate();
+    m_brdfLutUav                             = m_pPoolSrvUav->Allocate();
     D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
     uavDesc.ViewDimension                    = D3D12_UAV_DIMENSION_TEXTURE2D;
     uavDesc.Texture2D.MipSlice               = 0;
     uavDesc.Format                           = kBrdfLutFormat;
-    m_pDevice->GetDevice()->CreateUnorderedAccessView(m_BrdfLut.GetResource(),
-        nullptr, &uavDesc, m_BrdfLutUav.GetCPUHandle());
+    m_pDevice->GetDevice()->CreateUnorderedAccessView(m_brdfLut.GetResource(),
+        nullptr, &uavDesc, m_brdfLutUav.GetCPUHandle());
     // SRVの作成
-    m_BrdfLutSrv                            = m_pPoolSrvUav->Allocate();
+    m_brdfLutSrv                            = m_pPoolSrvUav->Allocate();
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.ViewDimension                   = D3D12_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MostDetailedMip       = 0;
@@ -246,7 +246,7 @@ bool EnvironmentMap::Init(
     srvDesc.Format                          = kBrdfLutFormat;
     srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
     m_pDevice->GetDevice()->CreateShaderResourceView(
-        m_BrdfLut.GetResource(), &srvDesc, m_BrdfLutSrv.GetCPUHandle());
+        m_brdfLut.GetResource(), &srvDesc, m_brdfLutSrv.GetCPUHandle());
 
     // デフォルトキューブマップの作成
     if (!BuildDefaultCubemap(
@@ -272,7 +272,7 @@ void EnvironmentMap::Term() {
     m_defaultCubeMap.Term();
     m_irradianceMap.Term();
     m_prefilteredMap.Term();
-    m_BrdfLut.Term();
+    m_brdfLut.Term();
     m_equirectSrv    = {};
     m_cubemapUav     = {};
     m_cubemapSrv     = {};
@@ -281,8 +281,8 @@ void EnvironmentMap::Term() {
     m_irradianceSrv  = {};
     m_prefilteredUav = {};
     m_prefilteredSrv = {};
-    m_BrdfLutUav     = {};
-    m_BrdfLutSrv     = {};
+    m_brdfLutUav     = {};
+    m_brdfLutSrv     = {};
     m_defaultSrv     = {};
     m_pPoolSrvUav    = nullptr;
     m_pDevice        = nullptr;
@@ -453,16 +453,16 @@ D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetPrefilteredUavGpuHandle(
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetBrdfLutUavGpuHandle() const {
-    if (m_BrdfLutUav.IsValid() && m_pPoolSrvUav) {
-        return m_BrdfLutUav.GetGPUHandle();
+    if (m_brdfLutUav.IsValid() && m_pPoolSrvUav) {
+        return m_brdfLutUav.GetGPUHandle();
     }
 
     return {};
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE EnvironmentMap::GetBrdfLutSrvGpuHandle() const {
-    if (m_BrdfLutSrv.IsValid() && m_pPoolSrvUav) {
-        return m_BrdfLutSrv.GetGPUHandle();
+    if (m_brdfLutSrv.IsValid() && m_pPoolSrvUav) {
+        return m_brdfLutSrv.GetGPUHandle();
     }
 
     return {};

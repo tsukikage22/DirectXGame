@@ -87,7 +87,7 @@ public:
 
     /// @brief  BRDF LUTリソースの取得
     ID3D12Resource* GetBrdfLutResource() const {
-        return m_BrdfLut.GetResource();
+        return m_brdfLut.GetResource();
     }
 
     //======================================================================
@@ -121,15 +121,15 @@ private:
     DescriptorAllocation m_irradianceSrv;     // 照度マップSRV
     DescriptorAllocation m_prefilteredUav;    // prefiltered map UAV
     DescriptorAllocation m_prefilteredSrv;    // prefiltered map SRV
-    DescriptorAllocation m_BrdfLutSrv;        // BRDF LUT SRV
-    DescriptorAllocation m_BrdfLutUav;        // BRDF LUT UAV
+    DescriptorAllocation m_brdfLutSrv;        // BRDF LUT SRV
+    DescriptorAllocation m_brdfLutUav;        // BRDF LUT UAV
     DescriptorAllocation m_defaultSrv;        // デフォルトキューブマップSRV
 
     TextureResource m_equirectMap;     // 環境マップのリソース
     TextureResource m_cubeMap;         // 環境キューブマップのリソース
     TextureResource m_irradianceMap;   // 照度マップのリソース
     TextureResource m_prefilteredMap;  // prefiltered mapのリソース
-    TextureResource m_BrdfLut;         // BRDF LUTのリソース
+    TextureResource m_brdfLut;         // BRDF LUTのリソース
     TextureResource
         m_defaultCubeMap;  // デフォルトキューブマップテクスチャのリソース
 
