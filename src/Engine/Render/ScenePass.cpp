@@ -87,15 +87,25 @@ bool ScenePass::Init(GraphicsDevice& device) {
             .AddDescriptorTable(irradianceRange, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(prefilteredRange, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(brdfLutRange, D3D12_SHADER_VISIBILITY_PIXEL)
-            .AddStaticSampler(0)
-            .AddStaticSampler(1, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // 垂直角は端で止める
-                D3D12_TEXTURE_ADDRESS_MODE_WRAP,   // 水平角は0-360°でループする
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP)
-            .AddStaticSampler(2, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
+            .AddStaticSampler({
+                .shaderRegister = 0,
+            })
+            .AddStaticSampler({
+                .shaderRegister = 1,
+                .filter         = D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+                // 垂直角は端で止める
+                .addressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                // 水平角は0-360°でループする
+                .addressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+                .addressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            })
+            .AddStaticSampler({
+                .shaderRegister = 2,
+                .filter         = D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+                .addressU       = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                .addressV       = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                .addressW       = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            });
 
         if (!builder.Build(m_pDevice->GetDevice())) {
             OutputDebugStringW(L"Failed to build root signature.\n");

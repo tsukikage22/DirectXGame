@@ -9,6 +9,30 @@
 
 #include "Engine/Core/ComPtr.h"
 
+//==============================================
+// Desc Structure
+//==============================================
+/// @brief 静的サンプラーの設定
+struct StaticSamplerDesc {
+    UINT shaderRegister                  = 0;
+    UINT registerSpace                   = 0;
+    D3D12_FILTER filter                  = D3D12_FILTER_ANISOTROPIC;
+    D3D12_TEXTURE_ADDRESS_MODE addressU  = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    D3D12_TEXTURE_ADDRESS_MODE addressV  = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    D3D12_TEXTURE_ADDRESS_MODE addressW  = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    D3D12_COMPARISON_FUNC comparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+    D3D12_STATIC_BORDER_COLOR borderColor =
+        D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
+    D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL;
+    float mipLODBias                   = 0.0f;
+    UINT maxAnisotropy                 = 16;
+    float minLOD                       = 0.0f;
+    float maxLOD                       = D3D12_FLOAT32_MAX;
+};
+
+//==============================================
+// RootSignatureBuilder class
+//==============================================
 class RootSignatureBuilder {
 public:
     RootSignatureBuilder()  = default;
@@ -76,26 +100,9 @@ public:
         D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
 
     /// @brief スタティックサンプラーのルートパラメータ定義
-    /// @param shaderRegister
-    /// @param filter
-    /// @param addressU
-    /// @param addressV
-    /// @param addressW
-    /// @param comparisonFunc
-    /// @param borderColor
-    /// @param registerSpace
-    /// @param visibility
+    /// @param desc
     /// @return
-    RootSignatureBuilder& AddStaticSampler(UINT shaderRegister,
-        D3D12_FILTER filter                  = D3D12_FILTER_ANISOTROPIC,
-        D3D12_TEXTURE_ADDRESS_MODE addressU  = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        D3D12_TEXTURE_ADDRESS_MODE addressV  = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        D3D12_TEXTURE_ADDRESS_MODE addressW  = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        D3D12_COMPARISON_FUNC comparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS,
-        D3D12_STATIC_BORDER_COLOR borderColor =
-            D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK,
-        UINT registerSpace                 = 0,
-        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
+    RootSignatureBuilder& AddStaticSampler(const StaticSamplerDesc& desc);
 
     /// @brief ルートシグネチャのフラグ設定
     /// @param flags

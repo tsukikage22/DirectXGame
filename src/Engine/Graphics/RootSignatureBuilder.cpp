@@ -105,25 +105,21 @@ RootSignatureBuilder& RootSignatureBuilder::AddDescriptorTable(
 
 // スタティックサンプラのルートパラメータ定義
 RootSignatureBuilder& RootSignatureBuilder::AddStaticSampler(
-    UINT shaderRegister, D3D12_FILTER filter,
-    D3D12_TEXTURE_ADDRESS_MODE addressU, D3D12_TEXTURE_ADDRESS_MODE addressV,
-    D3D12_TEXTURE_ADDRESS_MODE addressW, D3D12_COMPARISON_FUNC comparisonFunc,
-    D3D12_STATIC_BORDER_COLOR borderColor, UINT registerSpace,
-    D3D12_SHADER_VISIBILITY visibility) {
+    const StaticSamplerDesc& desc) {
     D3D12_STATIC_SAMPLER_DESC sampler = {};
-    sampler.Filter                    = filter;
-    sampler.AddressU                  = addressU;
-    sampler.AddressV                  = addressV;
-    sampler.AddressW                  = addressW;
-    sampler.MipLODBias                = 0.0f;
-    sampler.MaxAnisotropy             = 16;
-    sampler.ComparisonFunc            = comparisonFunc;
-    sampler.BorderColor               = borderColor;
-    sampler.MinLOD                    = 0.0f;
-    sampler.MaxLOD                    = D3D12_FLOAT32_MAX;
-    sampler.ShaderRegister            = shaderRegister;
-    sampler.RegisterSpace             = registerSpace;
-    sampler.ShaderVisibility          = visibility;
+    sampler.Filter                    = desc.filter;
+    sampler.AddressU                  = desc.addressU;
+    sampler.AddressV                  = desc.addressV;
+    sampler.AddressW                  = desc.addressW;
+    sampler.ComparisonFunc            = desc.comparisonFunc;
+    sampler.BorderColor               = desc.borderColor;
+    sampler.ShaderRegister            = desc.shaderRegister;
+    sampler.RegisterSpace             = desc.registerSpace;
+    sampler.ShaderVisibility          = desc.visibility;
+    sampler.MipLODBias                = desc.mipLODBias;
+    sampler.MaxAnisotropy             = desc.maxAnisotropy;
+    sampler.MinLOD                    = desc.minLOD;
+    sampler.MaxLOD                    = desc.maxLOD;
 
     m_samplers.push_back(sampler);
     return *this;

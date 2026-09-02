@@ -48,10 +48,12 @@ bool IBLBaker::Init(GraphicsDevice* pDevice) {
         // [s0] Sampler WRAPはequirectのベイクでのみ有効（irradianceでは無効）
         // [u0] UAV 出力テクスチャ（cubemap / irradiance）
         rsBuilder.SetFlags(D3D12_ROOT_SIGNATURE_FLAG_NONE)
-            .AddStaticSampler(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-                D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP)
+            .AddStaticSampler({
+                .filter   = D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+                .addressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+                .addressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                .addressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            })
             .AddDescriptorTable(srvRange, D3D12_SHADER_VISIBILITY_ALL)
             .AddDescriptorTable(uavRange, D3D12_SHADER_VISIBILITY_ALL);
         if (!rsBuilder.Build(m_pDevice->GetDevice())) {
@@ -132,10 +134,13 @@ bool IBLBaker::Init(GraphicsDevice* pDevice) {
         rsBuilder.AddDescriptorTable(srvRange, D3D12_SHADER_VISIBILITY_ALL)
             .AddDescriptorTable(uavRange, D3D12_SHADER_VISIBILITY_ALL)
             .AddConstants(1, 0, 0, D3D12_SHADER_VISIBILITY_ALL)
-            .AddStaticSampler(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-                D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
+            .AddStaticSampler({
+                .filter   = D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+                .addressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+                .addressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                .addressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            });
+
         if (!rsBuilder.Build(m_pDevice->GetDevice())) {
             return false;
         }

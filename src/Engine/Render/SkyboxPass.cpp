@@ -31,9 +31,12 @@ bool SkyboxPass::Init(GraphicsDevice& device) {
         .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL,
             D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
         .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL)
-        .AddStaticSampler(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-            D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
-            D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
+        .AddStaticSampler({
+            .filter   = D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+            .addressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            .addressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            .addressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+        });
 
     if (!rsBuilder.Build(m_pDevice->GetDevice())) {
         OutputDebugStringW(L"Failed to build root signature.\n");
