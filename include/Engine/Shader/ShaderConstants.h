@@ -40,6 +40,9 @@ static_assert(
     std::size(kDebugViewNames) == static_cast<size_t>(DebugView::size),
     "Mismatch between debug view names and enum size");
 
+/// @brief 影を落とすライトが存在しないことを表す番兵値
+inline constexpr uint32_t kInvalidLightIndex = UINT32_MAX;
+
 //================================
 // フレーム毎に更新する定数
 //================================
@@ -49,6 +52,8 @@ struct SceneConstants {
     DirectX::XMFLOAT4X4 view;         // ビュー行列
     DirectX::XMFLOAT4X4 projection;   // 射影行列
     DirectX::XMFLOAT4X4 invViewProj;  // NDCからワールド座標に変換するための行列
+    DirectX::XMFLOAT4X4
+        lightViewProj;  // ライトのビュー射影行列（シャドウマッピング用）
     DirectX::XMFLOAT3 cameraPosition;  // カメラ位置
     float time;                        // ゲーム時間
     float exposure;                    // 露出調整値
@@ -56,7 +61,8 @@ struct SceneConstants {
     uint32_t debugView;                // 表示モード DebugViewの値を格納
     float envIntensity;                // 環境マップの輝度スケール係数
     uint32_t prefilteredMipCount;      // prefilteredのmip数
-    float _padding[3];                 // 16バイトアラインメント用
+    uint32_t shadowLightIndex;  // シャドウマップを生成するライトのインデックス
+    float _padding[2];          // 16バイトアラインメント用
 };
 static_assert(sizeof(SceneConstants) % 16 == 0, "Must be 16-byte aligned");
 

@@ -13,6 +13,12 @@
 #include "Engine/Shader/ShaderConstants.h"
 
 namespace /* anonymous */ {
+
+// シャドウマップの描画半径，大きくしすぎると影が粗くなる
+constexpr float kShadowRadius = 10.0f;
+// シャドウマップの注視点，原点に固定する
+constexpr DirectX::XMFLOAT3 kShadowCenter = { 0.0f, 0.0f, 0.0f };
+
 /// @brief リソースバリアの作成
 D3D12_RESOURCE_BARRIER MakeTransitionBarrier(ID3D12Resource* pResource,
     D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after) {
@@ -35,6 +41,45 @@ shader::DisplayConstants MakeDisplayConstants(const DisplayInfo& info) {
                                                    : config::kSDRPaperWhiteNits;
     dc.maxFullFrameLuminance = info.maxFullFrameLuminance;
     return dc;
+}
+
+/// @brief ライトのビュー射影行列を作成する
+/// @param forward ライトのforwardベクトル
+/// @param up ライトのupベクトル
+/// @param center 注視点のワールド座標
+/// @param radius 注視点を中心とした影の描画半径
+DirectX::XMMATRIX MakeLightViewProjMatrix(const DirectX::XMFLOAT3& forward,
+    const DirectX::XMFLOAT3& up, const DirectX::XMFLOAT3& center,
+    float radius) {
+    using namespace DirectX;
+
+    // ライトのforwardとup
+    XMVECTOR dirVec = XMLoadFloat3(&forward);
+    XMVECTOR upVec  = XMLoadFloat3(&up);
+
+    // forwardとupが平行な場合は，upをY軸方向に置き換える
+    if (XMVector3Equal(XMVector3Cross(dirVec, upVec), XMVectorZero())) {
+        upVec = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    }
+
+    // directional lightには位置がないため，
+    // 注視点（center）からライトの方向にradiusだけ離れた位置をeyeとする
+    XMVECTOR centerVec = XMLoadFloat3(&center);
+    XMVECTOR eyeVec =
+        XMVectorSubtract(centerVec, XMVectorScale(dirVec, radius));
+
+    // ライトのビュー行列を作成
+    XMMATRIX view = XMMatrixLookToLH(eyeVec, dirVec, upVec);
+
+    // directional lightの場合はライトが平行なので，
+    // 視錐台（四角錐）をNDC空間の立方体に収めるのではなく
+    // 直方体を対応させる（正射影）
+    // 直方体の幅と高さ，奥行きはradiusを2倍にすると，
+    // 注視点を中心とした半径radiusの球が直方体に収まる
+    XMMATRIX proj = XMMatrixOrthographicLH(
+        radius * 2.0f, radius * 2.0f, 0.0f, radius * 2.0f);
+
+    return XMMatrixMultiply(view, proj);
 }
 
 }  // namespace
@@ -197,10 +242,23 @@ void Renderer::UpdateConstants(Scene& scene, uint32_t debugView) {
     // シーン内ライトの更新
     std::array<shader::LightConstants, config::kMaxLights> lights = {};
     uint32_t count = 0;  // 実際にコピーされたライトの数
+    // シャドウマップ用のライトのパラメータ
+    uint32_t shadowLightIndex            = shader::kInvalidLightIndex;
+    DirectX::XMFLOAT3 shadowLightForward = { 0.0f, 0.0f, -1.0f };
+    DirectX::XMFLOAT3 shadowLightUp      = { 0.0f, 1.0f, 0.0f };
     scene.ForEachLight([&](Light& light) {
-        if (!light.IsEnabled() || count >= config::kMaxLights) {
-            return;
+        // ライトが無効化されている場合はスキップ
+        if (!light.IsEnabled() || count >= config::kMaxLights) return;
+
+        // 最初に見つかったdirectional lightをシャドウマップ用のライトとして使う
+        if (light.GetType() == LightType::Directional &&
+            shadowLightIndex == shader::kInvalidLightIndex) {
+            shadowLightIndex   = count;
+            shadowLightForward = light.GetTransform().GetForward();
+            shadowLightUp      = light.GetTransform().GetUp();
         }
+
+        // ライトの情報をシェーダー用の構造体に変換して配列に格納
         lights[count++] = light.ToShaderConstants();
     });
     uint32_t uploadedCount =  // バッファにコピーされたライトの数
@@ -226,6 +284,15 @@ void Renderer::UpdateConstants(Scene& scene, uint32_t debugView) {
     DirectX::XMStoreFloat4x4(
         &sc.invViewProj, DirectX::XMMatrixTranspose(invViewProj));
 
+    // ライトのビュー射影行列を作成する
+    if (shadowLightIndex != shader::kInvalidLightIndex) {
+        DirectX::XMMATRIX lightViewProj = MakeLightViewProjMatrix(
+            shadowLightForward, shadowLightUp, kShadowCenter, kShadowRadius);
+        // 転置して格納
+        DirectX::XMStoreFloat4x4(
+            &sc.lightViewProj, DirectX::XMMatrixTranspose(lightViewProj));
+    }
+
     // カメラ位置・時間・ライト数・露出・デバッグビューの設定
     sc.cameraPosition = camera.GetTransform().GetPosition();
     sc.time           = static_cast<float>(GetTickCount64()) / 1000.0f;
@@ -235,6 +302,7 @@ void Renderer::UpdateConstants(Scene& scene, uint32_t debugView) {
     sc.envIntensity   = scene.GetEnvIntensity();
     sc.prefilteredMipCount =
         EnvironmentMap::kPrefilteredMipLevels;  // prefilteredのmip数
+    sc.shadowLightIndex = shadowLightIndex;     // シャドウマップ用のライト
 
     frameResource.GetSceneConstants().Update(sc);
 }

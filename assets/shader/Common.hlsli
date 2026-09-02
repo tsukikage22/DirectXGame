@@ -35,6 +35,9 @@ static const uint DEBUG_VIEW_WHITE = 6;
 static const uint DEBUG_VIEW_DIFFUSE_IBL = 7;
 static const uint DEBUG_VIEW_SPECULAR_IBL = 8;
 
+// シャドウマップを生成するライトの無効値
+static const uint INVALID_LIGHT_INDEX = 0xffffffff;
+
 //==============================================================
 // Structures
 //==============================================================
@@ -61,6 +64,7 @@ struct SceneConstants
     float4x4 view;        // ビュー行列
     float4x4 proj;        // プロジェクション行列
     float4x4 invViewProj; // NDCからワールド座標に変換するための行列
+    float4x4 lightViewProj; // ライトのビュー射影行列（シャドウマップ用）
     float3 cameraPos;     // カメラ位置（ワールド座標系）
     float time;           // 経過時間（秒）
     float exposure;       // 露出
@@ -68,6 +72,7 @@ struct SceneConstants
     uint debugView;       // 表示モード
     float envIntensity;   // 環境マップの輝度スケール係数
     uint prefilteredMipCount; // prefilteredのmip数
+    uint shadowLightIndex; // シャドウマップを生成するライトのインデックス
 };
 
 //==============================================================
