@@ -15,19 +15,9 @@ struct VSInput{
     float4 color    : COLOR;        // 頂点カラー
 };
 
-/// @brief ワールド変換行列構造体
-struct TransformConstants {
-    float4x4 world;
-    float4x4 worldInv;
-};
-
-
 //===========================================
-// constants buffer
+// Entry Point
 //===========================================
-// [b1] ワールド変換行列
-ConstantBuffer<TransformConstants> g_transform: register(b1);
-
 VSOutput main(VSInput input) {
     VSOutput output;
 

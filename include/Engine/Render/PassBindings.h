@@ -52,3 +52,11 @@ struct SkyboxPassBindings {
                sceneCB != 0 && displayCB != 0 && skyboxSRV.ptr != 0;
     }
 };
+
+struct ShadowPassBindings {
+    ID3D12GraphicsCommandList* pCmdList;  // コマンドリスト
+    uint32_t frameIndex;                  // フレーム番号
+    D3D12_GPU_VIRTUAL_ADDRESS sceneCB;    // b0 sceneCBのGPUアドレス
+
+    bool IsValid() const { return pCmdList != nullptr && sceneCB != 0; }
+};

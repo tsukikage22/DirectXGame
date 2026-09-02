@@ -75,10 +75,19 @@ struct SceneConstants
     uint shadowLightIndex; // シャドウマップを生成するライトのインデックス
 };
 
+/// @brief ワールド変換行列構造体
+struct TransformConstants {
+    float4x4 world;
+    float4x4 worldInv;
+};
+
 //==============================================================
 // Resource Bindings
 //==============================================================
 // [b0] シーン定数（View, Projection行列）
 ConstantBuffer<SceneConstants> g_scene: register(b0);
+
+// [b1] ワールド変換行列
+ConstantBuffer<TransformConstants> g_transform: register(b1);
 
 #endif // COMMON_HLSLI
