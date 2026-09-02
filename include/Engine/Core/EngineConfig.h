@@ -12,8 +12,12 @@ inline constexpr DXGI_FORMAT kBackBufferFormat =
     DXGI_FORMAT_R16G16B16A16_FLOAT;  // バックバッファのフォーマット
 inline constexpr DXGI_FORMAT kDepthBufferFormat =
     DXGI_FORMAT_D32_FLOAT;  // 深度バッファのフォーマット
+inline constexpr DXGI_FORMAT kShadowMapFormat =
+    DXGI_FORMAT_D32_FLOAT;  // シャドウマップの深度フォーマット
 inline constexpr DXGI_FORMAT kUIBufferFormat =
     DXGI_FORMAT_R8G8B8A8_UNORM;  // UI用バッファのフォーマット
+
+inline constexpr uint32_t kShadowMapSize = 2048;  // シャドウマップの解像度
 
 inline constexpr uint32_t kFrameCount = 2;      // フレームリソースの数
 inline constexpr uint32_t kMaxObjects = 10000;  // 最大オブジェクト数

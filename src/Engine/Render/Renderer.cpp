@@ -53,8 +53,15 @@ bool Renderer::Init(
     // 深度バッファの生成
     // 将来的にシーン描画パスのターゲットがバックバッファと一致しなくなった場合は，
     // ここで幅と高さをシーン描画パスのRTの幅と高さに合わせる必要がある
-    if (!m_depthTarget.Init(device.GetDevice(), device.DsvPool(), width, height,
-            config::kDepthBufferFormat)) {
+    if (!m_depthTarget.Init(device.GetDevice(), device.DsvPool(), nullptr,
+            width, height, config::kDepthBufferFormat)) {
+        return false;
+    }
+
+    // シャドウマップの生成
+    if (!m_shadowMap.Init(device.GetDevice(), device.DsvPool(),
+            device.CbvSrvUavPool(), config::kShadowMapSize,
+            config::kShadowMapSize, config::kShadowMapFormat)) {
         return false;
     }
 
@@ -104,6 +111,9 @@ void Renderer::Term() {
     // 深度バッファの終了処理
     m_depthTarget.Term();
 
+    // シャドウマップの終了処理
+    m_shadowMap.Term();
+
     // スワップチェインの終了処理
     m_swapChain.Term();
 
@@ -144,7 +154,7 @@ void Renderer::BeginScenePass() {
 
     // レンダーターゲットの設定
     D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = backBuffer.GetRTVCPUHandle();
-    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_depthTarget.GetCPUHandle();
+    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_depthTarget.GetDSVCPUHandle();
     SetRenderTargets(m_pCmdList.Get(), kSceneLayout, &rtvHandle, &dsvHandle);
 
     // レンダーターゲットのクリア
@@ -329,8 +339,8 @@ bool Renderer::ResizeBuffers(uint32_t width, uint32_t height) {
 
     // 深度バッファのリサイズ（再生成）
     m_depthTarget.Term();
-    if (!m_depthTarget.Init(m_pDevice->GetDevice(), m_pDevice->DsvPool(), width,
-            height, config::kDepthBufferFormat)) {
+    if (!m_depthTarget.Init(m_pDevice->GetDevice(), m_pDevice->DsvPool(),
+            nullptr, width, height, config::kDepthBufferFormat)) {
         return false;
     }
 

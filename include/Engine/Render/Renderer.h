@@ -109,6 +109,7 @@ private:
     GraphicsDevice* m_pDevice = nullptr;  // グラフィックスデバイス
     SwapChain m_swapChain;                // スワップチェイン
     DepthTarget m_depthTarget;            // 深度バッファ
+    DepthTarget m_shadowMap;              // シャドウマップ
     ColorTarget m_uiTarget;               // UI用レンダーターゲット
 
     FrameResource m_frameResources[config::kFrameCount];  // フレームリソース
