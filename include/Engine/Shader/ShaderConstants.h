@@ -19,7 +19,8 @@ enum class DebugView : uint32_t {
     WhiteFurnaceTest = 6,
     DiffuseIBL       = 7,  // Diffuse IBL
     SpecularIBL      = 8,  // Specular IBL
-    size             = 9
+    Shadow           = 9,  // シャドウマップの係数
+    size             = 10,
 };
 
 // デバッグビューの名前
@@ -33,6 +34,7 @@ constexpr const char* kDebugViewNames[] = {
     "White Furnace Test",  //
     "Diffuse IBL + Ms",    // 多重散乱補填を含む
     "Specular IBL (ss)",   // 単一散乱のみ
+    "Shadow",              // シャドウマップの係数
 };
 
 // DebugViewとNamesの整合性チェック

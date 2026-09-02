@@ -36,6 +36,7 @@ static const uint DEBUG_VIEW_AO = 5;
 static const uint DEBUG_VIEW_WHITE = 6;
 static const uint DEBUG_VIEW_DIFFUSE_IBL = 7;
 static const uint DEBUG_VIEW_SPECULAR_IBL = 8;
+static const uint DEBUG_VIEW_SHADOW = 9;
 
 // シャドウマップを生成するライトの無効値
 static const uint INVALID_LIGHT_INDEX = 0xffffffff;

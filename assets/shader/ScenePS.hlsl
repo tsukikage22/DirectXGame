@@ -33,6 +33,7 @@ struct SurfaceParams {
     float3 N;
     float3 V;
     float2 uv;
+    float shadowFactor;
 };
 
 //==============================================================
@@ -76,6 +77,10 @@ float3 EvaluateDebugView(SurfaceParams surf, float3 finalColor) {
         case DEBUG_VIEW_AO:
             return ToDebugParam(float3(surf.ao, surf.ao, surf.ao));
         case DEBUG_VIEW_WHITE:
+        case DEBUG_VIEW_DIFFUSE_IBL:
+        case DEBUG_VIEW_SPECULAR_IBL:
+        case DEBUG_VIEW_SHADOW:
+            return ToScRGB(surf.shadowFactor.xxx);
         default:
             return finalColor;
     }
@@ -135,6 +140,9 @@ PSOutput main(VSOutput input)
     // ライティング計算
     //==============================================
     float3 litColor = float3(0.0f, 0.0f, 0.0f);
+
+    // デバッグ表示用にシャドウマップの係数を保持する
+    float shadowFactor = 1.0f;
     
     // 光源の数だけループしてfinalColorに加算
     for(uint i=0; i<g_scene.lightCount; i++) {
@@ -153,8 +161,8 @@ PSOutput main(VSOutput input)
         // ライトがシャドウマップを生成するライトの場合は，影の計算を行う
         if(g_scene.shadowLightIndex == i) {
             // シャドウマップの計算
-            float shadow = ComputeShadow(input.worldPos);
-            litColor += BRDF * E * NL * shadow;
+            shadowFactor = ComputeShadow(input.worldPos);
+            litColor += BRDF * E * NL * shadowFactor;
         } else {
             litColor += BRDF * E * NL;
         }
@@ -187,6 +195,7 @@ PSOutput main(VSOutput input)
     surf.ao = ao;
     surf.N = N;
     surf.V = V;
+    surf.shadowFactor = shadowFactor;
     float3 finalColor = EvaluateDebugView(surf, toneMapped);
 
     output.color = float4(finalColor, baseColor.a);

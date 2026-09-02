@@ -182,6 +182,10 @@ void Game::Tick(float deltaTime) {
                 .GetObject(m_planeObject)
                 ->GetTransform()
                 .SetPosition({ 0.0f, -1.0f, 0.0f });
+            m_pEngine->GetScene()
+                .GetObject(m_planeObject)
+                ->GetTransform()
+                .SetScale({ 10.0f, 10.0f, 10.0f });
         } else {
             m_pEngine->GetScene().DespawnObject(m_planeObject);
             m_planeObject = {};
