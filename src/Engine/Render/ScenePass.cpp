@@ -95,8 +95,7 @@ bool ScenePass::Init(GraphicsDevice& device) {
             .AddStaticSampler(2, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
                 D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
                 D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP, 0,
-                D3D12_SHADER_VISIBILITY_PIXEL);
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
 
         if (!builder.Build(m_pDevice->GetDevice())) {
             OutputDebugStringW(L"Failed to build root signature.\n");

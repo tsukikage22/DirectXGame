@@ -81,16 +81,21 @@ public:
     /// @param addressU
     /// @param addressV
     /// @param addressW
+    /// @param comparisonFunc
+    /// @param borderColor
     /// @param registerSpace
     /// @param visibility
     /// @return
     RootSignatureBuilder& AddStaticSampler(UINT shaderRegister,
-        D3D12_FILTER filter                 = D3D12_FILTER_ANISOTROPIC,
-        D3D12_TEXTURE_ADDRESS_MODE addressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        D3D12_TEXTURE_ADDRESS_MODE addressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        D3D12_TEXTURE_ADDRESS_MODE addressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        UINT registerSpace                  = 0,
-        D3D12_SHADER_VISIBILITY visibility  = D3D12_SHADER_VISIBILITY_ALL);
+        D3D12_FILTER filter                  = D3D12_FILTER_ANISOTROPIC,
+        D3D12_TEXTURE_ADDRESS_MODE addressU  = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+        D3D12_TEXTURE_ADDRESS_MODE addressV  = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+        D3D12_TEXTURE_ADDRESS_MODE addressW  = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+        D3D12_COMPARISON_FUNC comparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS,
+        D3D12_STATIC_BORDER_COLOR borderColor =
+            D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK,
+        UINT registerSpace                 = 0,
+        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
 
     /// @brief ルートシグネチャのフラグ設定
     /// @param flags

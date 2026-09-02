@@ -107,7 +107,8 @@ RootSignatureBuilder& RootSignatureBuilder::AddDescriptorTable(
 RootSignatureBuilder& RootSignatureBuilder::AddStaticSampler(
     UINT shaderRegister, D3D12_FILTER filter,
     D3D12_TEXTURE_ADDRESS_MODE addressU, D3D12_TEXTURE_ADDRESS_MODE addressV,
-    D3D12_TEXTURE_ADDRESS_MODE addressW, UINT registerSpace,
+    D3D12_TEXTURE_ADDRESS_MODE addressW, D3D12_COMPARISON_FUNC comparisonFunc,
+    D3D12_STATIC_BORDER_COLOR borderColor, UINT registerSpace,
     D3D12_SHADER_VISIBILITY visibility) {
     D3D12_STATIC_SAMPLER_DESC sampler = {};
     sampler.Filter                    = filter;
@@ -116,8 +117,8 @@ RootSignatureBuilder& RootSignatureBuilder::AddStaticSampler(
     sampler.AddressW                  = addressW;
     sampler.MipLODBias                = 0.0f;
     sampler.MaxAnisotropy             = 16;
-    sampler.ComparisonFunc            = D3D12_COMPARISON_FUNC_ALWAYS;
-    sampler.BorderColor               = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
+    sampler.ComparisonFunc            = comparisonFunc;
+    sampler.BorderColor               = borderColor;
     sampler.MinLOD                    = 0.0f;
     sampler.MaxLOD                    = D3D12_FLOAT32_MAX;
     sampler.ShaderRegister            = shaderRegister;
