@@ -25,6 +25,13 @@ inline constexpr RenderTargetLayout kSceneLayout = {
     1                               // サンプル数
 };
 
+// シャドウマップ描画用：深度専用
+inline constexpr RenderTargetLayout kShadowLayout = {
+    {},  // RTフォーマットはなし
+    0,   // RTの数はなし
+    1    // サンプル数
+};
+
 // ImGui用オフスクリーンパス：ガンマ空間
 inline constexpr RenderTargetLayout kImGuiLayout = {
     { config::kUIBufferFormat },  // RTフォーマット

@@ -69,6 +69,18 @@ public:
     GraphicsPipelineBuilder& SetRenderTargetLayout(
         const RenderTargetLayout& layout);
 
+    /// @brief カリングモードを設定する
+    /// @param cullMode カリングモード
+    /// @return
+    GraphicsPipelineBuilder& SetCullMode(D3D12_CULL_MODE cullMode);
+
+    /// @brief 深度バイアスを設定する
+    /// @param depthBias 固定バイアス値
+    /// @param depthBiasClamp 深度バイアスの最大値
+    /// @param slopeScaledDepthBias ポリゴンの傾きに応じた深度バイアス値
+    GraphicsPipelineBuilder& SetDepthBias(
+        int depthBias, float depthBiasClamp, float slopeScaledDepthBias);
+
     bool Build(ID3D12Device* pDevice);
 
     /// @brief パイプラインステートの取得

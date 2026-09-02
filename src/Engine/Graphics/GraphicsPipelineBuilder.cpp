@@ -149,13 +149,33 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetRenderTargetLayout(
     return *this;
 }
 
+// カリングモードを設定する
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetCullMode(
+    D3D12_CULL_MODE cullMode) {
+    m_PSOdesc.RasterizerState.CullMode = cullMode;
+    return *this;
+}
+
+// 深度バイアスを設定する
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDepthBias(
+    int depthBias, float depthBiasClamp, float slopeScaledDepthBias) {
+    m_PSOdesc.RasterizerState.DepthBias            = depthBias;
+    m_PSOdesc.RasterizerState.DepthBiasClamp       = depthBiasClamp;
+    m_PSOdesc.RasterizerState.SlopeScaledDepthBias = slopeScaledDepthBias;
+    return *this;
+}
+
 // パイプラインステートの生成
 bool GraphicsPipelineBuilder::Build(ID3D12Device* pDevice) {
-    // 頂点シェーダーとピクセルシェーダーが設定されているか
+    // 頂点シェーダーが設定されているか
+    // 深度専用パスではピクセルシェーダーを使わないため，ピクセルシェーダーの設定は必須ではない
     assert(m_PSOdesc.VS.pShaderBytecode != nullptr &&
-           m_PSOdesc.PS.pShaderBytecode != nullptr &&
-           "Vertex shader and pixel shader must be set before building the "
-           "pipeline state.");
+           "Vertex shader must be set before building the pipeline state.");
+
+    // レンダーターゲットが設定されている場合はピクセルシェーダーが設定されている必要がある
+    assert(m_PSOdesc.PS.pShaderBytecode != nullptr ||
+           m_PSOdesc.NumRenderTargets == 0 &&
+               "Pixel shader must be set when render targets are used.");
 
     // ルートシグニチャが設定されているか
     assert(m_PSOdesc.pRootSignature != nullptr &&
