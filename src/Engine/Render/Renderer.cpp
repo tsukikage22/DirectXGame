@@ -58,8 +58,9 @@ DirectX::XMMATRIX MakeLightViewProjMatrix(const DirectX::XMFLOAT3& forward,
     XMVECTOR upVec  = XMLoadFloat3(&up);
 
     // forwardとupが平行な場合は，upをY軸方向に置き換える
-    if (XMVector3Equal(XMVector3Cross(dirVec, upVec), XMVectorZero())) {
-        upVec = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    if (XMVectorGetX(XMVector3LengthSq(XMVector3Cross(dirVec, upVec))) <
+        1e-6f) {
+        upVec = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
     }
 
     // directional lightには位置がないため，
@@ -470,6 +471,7 @@ ScenePassBindings Renderer::MakeScenePassBindings(AssetSystem& assetSystem) {
     context.irradianceSRV  = assetSystem.GetEnvMapIrradianceSrvGpuHandle();
     context.prefilteredSRV = assetSystem.GetEnvMapPrefilteredSrvGpuHandle();
     context.brdfLutSRV     = assetSystem.GetEnvMapBrdfLutSrvGpuHandle();
+    context.shadowMapSRV   = m_shadowMap.GetSRVGPUHandle();
 
     assert(context.IsValid() && "ScenePassBindings is not valid.");
 
