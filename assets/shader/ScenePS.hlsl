@@ -10,6 +10,7 @@
 #include "Lighting.hlsli"
 #include "Materials.hlsli"
 #include "IBL.hlsli"
+#include "Shadow.hlsli"
 
 //==============================================================
 // Constants
@@ -148,7 +149,15 @@ PSOutput main(VSOutput input)
 
         // BRDFの計算
         float3 BRDF = EvaluateBRDF(N, V, L, baseColor.rgb, metallic, roughness, F0, energyCompensation);
-        litColor += E * NL * BRDF;
+
+        // ライトがシャドウマップを生成するライトの場合は，影の計算を行う
+        if(g_scene.shadowLightIndex == i) {
+            // シャドウマップの計算
+            float shadow = ComputeShadow(input.worldPos);
+            litColor += BRDF * E * NL * shadow;
+        } else {
+            litColor += BRDF * E * NL;
+        }
     }
 
     // デバッグビューがIBLかWhite Furnace Testのときは，IBLの計算結果だけを返す

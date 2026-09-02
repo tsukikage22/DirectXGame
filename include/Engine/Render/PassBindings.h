@@ -18,13 +18,15 @@ struct ScenePassBindings {
     D3D12_GPU_DESCRIPTOR_HANDLE irradianceSRV;   // t0, space3 irradiance SRV
     D3D12_GPU_DESCRIPTOR_HANDLE prefilteredSRV;  // t1, space3 prefiltered SRV
     D3D12_GPU_DESCRIPTOR_HANDLE brdfLutSRV;      // t2, space3 BRDF LUT SRV
+    D3D12_GPU_DESCRIPTOR_HANDLE shadowMapSRV;    // t0, space4 Shadow Map SRV
 
     /// @brief 初期化漏れを検出するためのチェック
     bool IsValid() const {
         return pCmdList != nullptr && pCbvSrvUavHeap != nullptr &&
                sceneCB != 0 && displayCB != 0 && iesSRV.ptr != 0 &&
                lightSRV.ptr != 0 && irradianceSRV.ptr != 0 &&
-               prefilteredSRV.ptr != 0 && brdfLutSRV.ptr != 0;
+               prefilteredSRV.ptr != 0 && brdfLutSRV.ptr != 0 &&
+               shadowMapSRV.ptr != 0;
     }
 };
 

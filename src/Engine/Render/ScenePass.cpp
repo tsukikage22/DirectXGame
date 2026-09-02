@@ -57,6 +57,12 @@ bool ScenePass::Init(GraphicsDevice& device) {
             RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
                 1, 2, 3, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
 
+        // [t0, space4] Shadow Map (Descriptor Table SRV)
+        std::vector<D3D12_DESCRIPTOR_RANGE1> shadowMapRange;
+        shadowMapRange.push_back(
+            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                1, 0, 4, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE));
+
         // ルートシグニチャ構成
         // [b0] SceneConstants (Root CBV)
         // [b1] TransformConstants (Root CBV)
@@ -69,9 +75,11 @@ bool ScenePass::Init(GraphicsDevice& device) {
         // [t0, space3] irradiance map (Descriptor Table SRV)
         // [t1, space3] prefiltered map (Descriptor Table SRV)
         // [t2, space3] BRDF LUT (Descriptor Table SRV)
+        // [t0, space4] Shadow Map (Descriptor Table SRV)
         // [s0] Default Sampler (Static Sampler)
         // [s1] IES Profile Sampler (Static Sampler)
         // [s2] irradiance/LUT Sampler (Static Sampler)
+        // [s3] Shadow Map Sampler (Static Sampler)
         builder
             .SetFlags(
                 D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)
@@ -87,6 +95,7 @@ bool ScenePass::Init(GraphicsDevice& device) {
             .AddDescriptorTable(irradianceRange, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(prefilteredRange, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(brdfLutRange, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddDescriptorTable(shadowMapRange, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddStaticSampler({
                 .shaderRegister = 0,
             })
@@ -105,6 +114,15 @@ bool ScenePass::Init(GraphicsDevice& device) {
                 .addressU       = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
                 .addressV       = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
                 .addressW       = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            })
+            .AddStaticSampler({
+                .shaderRegister = 3,
+                .filter   = D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
+                .addressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+                .addressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+                .addressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+                .comparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL,
+                .borderColor    = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE,
             });
 
         if (!builder.Build(m_pDevice->GetDevice())) {
@@ -191,6 +209,10 @@ void ScenePass::Draw(const ScenePassBindings& passBindings, Scene& scene) {
     // [t2, space3] BRDF LUT (共通)
     pCmdList->SetGraphicsRootDescriptorTable(
         RootParam::SRV_BrdfLut, passBindings.brdfLutSRV);
+
+    // [t0, space4] Shadow Map (共通)
+    pCmdList->SetGraphicsRootDescriptorTable(
+        RootParam::SRV_ShadowMap, passBindings.shadowMapSRV);
 
     // PrimitiveTopologyの指定
     pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
