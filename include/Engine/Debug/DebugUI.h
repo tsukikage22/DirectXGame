@@ -34,7 +34,10 @@ public:
     /// @brief デバッグUIのフレーム開始時の処理
     /// @param input InputSystemの参照
     /// @param camera Cameraの参照
-    void BeginFrame(InputSystem& input, Camera& camera, Scene& scene);
+    /// @param scene Sceneの参照
+    /// @param shadowMapSRV シャドウマップのSRVのGPUハンドル
+    void BeginFrame(InputSystem& input, Camera& camera, Scene& scene,
+        D3D12_GPU_DESCRIPTOR_HANDLE shadowMapSRV);
 
     /// @brief デバッグUIのレンダリング
     /// @param uiTarget UI用レンダーターゲット
@@ -73,6 +76,10 @@ private:
 
     /// @brief デバッグビューUIの描画
     void DrawDebugViewPanel();
+
+    /// @brief シャドウマップ確認UIの描画
+    /// @param shadowMapSRV シャドウマップのSRVのGPUハンドル
+    void DrawShadowMapPanel(D3D12_GPU_DESCRIPTOR_HANDLE shadowMapSRV);
 
     //=========================================
     // private variables

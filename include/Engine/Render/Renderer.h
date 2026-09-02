@@ -112,6 +112,11 @@ public:
     /// @brief コマンドリスト
     ID3D12GraphicsCommandList* GetCommandList() { return m_pCmdList.Get(); }
 
+    /// @brief シャドウマップのSRVのGPUハンドル
+    D3D12_GPU_DESCRIPTOR_HANDLE GetShadowMapSRVGPUHandle() const {
+        return m_shadowMap.GetSRVGPUHandle();
+    }
+
 private:
     engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList;  // コマンドリスト
 

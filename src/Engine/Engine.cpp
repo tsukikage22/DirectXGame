@@ -67,7 +67,8 @@ void Engine::BeginFrame() {
 
     m_Renderer.BeginFrame();
 
-    m_DebugUI.BeginFrame(m_InputSystem, m_Scene.GetCamera(), m_Scene);
+    m_DebugUI.BeginFrame(m_InputSystem, m_Scene.GetCamera(), m_Scene,
+        m_Renderer.GetShadowMapSRVGPUHandle());
 }
 
 // 定数バッファの更新

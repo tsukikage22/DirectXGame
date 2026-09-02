@@ -205,7 +205,8 @@ void DebugUI::Term() {
 }
 
 // デバッグUIのフレーム開始時の処理
-void DebugUI::BeginFrame(InputSystem& input, Camera& camera, Scene& scene) {
+void DebugUI::BeginFrame(InputSystem& input, Camera& camera, Scene& scene,
+    D3D12_GPU_DESCRIPTOR_HANDLE shadowMapSRV) {
     // ImGui描画開始
     ImGui_ImplDX12_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -227,6 +228,9 @@ void DebugUI::BeginFrame(InputSystem& input, Camera& camera, Scene& scene) {
 
     // デバッグビューUI
     DrawDebugViewPanel();
+
+    // シャドウマップ確認UI
+    DrawShadowMapPanel(shadowMapSRV);
 
     // 描画データの確定
     ImGui::Render();
@@ -381,6 +385,16 @@ void DebugUI::DrawDebugViewPanel() {
         for (int i = 0; i < IM_ARRAYSIZE(shader::kDebugViewNames); ++i) {
             ImGui::RadioButton(shader::kDebugViewNames[i], &m_debugView, i);
         }
+    }
+    ImGui::End();
+}
+
+void DebugUI::DrawShadowMapPanel(D3D12_GPU_DESCRIPTOR_HANDLE shadowMapSRV) {
+    if (ImGui::Begin(
+            "Shadow Map", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        // シャドウマップの表示
+        ImVec2 imageSize(256, 256);
+        ImGui::Image(static_cast<ImTextureID>(shadowMapSRV.ptr), imageSize);
     }
     ImGui::End();
 }
