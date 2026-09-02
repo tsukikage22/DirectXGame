@@ -23,6 +23,7 @@
 #include "Engine/Render/CompositePass.h"
 #include "Engine/Render/Renderer.h"
 #include "Engine/Render/ScenePass.h"
+#include "Engine/Render/ShadowPass.h"
 #include "Engine/Render/SkyboxPass.h"
 #include "Engine/Resource/AssetSystem.h"
 #include "Engine/Scene/Scene.h"
@@ -109,6 +110,7 @@ private:
     GraphicsDevice m_Device;        // D3D12デバイスの管理クラス
     Renderer m_Renderer;            // レンダラーの管理クラス
     ScenePass m_ScenePass;          // シーン描画パスの管理クラス
+    ShadowPass m_ShadowPass;        // シャドウマップ描画パスの管理クラス
     CompositePass m_CompositePass;  // UI合成パスの管理クラス
     SkyboxPass m_SkyboxPass;        // スカイボックス描画パスの管理クラス
 

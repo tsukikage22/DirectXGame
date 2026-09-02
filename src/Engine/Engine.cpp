@@ -77,6 +77,11 @@ void Engine::Update() {
 
 // 描画コマンドの記録
 void Engine::Render() {
+    // シャドウマップの描画
+    m_Renderer.BeginShadowPass();
+    m_ShadowPass.Draw(m_Renderer.MakeShadowPassBindings(), m_Scene);
+    m_Renderer.EndShadowPass();
+
     // シーンの描画
     m_Renderer.BeginScenePass();
     m_ScenePass.Draw(m_Renderer.MakeScenePassBindings(m_AssetSystem), m_Scene);
@@ -145,6 +150,12 @@ bool Engine::InitApp() {
         return false;
     }
 
+    // シャドウマップ描画パスの初期化
+    if (!m_ShadowPass.Init(m_Device)) {
+        OutputDebugStringW(L"Failed to initialize ShadowPass.\n");
+        return false;
+    }
+
     // シーン描画パスの初期化
     if (!m_ScenePass.Init(m_Device)) {
         OutputDebugStringW(L"Failed to initialize ScenePass.\n");
@@ -185,6 +196,7 @@ void Engine::TermApp() {
     // 描画パスの終了処理
     m_ScenePass.Term();
     m_SkyboxPass.Term();
+    m_ShadowPass.Term();
     m_CompositePass.Term();
 }
 

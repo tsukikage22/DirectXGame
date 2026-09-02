@@ -45,6 +45,12 @@ public:
     /// フレームレイテンシ待機，フェンス同期，コマンドリストのリセット，リソースバリア遷移
     void BeginFrame();
 
+    /// @brief シャドウマップ描画パスの開始
+    void BeginShadowPass();
+
+    /// @brief シャドウマップ描画パスの終了，リソースバリアの遷移を行う
+    void EndShadowPass();
+
     /// @brief シーン描画パスの開始
     void BeginScenePass();
 
@@ -90,6 +96,9 @@ public:
 
     /// @brief スカイボックス描画パスに渡す情報をまとめた構造体を作成する
     SkyboxPassBindings MakeSkyboxPassBindings(AssetSystem& assetSystem);
+
+    /// @brief シャドウマップ描画パスに渡す情報をまとめた構造体を作成する
+    ShadowPassBindings MakeShadowPassBindings();
 
     //==========================================================
     // アクセサ

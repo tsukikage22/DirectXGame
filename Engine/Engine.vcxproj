@@ -115,6 +115,7 @@
     <ClInclude Include="..\include\Engine\Render\PassBindings.h" />
     <ClInclude Include="..\include\Engine\Render\Renderer.h" />
     <ClInclude Include="..\include\Engine\Render\ScenePass.h" />
+    <ClInclude Include="..\include\Engine\Render\ShadowPass.h" />
     <ClInclude Include="..\include\Engine\Render\SkyboxPass.h" />
     <ClInclude Include="..\include\Engine\Render\SwapChain.h" />
     <ClInclude Include="..\include\Engine\Resource\AssetSystem.h" />
@@ -179,6 +180,7 @@
     <ClCompile Include="..\src\Engine\Render\IBLBaker.cpp" />
     <ClCompile Include="..\src\Engine\Render\Renderer.cpp" />
     <ClCompile Include="..\src\Engine\Render\ScenePass.cpp" />
+    <ClCompile Include="..\src\Engine\Render\ShadowPass.cpp" />
     <ClCompile Include="..\src\Engine\Render\SkyboxPass.cpp" />
     <ClCompile Include="..\src\Engine\Render\SwapChain.cpp" />
     <ClCompile Include="..\src\Engine\Resource\AssetPath.cpp" />
@@ -266,6 +268,12 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
       <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatWarningAsError>
       <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</TreatWarningAsError>
+    </FxCompile>
+    <FxCompile Include="..\assets\shader\ShadowMapVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="..\assets\shader\SkyboxPS.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>

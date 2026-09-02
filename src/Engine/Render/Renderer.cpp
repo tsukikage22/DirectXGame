@@ -193,6 +193,31 @@ void Renderer::BeginFrame() {
     m_pCmdList->ResourceBarrier(1, &barrier);
 }
 
+void Renderer::BeginShadowPass() {
+    // シャドウマップのレンダーターゲットの設定
+    D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_shadowMap.GetDSVCPUHandle();
+    SetRenderTargets(m_pCmdList.Get(), kShadowLayout, nullptr, &dsvHandle);
+
+    // シャドウマップのクリア
+    m_pCmdList->ClearDepthStencilView(
+        dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
+    // ビューポート・シザー矩形の設定
+    auto viewport    = m_shadowMap.MakeViewport();
+    auto scissorRect = m_shadowMap.MakeScissorRect();
+    m_pCmdList->RSSetViewports(1, &viewport);
+    m_pCmdList->RSSetScissorRects(1, &scissorRect);
+}
+
+void Renderer::EndShadowPass() {
+    // リソースバリアの遷移
+    // DepthWrite -> PixelShaderResource
+    D3D12_RESOURCE_BARRIER barrier = MakeTransitionBarrier(
+        m_shadowMap.GetResource(), D3D12_RESOURCE_STATE_DEPTH_WRITE,
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    m_pCmdList->ResourceBarrier(1, &barrier);
+}
+
 void Renderer::BeginScenePass() {
     // バックバッファの取得
     ColorTarget& backBuffer = m_swapChain.GetBackBuffer();
@@ -285,13 +310,14 @@ void Renderer::UpdateConstants(Scene& scene, uint32_t debugView) {
         &sc.invViewProj, DirectX::XMMatrixTranspose(invViewProj));
 
     // ライトのビュー射影行列を作成する
+    DirectX::XMMATRIX lightViewProj = DirectX::XMMatrixIdentity();
     if (shadowLightIndex != shader::kInvalidLightIndex) {
-        DirectX::XMMATRIX lightViewProj = MakeLightViewProjMatrix(
+        lightViewProj = MakeLightViewProjMatrix(
             shadowLightForward, shadowLightUp, kShadowCenter, kShadowRadius);
-        // 転置して格納
-        DirectX::XMStoreFloat4x4(
-            &sc.lightViewProj, DirectX::XMMatrixTranspose(lightViewProj));
     }
+    // 転置して格納
+    DirectX::XMStoreFloat4x4(
+        &sc.lightViewProj, DirectX::XMMatrixTranspose(lightViewProj));
 
     // カメラ位置・時間・ライト数・露出・デバッグビューの設定
     sc.cameraPosition = camera.GetTransform().GetPosition();
@@ -308,11 +334,17 @@ void Renderer::UpdateConstants(Scene& scene, uint32_t debugView) {
 }
 
 void Renderer::EndFrame() {
-    // 1. リソースバリアの設定（RT -> Present）
-    D3D12_RESOURCE_BARRIER barrier =
+    // 1. リソースバリアの設定
+    D3D12_RESOURCE_BARRIER barrier[2] = {};
+    // バックバッファのリソースバリア（RenderTarget -> Present）
+    barrier[0] =
         MakeTransitionBarrier(m_swapChain.GetBackBuffer().GetResource(),
             D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-    m_pCmdList->ResourceBarrier(1, &barrier);
+    // シャドウマップのリソースバリア（PixelShaderResource -> DepthWrite）
+    barrier[1] = MakeTransitionBarrier(m_shadowMap.GetResource(),
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+        D3D12_RESOURCE_STATE_DEPTH_WRITE);
+    m_pCmdList->ResourceBarrier(2, barrier);
 
     // 2. コマンドリストのクローズ
     m_pCmdList->Close();
@@ -468,6 +500,20 @@ SkyboxPassBindings Renderer::MakeSkyboxPassBindings(AssetSystem& assetSystem) {
     context.skyboxSRV = assetSystem.GetEnvMapCubemapSrvGpuHandle();
 
     assert(context.IsValid() && "SkyboxPassBindings is not valid.");
+
+    return context;
+}
+
+ShadowPassBindings Renderer::MakeShadowPassBindings() {
+    uint32_t frameIndex          = GetFrameIndex();
+    FrameResource& frameResource = m_frameResources[frameIndex];
+
+    ShadowPassBindings context = {};
+    context.frameIndex         = frameIndex;
+    context.pCmdList           = m_pCmdList.Get();
+    context.sceneCB = frameResource.GetSceneConstants().GetGPUAddress();
+
+    assert(context.IsValid() && "ShadowPassBindings is not valid.");
 
     return context;
 }

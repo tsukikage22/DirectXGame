@@ -32,9 +32,17 @@ public:
     /// @brief リソースの解放
     void Term();
 
+    /// @brief このターゲット全体を覆うビューポートを作成する
+    D3D12_VIEWPORT MakeViewport() const;
+
+    /// @brief このターゲット全体を覆うシザー矩形を作成する
+    D3D12_RECT MakeScissorRect() const;
+
     //=======================================
     // アクセサ
     //=======================================
+    ID3D12Resource* GetResource() const { return m_Target.GetResource(); }
+
     D3D12_CPU_DESCRIPTOR_HANDLE GetDSVCPUHandle() const;
 
     D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCPUHandle() const;
