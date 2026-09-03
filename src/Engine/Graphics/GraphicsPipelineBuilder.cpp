@@ -185,9 +185,9 @@ bool GraphicsPipelineBuilder::Build(ID3D12Device* pDevice) {
            "Vertex shader must be set before building the pipeline state.");
 
     // レンダーターゲットが設定されている場合はピクセルシェーダーが設定されている必要がある
-    assert(m_PSOdesc.PS.pShaderBytecode != nullptr ||
-           m_PSOdesc.NumRenderTargets == 0 &&
-               "Pixel shader must be set when render targets are used.");
+    assert((m_PSOdesc.PS.pShaderBytecode != nullptr ||
+               m_PSOdesc.NumRenderTargets == 0) &&
+           "Pixel shader must be set when render targets are used.");
 
     // ルートシグニチャが設定されているか
     assert(m_PSOdesc.pRootSignature != nullptr &&
