@@ -16,6 +16,20 @@ SamplerComparisonState g_shadowSampler : register(s3); // シャドウマップ�
 //==============================================================
 // functions
 //==============================================================
+/// @brief 3x3 PCF の計算
+float ShadowPCF3x3(float3 uvz) {
+    float sum = 0.0f;
+    [unroll]
+    for (int x = -1; x <= 1; x++) {
+        [unroll]
+        for (int y = -1; y <= 1; y++) {
+            sum += g_shadowMap.SampleCmpLevelZero(g_shadowSampler, 
+                uvz.xy, uvz.z, int2(x, y));
+        }
+    }
+    return sum / 9.0f;
+}
+
 /// @brief シャドウマップの計算
 float ComputeShadow(float3 worldPos) {
     // 描画対象の座標をワールドからライト空間に変換し，
@@ -37,8 +51,7 @@ float ComputeShadow(float3 worldPos) {
     }
 
     // シャドウマップの深度値を取得
-    float shadowMapDepth = g_shadowMap.SampleCmpLevelZero(g_shadowSampler, 
-        shadowMapUV, lightNDCPos.z);
+    float shadowMapDepth = ShadowPCF3x3(float3(shadowMapUV, lightNDCPos.z));
 
     return shadowMapDepth;
 }
