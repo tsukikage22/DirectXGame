@@ -45,8 +45,11 @@ bool DepthTarget::Init(ID3D12Device* pDevice, DescriptorPool* pPoolDSV,
     // リソースのR32_TYPELESSとSRVのR32_FLOATはハードコードしているので，
     // DSVのフォーマットはD32_FLOATのみ対応する
     // TODO:将来的に他のフォーマットに対応する場合は，ハードコーティングをやめて分岐を作る
-    assert(format == DXGI_FORMAT_D32_FLOAT &&
-           "DepthTarget only supports DXGI_FORMAT_D32_FLOAT format");
+    if (format != DXGI_FORMAT_D32_FLOAT) {
+        OutputDebugStringW(
+            L"DepthTarget only supports DXGI_FORMAT_D32_FLOAT format.\n");
+        return false;
+    }
 
     D3D12_CLEAR_VALUE clearValue    = {};
     clearValue.Format               = format;
