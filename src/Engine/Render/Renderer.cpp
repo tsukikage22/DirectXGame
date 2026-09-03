@@ -16,7 +16,7 @@
 namespace /* anonymous */ {
 
 // シャドウマップの描画範囲
-constexpr float kFarZ = 20.0f;
+constexpr float kShadowDistance = 10.0f;
 
 /// @brief リソースバリアの作成
 D3D12_RESOURCE_BARRIER MakeTransitionBarrier(ID3D12Resource* pResource,
@@ -338,7 +338,7 @@ void Renderer::UpdateConstants(Scene& scene, uint32_t debugView) {
     if (shadowLightIndex != shader::kInvalidLightIndex) {
         // 視錐台を覆う球を計算する
         DirectX::BoundingSphere shadowSphere =
-            camera.ComputeBoundingSphere(camera.GetNearZ(), kFarZ);
+            camera.ComputeBoundingSphere(camera.GetNearZ(), kShadowDistance);
         // ビュー射影行列の作成
         lightViewProj = MakeLightViewProjMatrix(shadowLightForward,
             shadowLightUp, shadowSphere.Center, shadowSphere.Radius);

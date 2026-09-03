@@ -47,7 +47,7 @@ bool ShadowPass::Init(GraphicsDevice& device) {
         .SetDSVFormat(config::kShadowMapFormat)
         .SetRenderTargetLayout(kShadowLayout)
         .SetInputLayout(StandardVertex::GetInputLayout())
-        .SetDepthBias(config::kShadowDepthBias, 0.0f,
+        .SetDepthBias(config::kShadowDepthBias, config::kShadowDepthBiasClamp,
             config::kShadowSlopeScaledBias);  // シャドウマップ用の深度バイアス
 
     if (!psoBuilder.Build(m_pDevice->GetDevice())) {
