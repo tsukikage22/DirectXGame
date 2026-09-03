@@ -2,6 +2,7 @@
 /// @brief カメラの管理
 #pragma once
 
+#include <DirectXCollision.h>
 #include <DirectXMath.h>
 
 #include "Engine/Scene/Transform.h"
@@ -48,6 +49,12 @@ public:
     /// @param fixShutterSpeed trueの場合はシャッタースピードを固定
     void ApplyEV100(float ev100, bool fixShutterSpeed);
 
+    /// @brief カメラの視錐台に基づく境界球の計算
+    /// @param nearZ 影の描画範囲の最小距離
+    /// @param farZ 影の描画範囲の最大距離
+    DirectX::BoundingSphere ComputeBoundingSphere(
+        float nearZ, float farZ) const;
+
     //================================
     // 行列の計算
     //================================
@@ -61,6 +68,7 @@ public:
     Transform& GetTransform() { return m_transform; }
     const Transform& GetTransform() const { return m_transform; }
 
+    float GetNearZ() const { return m_nearZ; }
     float GetAperture() const { return m_aperture; }
     float GetShutterSpeed() const { return m_shutterSpeed; }
 

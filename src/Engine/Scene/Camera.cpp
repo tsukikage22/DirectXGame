@@ -1,5 +1,6 @@
 #include "Engine/Scene/Camera.h"
 
+#include <cassert>
 #include <cmath>
 
 using namespace DirectX;
@@ -80,4 +81,39 @@ void Camera::ApplyEV100(float ev100, bool fixShutterSpeed) {
     } else {
         m_shutterSpeed = ComputeShutterSpeed(ev100);
     }
+}
+
+// カメラの視錐台を覆う球を計算する
+DirectX::BoundingSphere Camera::ComputeBoundingSphere(
+    float nearZ, float farZ) const {
+    assert(farZ > nearZ && "farZ must be greater than nearZ");
+
+    // 視錐台の広がり（far面の外接円の半径が farZ * sqrt(k2)になる）
+    float t  = std::tan(m_fovYRad * 0.5f);
+    float k2 = t * t * (m_aspect * m_aspect + 1.0f);
+
+    // near面とfar面の四隅から等距離になる点をビュー空間で求める
+    float z = (farZ + nearZ) * (k2 + 1.0f) * 0.5f;
+    float r = 0.0f;
+
+    // 球の半径
+    if (z >= farZ) {
+        // 球の中心がfar面よりも遠くにある場合は，球の半径はfar面の外接円の半径になる
+        z = farZ;
+        r = farZ * std::sqrt(k2);
+    } else {
+        // 球の中心がfar面よりも近い場合は，球の半径は球の中心からfar面の四隅までの距離になる
+        r = std::sqrt(k2 * farZ * farZ + (farZ - z) * (farZ - z));
+    }
+
+    // ワールド座標での球の中心
+    XMFLOAT3 worldPos     = m_transform.GetPosition();
+    XMFLOAT3 worldForward = m_transform.GetForward();
+    XMFLOAT3 center       = {
+        worldPos.x + worldForward.x * z,
+        worldPos.y + worldForward.y * z,
+        worldPos.z + worldForward.z * z,
+    };
+
+    return DirectX::BoundingSphere(center, r);
 }

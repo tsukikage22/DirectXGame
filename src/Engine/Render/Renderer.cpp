@@ -14,10 +14,8 @@
 
 namespace /* anonymous */ {
 
-// シャドウマップの描画半径，大きくしすぎると影が粗くなる
-constexpr float kShadowRadius = 10.0f;
-// シャドウマップの注視点，原点に固定する
-constexpr DirectX::XMFLOAT3 kShadowCenter = { 0.0f, 0.0f, 0.0f };
+// シャドウマップの描画範囲
+constexpr float kFarZ = 20.0f;
 
 /// @brief リソースバリアの作成
 D3D12_RESOURCE_BARRIER MakeTransitionBarrier(ID3D12Resource* pResource,
@@ -313,8 +311,12 @@ void Renderer::UpdateConstants(Scene& scene, uint32_t debugView) {
     // ライトのビュー射影行列を作成する
     DirectX::XMMATRIX lightViewProj = DirectX::XMMatrixIdentity();
     if (shadowLightIndex != shader::kInvalidLightIndex) {
-        lightViewProj = MakeLightViewProjMatrix(
-            shadowLightForward, shadowLightUp, kShadowCenter, kShadowRadius);
+        // 視錐台を覆う球を計算する
+        DirectX::BoundingSphere shadowSphere =
+            camera.ComputeBoundingSphere(camera.GetNearZ(), kFarZ);
+        // ビュー射影行列の作成
+        lightViewProj = MakeLightViewProjMatrix(shadowLightForward,
+            shadowLightUp, shadowSphere.Center, shadowSphere.Radius);
     }
     // 転置して格納
     DirectX::XMStoreFloat4x4(
