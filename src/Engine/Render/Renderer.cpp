@@ -3,6 +3,7 @@
 #include <Windows.h>
 
 #include <array>
+#include <cmath>
 
 #include "Engine/Core/ComPtr.h"
 #include "Engine/Core/DxDebug.h"
@@ -61,11 +62,35 @@ DirectX::XMMATRIX MakeLightViewProjMatrix(const DirectX::XMFLOAT3& forward,
         upVec = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
     }
 
+    // 注視点のワールド座標
+    XMVECTOR centerVec = XMLoadFloat3(&center);
+
+    // 1テクセルが覆うワールド空間での大きさ
+    const float texelWorldSize =
+        (radius * 2.0f) / static_cast<float>(config::kShadowMapSize);
+
+    // ライト空間の回転行列
+    XMMATRIX lightRot = XMMatrixLookToLH(XMVectorZero(), dirVec, upVec);
+
+    // centerをライト空間へ移し，XYをtexelWorldSizeの倍数に丸めることで
+    // シャドウマップのテクセルにスナップさせる
+    XMVECTOR centerLightSpace        = XMVector3Transform(centerVec, lightRot);
+    XMVECTOR centerLightSpaceSnapped = XMVectorSet(
+        std::floor(XMVectorGetX(centerLightSpace) / texelWorldSize) *
+            texelWorldSize,
+        std::floor(XMVectorGetY(centerLightSpace) / texelWorldSize) *
+            texelWorldSize,
+        XMVectorGetZ(centerLightSpace),  // Zは丸めない
+        1.0f);
+
+    // スナップさせたcenterをライト空間からワールド空間に戻す
+    XMVECTOR centerSnapped = XMVector3Transform(
+        centerLightSpaceSnapped, XMMatrixTranspose(lightRot));
+
     // directional lightには位置がないため，
     // 注視点（center）からライトの方向にradiusだけ離れた位置をeyeとする
-    XMVECTOR centerVec = XMLoadFloat3(&center);
     XMVECTOR eyeVec =
-        XMVectorSubtract(centerVec, XMVectorScale(dirVec, radius));
+        XMVectorSubtract(centerSnapped, XMVectorScale(dirVec, radius));
 
     // ライトのビュー行列を作成
     XMMATRIX view = XMMatrixLookToLH(eyeVec, dirVec, upVec);
