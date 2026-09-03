@@ -56,7 +56,7 @@ DirectX::XMMATRIX MakeLightViewProjMatrix(const DirectX::XMFLOAT3& forward,
     XMVECTOR dirVec = XMLoadFloat3(&forward);
     XMVECTOR upVec  = XMLoadFloat3(&up);
 
-    // forwardとupが平行な場合は，upをY軸方向に置き換える
+    // forwardとupが平行な場合は，upをZ軸方向に置き換える
     if (XMVectorGetX(XMVector3LengthSq(XMVector3Cross(dirVec, upVec))) <
         1e-6f) {
         upVec = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
