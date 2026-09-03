@@ -3,7 +3,8 @@
 #include <cstdint>
 
 // マウスボタン列挙型
-enum class Button {
+enum class Button
+{
     Left,
     Right,
     Middle,
@@ -12,7 +13,8 @@ enum class Button {
 };
 
 /// @brief 入力受け取りインターフェース
-struct IInputReceiver {
+struct IInputReceiver
+{
 public:
     virtual ~IInputReceiver() = default;
 

@@ -17,7 +17,8 @@ class ColorTarget;
 class Scene;
 class GraphicsDevice;
 
-class DebugUI {
+class DebugUI
+{
 public:
     DebugUI()  = default;
     ~DebugUI() = default;
@@ -34,7 +35,9 @@ public:
     /// @brief デバッグUIのフレーム開始時の処理
     /// @param input InputSystemの参照
     /// @param camera Cameraの参照
-    void BeginFrame(InputSystem& input, Camera& camera, Scene& scene);
+    /// @param scene Sceneの参照
+    /// @param shadowMapSRV シャドウマップのSRVのGPUハンドル
+    void BeginFrame(InputSystem& input, Camera& camera, Scene& scene, D3D12_GPU_DESCRIPTOR_HANDLE shadowMapSRV);
 
     /// @brief デバッグUIのレンダリング
     /// @param uiTarget UI用レンダーターゲット
@@ -43,7 +46,10 @@ public:
 
     /// @brief デバッグビューの種類の取得
     /// @return
-    int GetDebugView() const { return m_debugView; }
+    int GetDebugView() const
+    {
+        return m_debugView;
+    }
 
 private:
     //=========================================
@@ -51,7 +57,8 @@ private:
     //=========================================
 
     /// @brief ImGui用のディスクリプタアロケータ
-    struct ImGuiSrvAllocator {
+    struct ImGuiSrvAllocator
+    {
         DescriptorPool* pPool;
         std::unordered_map<SIZE_T, DescriptorAllocation> allocations;
     };
@@ -74,6 +81,10 @@ private:
     /// @brief デバッグビューUIの描画
     void DrawDebugViewPanel();
 
+    /// @brief シャドウマップ確認UIの描画
+    /// @param shadowMapSRV シャドウマップのSRVのGPUハンドル
+    void DrawShadowMapPanel(D3D12_GPU_DESCRIPTOR_HANDLE shadowMapSRV);
+
     //=========================================
     // private variables
     //=========================================
@@ -81,7 +92,7 @@ private:
     ImGuiSrvAllocator m_ImGuiSrvAllocator;
 
     // 露出調整パネルのパラメータ
-    bool m_fixShutterSpeed = true;  // シャッタースピード固定か絞り値固定か
+    bool m_fixShutterSpeed = true; // シャッタースピード固定か絞り値固定か
 
     // デバッグビューの種類
     int m_debugView = 0;

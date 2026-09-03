@@ -3,15 +3,21 @@
 #include "Engine/Core/DescriptorPool.h"
 #include "Engine/Core/DxDebug.h"
 
-ShaderResourceTexture::ShaderResourceTexture() : m_pPoolSRV(nullptr) {}
+ShaderResourceTexture::ShaderResourceTexture() : m_pPoolSRV(nullptr)
+{
+}
 
-ShaderResourceTexture::~ShaderResourceTexture() { Term(); }
+ShaderResourceTexture::~ShaderResourceTexture()
+{
+    Term();
+}
 
-bool ShaderResourceTexture::InitFromImage(ID3D12Device* pDevice,
-    DescriptorPool* pPoolSRV, const ImageAsset& image,
-    DirectX::ResourceUploadBatch& batch) {
+bool ShaderResourceTexture::InitFromImage(
+    ID3D12Device* pDevice, DescriptorPool* pPoolSRV, const ImageAsset& image, DirectX::ResourceUploadBatch& batch)
+{
     // 引数チェック
-    if (!pDevice || !pPoolSRV || !image.IsValid()) {
+    if (!pDevice || !pPoolSRV || !image.IsValid())
+    {
         return false;
     }
 
@@ -24,45 +30,40 @@ bool ShaderResourceTexture::InitFromImage(ID3D12Device* pDevice,
     {
         // 画像データの読み込み
         DirectX::ScratchImage srcImage;
-        CHECK_HR(pDevice, DirectX::LoadFromWICMemory(image.imageData.data(),
-                              image.imageData.size(), DirectX::WIC_FLAGS_NONE,
-                              nullptr, srcImage));
+        CHECK_HR(pDevice, DirectX::LoadFromWICMemory(image.imageData.data(), image.imageData.size(),
+                              DirectX::WIC_FLAGS_NONE, nullptr, srcImage));
 
         // ミップチェーン生成
         DirectX::ScratchImage mipChain;
         const DirectX::TexMetadata& srcMeta = srcImage.GetMetadata();
 
-        auto hr = DirectX::GenerateMipMaps(srcImage.GetImages(),
-            srcImage.GetImageCount(), srcMeta,
-            DirectX::TEX_FILTER_DEFAULT | DirectX::TEX_FILTER_WRAP, 0,
-            mipChain);
-        if (FAILED(hr)) {
+        auto hr = DirectX::GenerateMipMaps(srcImage.GetImages(), srcImage.GetImageCount(), srcMeta,
+            DirectX::TEX_FILTER_DEFAULT | DirectX::TEX_FILTER_WRAP, 0, mipChain);
+        if (FAILED(hr))
+        {
             mipChain = std::move(srcImage);
         }
 
         const DirectX::TexMetadata& mipMeta = mipChain.GetMetadata();
 
         // TextureResourceの初期化
-        bool result = m_texture.InitAsTexture2D(pDevice, mipMeta.width,
-            mipMeta.height, mipMeta.format, mipMeta.mipLevels,
-            D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_COPY_DEST);
-        if (!result) {
+        bool result = m_texture.InitAsTexture2D(pDevice, mipMeta.width, mipMeta.height, mipMeta.format,
+            mipMeta.mipLevels, D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_COPY_DEST);
+        if (!result)
+        {
             return false;
         }
 
         // すべてのmip，配列スライスをアップロード
         std::vector<D3D12_SUBRESOURCE_DATA> subresources;
-        DirectX::PrepareUpload(pDevice, mipChain.GetImages(),
-            mipChain.GetImageCount(), mipMeta, subresources);
+        DirectX::PrepareUpload(pDevice, mipChain.GetImages(), mipChain.GetImageCount(), mipMeta, subresources);
 
         // テクスチャのアップロード
-        batch.Upload(m_texture.GetResource(), 0, subresources.data(),
-            static_cast<UINT>(subresources.size()));
+        batch.Upload(m_texture.GetResource(), 0, subresources.data(), static_cast<UINT>(subresources.size()));
 
         // PIXEL_SHADER_RESOURCEへ遷移
-        batch.Transition(m_texture.GetResource(),
-            D3D12_RESOURCE_STATE_COPY_DEST,
-            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        batch.Transition(
+            m_texture.GetResource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     }
 
     // SRVの作成
@@ -76,18 +77,19 @@ bool ShaderResourceTexture::InitFromImage(ID3D12Device* pDevice,
         srvDesc.Texture2D.MipLevels             = texDesc.MipLevels;
         srvDesc.Texture2D.ResourceMinLODClamp   = 0.0f;
         srvDesc.Texture2D.PlaneSlice            = 0;
-        srvDesc.Shader4ComponentMapping =
-            D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        srvDesc.Shader4ComponentMapping         = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
         // フォーマットの決定
-        if (image.isSRGB) {
+        if (image.isSRGB)
+        {
             srvDesc.Format = DirectX::MakeSRGB(texDesc.Format);
-        } else {
+        }
+        else
+        {
             srvDesc.Format = texDesc.Format;
         }
 
-        pDevice->CreateShaderResourceView(
-            m_texture.GetResource(), &srvDesc, allocation.GetCPUHandle());
+        pDevice->CreateShaderResourceView(m_texture.GetResource(), &srvDesc, allocation.GetCPUHandle());
 
         m_srvs.push_back(std::move(allocation));
     }
@@ -95,11 +97,12 @@ bool ShaderResourceTexture::InitFromImage(ID3D12Device* pDevice,
     return true;
 }
 
-bool ShaderResourceTexture::InitSolidColorRGBA8(ID3D12Device* pDevice,
-    DescriptorPool* pPoolSRV, uint8_t r, uint8_t g, uint8_t b, uint8_t a,
-    DirectX::ResourceUploadBatch& batch) {
+bool ShaderResourceTexture::InitSolidColorRGBA8(ID3D12Device* pDevice, DescriptorPool* pPoolSRV, uint8_t r, uint8_t g,
+    uint8_t b, uint8_t a, DirectX::ResourceUploadBatch& batch)
+{
     // 引数チェック
-    if (!pDevice || !pPoolSRV) {
+    if (!pDevice || !pPoolSRV)
+    {
         return false;
     }
 
@@ -109,10 +112,10 @@ bool ShaderResourceTexture::InitSolidColorRGBA8(ID3D12Device* pDevice,
     m_pPoolSRV = pPoolSRV;
 
     // リソースの作成
-    bool result =
-        m_texture.InitAsTexture2D(pDevice, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, 1,
-            D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_COPY_DEST);
-    if (!result) {
+    bool result = m_texture.InitAsTexture2D(
+        pDevice, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, 1, D3D12_RESOURCE_FLAG_NONE, D3D12_RESOURCE_STATE_COPY_DEST);
+    if (!result)
+    {
         return false;
     }
 
@@ -127,8 +130,8 @@ bool ShaderResourceTexture::InitSolidColorRGBA8(ID3D12Device* pDevice,
     batch.Upload(m_texture.GetResource(), 0, &subresourceData, 1);
 
     // リソースバリアの遷移
-    batch.Transition(m_texture.GetResource(), D3D12_RESOURCE_STATE_COPY_DEST,
-        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    batch.Transition(
+        m_texture.GetResource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
     // SRVの作成
     DescriptorAllocation allocation = m_pPoolSRV->Allocate();
@@ -140,31 +143,35 @@ bool ShaderResourceTexture::InitSolidColorRGBA8(ID3D12Device* pDevice,
     srvDesc.Texture2D.MipLevels             = 1;
     srvDesc.Texture2D.ResourceMinLODClamp   = 0.0f;
     srvDesc.Texture2D.PlaneSlice            = 0;
-    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Shader4ComponentMapping         = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-    pDevice->CreateShaderResourceView(
-        m_texture.GetResource(), &srvDesc, allocation.GetCPUHandle());
+    pDevice->CreateShaderResourceView(m_texture.GetResource(), &srvDesc, allocation.GetCPUHandle());
 
     m_srvs.push_back(std::move(allocation));
 
     return true;
 }
 
-void ShaderResourceTexture::Term() {
+void ShaderResourceTexture::Term()
+{
     m_srvs.clear();
     m_texture.Term();
     m_pPoolSRV = nullptr;
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE ShaderResourceTexture::GetDefaultSrvGpu() const {
-    if (m_srvs.empty() || !m_srvs.front().IsValid() || !m_pPoolSRV) {
+D3D12_GPU_DESCRIPTOR_HANDLE ShaderResourceTexture::GetDefaultSrvGpu() const
+{
+    if (m_srvs.empty() || !m_srvs.front().IsValid() || !m_pPoolSRV)
+    {
         return {};
     }
     return m_srvs.front().GetGPUHandle();
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE ShaderResourceTexture::GetDefaultSrvCpu() const {
-    if (m_srvs.empty() || !m_srvs.front().IsValid() || !m_pPoolSRV) {
+D3D12_CPU_DESCRIPTOR_HANDLE ShaderResourceTexture::GetDefaultSrvCpu() const
+{
+    if (m_srvs.empty() || !m_srvs.front().IsValid() || !m_pPoolSRV)
+    {
         return {};
     }
     return m_srvs.front().GetCPUHandle();

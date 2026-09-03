@@ -14,7 +14,8 @@ class GraphicsDevice;
 class CommandQueue;
 class EnvironmentMap;
 
-class IBLBaker {
+class IBLBaker
+{
 public:
     IBLBaker()  = default;
     ~IBLBaker() = default;
@@ -51,10 +52,11 @@ public:
 private:
     static uint32_t DivRoundUp(uint32_t value, uint32_t divisor);
 
-    enum RootParam {
-        SRV_Source = 0,  // [t0]
-        UAV_Dest,        // [u0]
-        Constants,       // [b0]
+    enum RootParam
+    {
+        SRV_Source = 0, // [t0]
+        UAV_Dest,       // [u0]
+        Constants,      // [b0]
         Count
     };
 

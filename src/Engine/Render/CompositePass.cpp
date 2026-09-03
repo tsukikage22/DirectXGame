@@ -11,7 +11,8 @@
 #include "Engine/Render/PassBindings.h"
 #include "Engine/Resource/ShaderLoader.h"
 
-bool CompositePass::Init(GraphicsDevice& device) {
+bool CompositePass::Init(GraphicsDevice& device)
+{
     m_pDevice = &device;
     // ルートシグネチャの生成
     // ルートシグネチャの構成
@@ -19,14 +20,13 @@ bool CompositePass::Init(GraphicsDevice& device) {
     // [t0] UI Texture (Descriptor Table SRV)
     auto rsBuilder = RootSignatureBuilder{};
     std::vector<D3D12_DESCRIPTOR_RANGE1> range;
-    range.push_back(rsBuilder.CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0,
-        0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE));
-    rsBuilder
-        .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL,
-            D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
+    range.push_back(rsBuilder.CreateRange(
+        D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE));
+    rsBuilder.AddCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
         .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL);
 
-    if (!rsBuilder.Build(m_pDevice->GetDevice())) {
+    if (!rsBuilder.Build(m_pDevice->GetDevice()))
+    {
         OutputDebugStringW(L"Failed to build UI root signature.\n");
         return false;
     }
@@ -35,8 +35,8 @@ bool CompositePass::Init(GraphicsDevice& device) {
     // シェーダーの読み込み
     std::vector<std::byte> vsData;
     std::vector<std::byte> psData;
-    if (!LoadShader(L"shader/UI_VS.cso", vsData) ||
-        !LoadShader(L"shader/UI_PS.cso", psData)) {
+    if (!LoadShader(L"shader/UI_VS.cso", vsData) || !LoadShader(L"shader/UI_PS.cso", psData))
+    {
         OutputDebugStringW(L"Failed to load shaders.\n");
         return false;
     }
@@ -50,7 +50,8 @@ bool CompositePass::Init(GraphicsDevice& device) {
         .SetDepthMode(DepthMode::Disabled)
         .SetRenderTargetLayout(kCompositeLayout);
 
-    if (!psoBuilder.Build(m_pDevice->GetDevice())) {
+    if (!psoBuilder.Build(m_pDevice->GetDevice()))
+    {
         OutputDebugStringW(L"Failed to build UI pipeline state.\n");
         return false;
     }
@@ -59,14 +60,16 @@ bool CompositePass::Init(GraphicsDevice& device) {
     return true;
 }
 
-void CompositePass::Term() {
+void CompositePass::Term()
+{
     m_pDevice = nullptr;
 
     m_pPSO.Reset();
     m_pRootSignature.Reset();
 }
 
-void CompositePass::Draw(const CompositePassBindings& passBindings) {
+void CompositePass::Draw(const CompositePassBindings& passBindings)
+{
     auto pCmdList = passBindings.pCmdList;
 
     // ルートシグネチャとパイプラインステートの設定
@@ -74,16 +77,14 @@ void CompositePass::Draw(const CompositePassBindings& passBindings) {
     pCmdList->SetPipelineState(m_pPSO.Get());
 
     // CBVとしてDisplayConstantsを設定
-    pCmdList->SetGraphicsRootConstantBufferView(
-        RootParam::CBV_Display, passBindings.displayCB);
+    pCmdList->SetGraphicsRootConstantBufferView(RootParam::CBV_Display, passBindings.displayCB);
 
     // ディスクリプタヒープの設定
     ID3D12DescriptorHeap* pHeaps[] = { passBindings.pCbvSrvUavHeap };
     pCmdList->SetDescriptorHeaps(1, pHeaps);
-    pCmdList->SetGraphicsRootDescriptorTable(
-        RootParam::SRV_UI, passBindings.uiSRV);
+    pCmdList->SetGraphicsRootDescriptorTable(RootParam::SRV_UI, passBindings.uiSRV);
 
     // 描画
     pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    pCmdList->DrawInstanced(3, 1, 0, 0);  // フルスクリーン三角形を描画
+    pCmdList->DrawInstanced(3, 1, 0, 0); // フルスクリーン三角形を描画
 }

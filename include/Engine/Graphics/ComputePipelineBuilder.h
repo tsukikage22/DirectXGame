@@ -9,24 +9,26 @@
 
 #include "Engine/Core/ComPtr.h"
 
-class ComputePipelineBuilder {
+class ComputePipelineBuilder
+{
 public:
-    ComputePipelineBuilder() { SetDefault(); };
+    ComputePipelineBuilder()
+    {
+        SetDefault();
+    };
     ~ComputePipelineBuilder() = default;
 
     /// @brief ルートシグニチャを設定する
     /// @param pRootSignature
     /// @return
-    ComputePipelineBuilder& SetRootSignature(
-        ID3D12RootSignature* pRootSignature);
+    ComputePipelineBuilder& SetRootSignature(ID3D12RootSignature* pRootSignature);
 
     /// @brief コンピュートシェーダーを設定する
     /// @param pShaderBytecode シェーダーのバイトコード
     /// @param bytecodeLength バイトコードの長さ
     /// @note バイトコードはBuildまで呼び出し側が保持する必要がある
     /// @return
-    ComputePipelineBuilder& SetComputeShader(
-        const std::byte* pShaderBytecode, std::size_t bytecodeLength);
+    ComputePipelineBuilder& SetComputeShader(const std::byte* pShaderBytecode, std::size_t bytecodeLength);
 
     /// @brief PSOの作成
     /// @param pDevice デバイス
@@ -35,7 +37,10 @@ public:
 
     /// @brief PSOの取得
     /// @return 作成されたPSO
-    ID3D12PipelineState* Get() const { return m_pPSO.Get(); }
+    ID3D12PipelineState* Get() const
+    {
+        return m_pPSO.Get();
+    }
 
 private:
     /// @brief デフォルトのパイプライン設定を行う

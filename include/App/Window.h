@@ -7,10 +7,14 @@
 struct IInputReceiver;
 struct IWindowEventListener;
 
-class Window {
+class Window
+{
 public:
     Window() = default;
-    ~Window() { Destroy(); };
+    ~Window()
+    {
+        Destroy();
+    };
 
     bool Create(int width, int height, const wchar_t* title);
     void Destroy();
@@ -21,19 +25,30 @@ public:
     // メッセージの処理
     LRESULT HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-    bool IsActive() const { return m_isActive; }
+    bool IsActive() const
+    {
+        return m_isActive;
+    }
 
-    HWND GetHwnd() const { return m_hWnd; }
+    HWND GetHwnd() const
+    {
+        return m_hWnd;
+    }
 
-    void SetInputReceiver(IInputReceiver* receiver) {
+    void SetInputReceiver(IInputReceiver* receiver)
+    {
         m_inputReceiver = receiver;
     }
 
-    void SetWindowEventListener(IWindowEventListener* listener) {
+    void SetWindowEventListener(IWindowEventListener* listener)
+    {
         m_windowEventListener = listener;
     }
 
-    bool IsMinimized() const { return m_isMinimized; }
+    bool IsMinimized() const
+    {
+        return m_isMinimized;
+    }
 
 private:
     /// @brief リサイズをイベントリスナーに通知する

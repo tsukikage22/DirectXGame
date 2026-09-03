@@ -10,17 +10,21 @@
 
 using Microsoft::WRL::ComPtr;
 
-namespace dxdebug {
+namespace dxdebug
+{
 
 /// @brief デバッグレイヤーを有効化
-inline void EnableDebugLayer() {
+inline void EnableDebugLayer()
+{
 #if defined(_DEBUG)
     ComPtr<ID3D12Debug> debug;
-    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug)))) {
+    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug))))
+    {
         debug->EnableDebugLayer();
 
         ComPtr<ID3D12Debug1> debug1;
-        if (SUCCEEDED(debug.As(&debug1))) {
+        if (SUCCEEDED(debug.As(&debug1)))
+        {
             debug1->SetEnableGPUBasedValidation(TRUE);
         }
     }
@@ -28,10 +32,12 @@ inline void EnableDebugLayer() {
 }
 
 /// @brief InfoQueueの設定
-inline void SetupInfoQueue(ID3D12Device* pDevice) {
+inline void SetupInfoQueue(ID3D12Device* pDevice)
+{
 #if defined(_DEBUG)
     ComPtr<ID3D12InfoQueue> infoQueue;
-    if (SUCCEEDED(pDevice->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
+    if (SUCCEEDED(pDevice->QueryInterface(IID_PPV_ARGS(&infoQueue))))
+    {
         infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
         infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
     }
@@ -39,16 +45,18 @@ inline void SetupInfoQueue(ID3D12Device* pDevice) {
 }
 
 /// @brief InfoQueueのメッセージを出力
-inline void DumpInfoQueueMessages(ID3D12Device* pDevice) {
+inline void DumpInfoQueueMessages(ID3D12Device* pDevice)
+{
 #if defined(_DEBUG)
     ComPtr<ID3D12InfoQueue> infoQueue;
-    if (FAILED(pDevice->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
+    if (FAILED(pDevice->QueryInterface(IID_PPV_ARGS(&infoQueue))))
+    {
         return;
     }
 
-    const UINT64 numMessages =
-        infoQueue->GetNumStoredMessagesAllowedByRetrievalFilter();
-    for (UINT64 i = 0; i < numMessages; i++) {
+    const UINT64 numMessages = infoQueue->GetNumStoredMessagesAllowedByRetrievalFilter();
+    for (UINT64 i = 0; i < numMessages; i++)
+    {
         // メッセージサイズを取得
         SIZE_T sz = 0;
         infoQueue->GetMessage(i, nullptr, &sz);
@@ -60,24 +68,25 @@ inline void DumpInfoQueueMessages(ID3D12Device* pDevice) {
         infoQueue->GetMessage(i, msg, &sz);
 
         const char* severity = "UNKNOWN";
-        switch (msg->Severity) {
-            case D3D12_MESSAGE_SEVERITY_CORRUPTION:
-                severity = "CORRUPTION";
-                break;
-            case D3D12_MESSAGE_SEVERITY_ERROR:
-                severity = "ERROR";
-                break;
-            case D3D12_MESSAGE_SEVERITY_WARNING:
-                severity = "WARNING";
-                break;
-            case D3D12_MESSAGE_SEVERITY_INFO:
-                severity = "INFO";
-                break;
-            case D3D12_MESSAGE_SEVERITY_MESSAGE:
-                severity = "MESSAGE";
-                break;
-            default:
-                break;
+        switch (msg->Severity)
+        {
+        case D3D12_MESSAGE_SEVERITY_CORRUPTION:
+            severity = "CORRUPTION";
+            break;
+        case D3D12_MESSAGE_SEVERITY_ERROR:
+            severity = "ERROR";
+            break;
+        case D3D12_MESSAGE_SEVERITY_WARNING:
+            severity = "WARNING";
+            break;
+        case D3D12_MESSAGE_SEVERITY_INFO:
+            severity = "INFO";
+            break;
+        case D3D12_MESSAGE_SEVERITY_MESSAGE:
+            severity = "MESSAGE";
+            break;
+        default:
+            break;
         }
 
         std::stringstream ss;
@@ -89,41 +98,42 @@ inline void DumpInfoQueueMessages(ID3D12Device* pDevice) {
 }
 
 /// @brief HRESULTを文字列に変換
-inline std::wstring HrToMessage(HRESULT hr) {
+inline std::wstring HrToMessage(HRESULT hr)
+{
     wchar_t* pMsgBuf = nullptr;
-    DWORD flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-                  FORMAT_MESSAGE_IGNORE_INSERTS;
-    DWORD lang = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
-    DWORD len  = FormatMessageW(
-        flags, nullptr, (DWORD)hr, lang, (LPWSTR)&pMsgBuf, 0, nullptr);
+    DWORD flags      = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
+    DWORD lang       = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
+    DWORD len        = FormatMessageW(flags, nullptr, (DWORD)hr, lang, (LPWSTR)&pMsgBuf, 0, nullptr);
 
-    std::wstring msg =
-        (len && pMsgBuf) ? std::wstring(pMsgBuf, len) : L"no message";
+    std::wstring msg = (len && pMsgBuf) ? std::wstring(pMsgBuf, len) : L"no message";
 
-    if (pMsgBuf) {
+    if (pMsgBuf)
+    {
         LocalFree(pMsgBuf);
     }
     return msg;
 }
 
 /// @brief HRESULTの出力
-inline void OutputHr(
-    HRESULT hr, const wchar_t* expr, const char* file, int line) {
+inline void OutputHr(HRESULT hr, const wchar_t* expr, const char* file, int line)
+{
     std::wstringstream ss;
-    ss << L"[HRESULT] 0x" << std::hex << (unsigned)hr << L" " << HrToMessage(hr)
-       << L" | " << file << L":" << std::dec << line << L" | " << expr << L"\n";
+    ss << L"[HRESULT] 0x" << std::hex << (unsigned)hr << L" " << HrToMessage(hr) << L" | " << file << L":" << std::dec
+       << line << L" | " << expr << L"\n";
     OutputDebugStringW(ss.str().c_str());
 }
 
-}  // namespace dxdebug
+} // namespace dxdebug
 
 /// @brief HRESULTチェックマクロ（失敗でreturn false）
-#define CHECK_HR(device, call)                                      \
-    do {                                                            \
-        HRESULT hr__ = (call);                                      \
-        if (FAILED(hr__)) {                                         \
-            dxdebug::OutputHr(hr__, L## #call, __FILE__, __LINE__); \
-            dxdebug::DumpInfoQueueMessages(device);                 \
-            return false;                                           \
-        }                                                           \
+#define CHECK_HR(device, call)                                                                                         \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        HRESULT hr__ = (call);                                                                                         \
+        if (FAILED(hr__))                                                                                              \
+        {                                                                                                              \
+            dxdebug::OutputHr(hr__, L## #call, __FILE__, __LINE__);                                                    \
+            dxdebug::DumpInfoQueueMessages(device);                                                                    \
+            return false;                                                                                              \
+        }                                                                                                              \
     } while (0)

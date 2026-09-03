@@ -10,7 +10,8 @@
 #include "Engine/Core/DescriptorPool.h"
 #include "Engine/Resource/TextureResource.h"
 
-class ColorTarget {
+class ColorTarget
+{
 public:
     ColorTarget();
     ~ColorTarget();
@@ -21,8 +22,7 @@ public:
     /// @param index バックバッファのインデックス
     /// @param pSwapChain スワップチェーン
     /// @return 成功した場合はtrueを返す
-    bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolRTV, uint32_t index,
-        IDXGISwapChain* pSwapChain);
+    bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolRTV, uint32_t index, IDXGISwapChain* pSwapChain);
 
     /// @brief オフスクリーン用のRTVを作成する
     /// @param pDevice デバイス
@@ -32,9 +32,8 @@ public:
     /// @param height 高さ
     /// @param format フォーマット
     /// @return 成功した場合はtrueを返す
-    bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolRTV,
-        DescriptorPool* pPoolSRV, uint32_t width, uint32_t height,
-        DXGI_FORMAT format);
+    bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolRTV, DescriptorPool* pPoolSRV, uint32_t width,
+        uint32_t height, DXGI_FORMAT format);
 
     /// @brief リソースの解放
     void Term();
@@ -48,37 +47,51 @@ public:
     //========================================================================
     // アクセサ
     //========================================================================
-    ID3D12Resource* GetResource() const { return m_Target.GetResource(); }
+    ID3D12Resource* GetResource() const
+    {
+        return m_Target.GetResource();
+    }
 
-    uint32_t GetWidth() const { return m_width; }
-    uint32_t GetHeight() const { return m_height; }
+    uint32_t GetWidth() const
+    {
+        return m_width;
+    }
+    uint32_t GetHeight() const
+    {
+        return m_height;
+    }
 
-    D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCPUHandle() const {
+    D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCPUHandle() const
+    {
         return m_RTVAllocation.GetCPUHandle();
     }
 
-    D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCPUHandle() const {
-        if (!m_SRVAllocation.IsValid()) {
+    D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCPUHandle() const
+    {
+        if (!m_SRVAllocation.IsValid())
+        {
             return {};
         }
         return m_SRVAllocation.GetCPUHandle();
     }
 
-    D3D12_GPU_DESCRIPTOR_HANDLE GetSRVGPUHandle() const {
-        if (!m_SRVAllocation.IsValid()) {
+    D3D12_GPU_DESCRIPTOR_HANDLE GetSRVGPUHandle() const
+    {
+        if (!m_SRVAllocation.IsValid())
+        {
             return {};
         }
         return m_SRVAllocation.GetGPUHandle();
     }
 
 private:
-    TextureResource m_Target;                  // リソース
-    DescriptorAllocation m_RTVAllocation;      // RTVのディスクリプタ
-    DescriptorAllocation m_SRVAllocation;      // SRVのディスクリプタ
-    D3D12_RENDER_TARGET_VIEW_DESC m_ViewDesc;  // RTVのディスクリプタ
+    TextureResource m_Target;                 // リソース
+    DescriptorAllocation m_RTVAllocation;     // RTVのディスクリプタ
+    DescriptorAllocation m_SRVAllocation;     // SRVのディスクリプタ
+    D3D12_RENDER_TARGET_VIEW_DESC m_ViewDesc; // RTVのディスクリプタ
 
-    uint32_t m_width  = 0;  // 幅
-    uint32_t m_height = 0;  // 高さ
+    uint32_t m_width  = 0; // 幅
+    uint32_t m_height = 0; // 高さ
 
     ColorTarget(const ColorTarget&)    = delete;
     void operator=(const ColorTarget&) = delete;

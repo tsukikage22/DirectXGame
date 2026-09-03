@@ -10,13 +10,15 @@
 // XMQuaternionMultiply(Q1, Q2)はQ2*Q1を返す（Q1を先に適用）．
 // 引数は行列の乗算と同様に「適用順」で左から並べる
 
-namespace engine {
+namespace engine
+{
 inline constexpr DirectX::XMFLOAT3 kForward = { 0.0f, 0.0f, 1.0f };
 inline constexpr DirectX::XMFLOAT3 kUp      = { 0.0f, 1.0f, 0.0f };
 inline constexpr DirectX::XMFLOAT3 kRight   = { 1.0f, 0.0f, 0.0f };
-}  // namespace engine
+} // namespace engine
 
-class Transform {
+class Transform
+{
 public:
     Transform();
     ~Transform();
@@ -38,14 +40,12 @@ public:
     /// @brief 指定した座標の方向を向く
     /// @param target 注視点のワールド座標
     /// @param upHint 上方向ベクトルのヒント
-    void LookAt(const DirectX::XMFLOAT3& target,
-        const DirectX::XMFLOAT3& upHint = engine::kUp);
+    void LookAt(const DirectX::XMFLOAT3& target, const DirectX::XMFLOAT3& upHint = engine::kUp);
 
     /// @brief 指定したベクトルの方向を向く
     /// @param direction 注視方向ベクトル
     /// @param upHint 上方向ベクトルのヒント
-    void LookTo(const DirectX::XMFLOAT3& direction,
-        const DirectX::XMFLOAT3& upHint = engine::kUp);
+    void LookTo(const DirectX::XMFLOAT3& direction, const DirectX::XMFLOAT3& upHint = engine::kUp);
 
     /// @brief ローカル前方向の取得
     DirectX::XMFLOAT3 GetForward() const;
@@ -59,13 +59,26 @@ public:
     //=========================================
     // アクセサ
     //=========================================
-    void SetPosition(const DirectX::XMFLOAT3& position) {
+    void SetPosition(const DirectX::XMFLOAT3& position)
+    {
         m_position = position;
     }
-    void SetScale(const DirectX::XMFLOAT3& scale) { m_scale = scale; }
-    DirectX::XMFLOAT3 GetPosition() const { return m_position; }
-    DirectX::XMFLOAT3 GetScale() const { return m_scale; }
-    DirectX::XMFLOAT4 GetOrientation() const { return m_orientation; }
+    void SetScale(const DirectX::XMFLOAT3& scale)
+    {
+        m_scale = scale;
+    }
+    DirectX::XMFLOAT3 GetPosition() const
+    {
+        return m_position;
+    }
+    DirectX::XMFLOAT3 GetScale() const
+    {
+        return m_scale;
+    }
+    DirectX::XMFLOAT4 GetOrientation() const
+    {
+        return m_orientation;
+    }
 
 private:
     DirectX::XMFLOAT3 m_position;

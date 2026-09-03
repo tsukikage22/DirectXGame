@@ -2,7 +2,8 @@
 
 #include "Engine/Core/ComPtr.h"
 
-class Fence {
+class Fence
+{
 public:
     Fence();
     ~Fence();

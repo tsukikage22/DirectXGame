@@ -11,20 +11,23 @@
 #include "Engine/Core/ComPtr.h"
 #include "Engine/Graphics/RenderTargetLayout.h"
 
-enum class BlendMode {
-    Opaque,              // 不透明（既定）
-    AlphaBlend,          // ストレートアルファ合成
-    PremultipliedAlpha,  // 乗算アルファ合成
-    Additive,            // 加算合成
+enum class BlendMode
+{
+    Opaque,             // 不透明（既定）
+    AlphaBlend,         // ストレートアルファ合成
+    PremultipliedAlpha, // 乗算アルファ合成
+    Additive,           // 加算合成
 };
 
-enum class DepthMode {
-    Default,   // 深度テスト有効，書き込み有効
-    ReadOnly,  // 深度テスト有効，書き込み無効
-    Disabled,  // 深度テスト無効，書き込み無効
+enum class DepthMode
+{
+    Default,  // 深度テスト有効，書き込み有効
+    ReadOnly, // 深度テスト有効，書き込み無効
+    Disabled, // 深度テスト無効，書き込み無効
 };
 
-class GraphicsPipelineBuilder {
+class GraphicsPipelineBuilder
+{
 public:
     GraphicsPipelineBuilder();
     ~GraphicsPipelineBuilder() = default;
@@ -32,48 +35,64 @@ public:
     /// @brief ルートシグニチャを設定する
     /// @param pRootSignature
     /// @return
-    GraphicsPipelineBuilder& SetRootSignature(
-        ID3D12RootSignature* pRootSignature);
+    GraphicsPipelineBuilder& SetRootSignature(ID3D12RootSignature* pRootSignature);
 
     /// @brief 頂点シェーダーを設定する
     /// @param pShaderBytecode シェーダーのバイトコード
     /// @param bytecodeLength バイトコードの長さ
     /// @note バイトコードはBuildまで呼び出し側が保持する必要がある
     /// @return
-    GraphicsPipelineBuilder& SetVertexShader(
-        const std::byte* pShaderBytecode, std::size_t bytecodeLength);
+    GraphicsPipelineBuilder& SetVertexShader(const std::byte* pShaderBytecode, std::size_t bytecodeLength);
 
     /// @brief ピクセルシェーダーを設定する
     /// @param pShaderBytecode シェーダーのバイトコード
     /// @param bytecodeLength バイトコードの長さ
     /// @note バイトコードはBuildまで呼び出し側が保持する必要がある
     /// @return
-    GraphicsPipelineBuilder& SetPixelShader(
-        const std::byte* pShaderBytecode, std::size_t bytecodeLength);
+    GraphicsPipelineBuilder& SetPixelShader(const std::byte* pShaderBytecode, std::size_t bytecodeLength);
 
     /// @brief 入力レイアウトを設定する
     /// @param inputLayout
-    GraphicsPipelineBuilder& SetInputLayout(
-        const std::vector<D3D12_INPUT_ELEMENT_DESC>& elements);
+    GraphicsPipelineBuilder& SetInputLayout(const std::vector<D3D12_INPUT_ELEMENT_DESC>& elements);
 
     /// @brief 全RTに指定したBlendModeを設定する
     /// @param blendMode ブレンドモード
     GraphicsPipelineBuilder& SetBlendState(BlendMode blendMode);
 
+    /// @brief DSVフォーマットを設定する
+    /// @param format
+    GraphicsPipelineBuilder& SetDSVFormat(DXGI_FORMAT format);
+
     /// @brief 深度バッファの設定を行う
     /// @param depthMode 深度モード
     GraphicsPipelineBuilder& SetDepthMode(DepthMode depthMode);
 
+    /// @brief 深度クリップの有効/無効を設定する
+    GraphicsPipelineBuilder& SetDepthClipEnable(bool enable);
+
     /// @brief RTLayout定数からPSOの設定を行う
     /// @param layout レンダーターゲットのレイアウト
-    GraphicsPipelineBuilder& SetRenderTargetLayout(
-        const RenderTargetLayout& layout);
+    GraphicsPipelineBuilder& SetRenderTargetLayout(const RenderTargetLayout& layout);
+
+    /// @brief カリングモードを設定する
+    /// @param cullMode カリングモード
+    /// @return
+    GraphicsPipelineBuilder& SetCullMode(D3D12_CULL_MODE cullMode);
+
+    /// @brief 深度バイアスを設定する
+    /// @param depthBias 固定バイアス値
+    /// @param depthBiasClamp 深度バイアスの最大値
+    /// @param slopeScaledDepthBias ポリゴンの傾きに応じた深度バイアス値
+    GraphicsPipelineBuilder& SetDepthBias(int depthBias, float depthBiasClamp, float slopeScaledDepthBias);
 
     bool Build(ID3D12Device* pDevice);
 
     /// @brief パイプラインステートの取得
     /// @return パイプラインステート
-    ID3D12PipelineState* Get() const { return m_pPipelineState.Get(); }
+    ID3D12PipelineState* Get() const
+    {
+        return m_pPipelineState.Get();
+    }
 
 private:
     /// @brief
@@ -96,8 +115,8 @@ private:
 /// @brief ブレンド設定のプリセットを作成する
 /// @param blendMode ブレンドモード
 /// @return 設定されたD3D12_RENDER_TARGET_BLEND_DESC
-constexpr D3D12_RENDER_TARGET_BLEND_DESC MakeRenderTargetBlendDesc(
-    BlendMode blendMode) {
+constexpr D3D12_RENDER_TARGET_BLEND_DESC MakeRenderTargetBlendDesc(BlendMode blendMode)
+{
     D3D12_RENDER_TARGET_BLEND_DESC desc = {};
     desc.BlendEnable                    = (blendMode != BlendMode::Opaque);
     desc.LogicOpEnable                  = FALSE;
@@ -110,32 +129,31 @@ constexpr D3D12_RENDER_TARGET_BLEND_DESC MakeRenderTargetBlendDesc(
     desc.LogicOp                        = D3D12_LOGIC_OP_NOOP;
     desc.RenderTargetWriteMask          = D3D12_COLOR_WRITE_ENABLE_ALL;
 
-    switch (blendMode) {
-        case BlendMode::AlphaBlend:
-            desc.SrcBlend      = D3D12_BLEND_SRC_ALPHA;
-            desc.DestBlend     = D3D12_BLEND_INV_SRC_ALPHA;
-            desc.SrcBlendAlpha = D3D12_BLEND_ONE;
-            desc.DestBlendAlpha =
-                D3D12_BLEND_INV_SRC_ALPHA;  // アルファ値も考慮する場合
-            break;
+    switch (blendMode)
+    {
+    case BlendMode::AlphaBlend:
+        desc.SrcBlend       = D3D12_BLEND_SRC_ALPHA;
+        desc.DestBlend      = D3D12_BLEND_INV_SRC_ALPHA;
+        desc.SrcBlendAlpha  = D3D12_BLEND_ONE;
+        desc.DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA; // アルファ値も考慮する場合
+        break;
 
-        case BlendMode::PremultipliedAlpha:
-            desc.SrcBlend      = D3D12_BLEND_ONE;
-            desc.DestBlend     = D3D12_BLEND_INV_SRC_ALPHA;
-            desc.SrcBlendAlpha = D3D12_BLEND_ONE;
-            desc.DestBlendAlpha =
-                D3D12_BLEND_INV_SRC_ALPHA;  // アルファ値も考慮する場合
-            break;
+    case BlendMode::PremultipliedAlpha:
+        desc.SrcBlend       = D3D12_BLEND_ONE;
+        desc.DestBlend      = D3D12_BLEND_INV_SRC_ALPHA;
+        desc.SrcBlendAlpha  = D3D12_BLEND_ONE;
+        desc.DestBlendAlpha = D3D12_BLEND_INV_SRC_ALPHA; // アルファ値も考慮する場合
+        break;
 
-        case BlendMode::Additive:
-            desc.SrcBlend       = D3D12_BLEND_SRC_ALPHA;
-            desc.DestBlend      = D3D12_BLEND_ONE;
-            desc.SrcBlendAlpha  = D3D12_BLEND_ONE;
-            desc.DestBlendAlpha = D3D12_BLEND_ONE;  // アルファ値も考慮する場合
-            break;
+    case BlendMode::Additive:
+        desc.SrcBlend       = D3D12_BLEND_SRC_ALPHA;
+        desc.DestBlend      = D3D12_BLEND_ONE;
+        desc.SrcBlendAlpha  = D3D12_BLEND_ONE;
+        desc.DestBlendAlpha = D3D12_BLEND_ONE; // アルファ値も考慮する場合
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 
     return desc;

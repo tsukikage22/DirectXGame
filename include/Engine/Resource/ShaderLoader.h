@@ -10,5 +10,4 @@
 /// @param filename シェーダーのファイル名
 /// @param out 読み込んだシェーダーのバイトコード．失敗時は空．
 /// @return 成功した場合はtrue，失敗した場合はfalse
-[[nodiscard]] bool LoadShader(
-    const wchar_t* filename, std::vector<std::byte>& out);
+[[nodiscard]] bool LoadShader(const wchar_t* filename, std::vector<std::byte>& out);

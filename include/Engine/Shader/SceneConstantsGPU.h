@@ -8,7 +8,8 @@
 #include "Engine/Graphics/ConstantBuffer.h"
 #include "Engine/Shader/ShaderConstants.h"
 
-class SceneConstantsGPU {
+class SceneConstantsGPU
+{
 public:
     SceneConstantsGPU();
     ~SceneConstantsGPU();
@@ -18,8 +19,7 @@ public:
     /// @param pPoolCBV 定数バッファのディスクリプタプール
     /// @param sceneConstants 初期値
     /// @return
-    bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
-        const shader::SceneConstants& sceneConstants);
+    bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV, const shader::SceneConstants& sceneConstants);
 
     /// @brief 定数バッファの作成（デフォルト値）
     /// @param pDevice
@@ -39,16 +39,20 @@ public:
     //========================================
 
     /// @brief 定数バッファの取得
-    ConstantBuffer& GetConstantBuffer() { return m_constantBuffer; }
+    ConstantBuffer& GetConstantBuffer()
+    {
+        return m_constantBuffer;
+    }
 
     /// @brief 定数バッファのGPU仮想アドレスの取得
-    D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const {
+    D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const
+    {
         return m_constantBuffer.GetGPUVirtualAddress();
     }
 
 private:
-    ConstantBuffer m_constantBuffer;     // シーン定数用の定数バッファ
-    shader::SceneConstants m_constants;  // 定数バッファ用データ
+    ConstantBuffer m_constantBuffer;    // シーン定数用の定数バッファ
+    shader::SceneConstants m_constants; // 定数バッファ用データ
 
     // コピー禁止
     SceneConstantsGPU(const SceneConstantsGPU&)            = delete;

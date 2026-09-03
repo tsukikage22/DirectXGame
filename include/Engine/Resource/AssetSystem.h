@@ -14,7 +14,8 @@ class GraphicsDevice;
 class AssetLoadScope;
 class Scene;
 
-class AssetSystem {
+class AssetSystem
+{
 public:
     AssetSystem()  = default;
     ~AssetSystem() = default;
@@ -37,37 +38,44 @@ public:
     AssetLoadScope CreateAssetLoadScope(Scene& scene);
 
     /// @brief IESプロファイルのSRVハンドルを取得する
-    D3D12_GPU_DESCRIPTOR_HANDLE GetIesSrvGpuHandle() const {
+    D3D12_GPU_DESCRIPTOR_HANDLE GetIesSrvGpuHandle() const
+    {
         return m_iesProfile.GetSrvGpuHandle();
     }
 
     /// @brief EnvironmentMapのSRVハンドルを取得する
-    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapEquirectSrvGpuHandle() const {
+    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapEquirectSrvGpuHandle() const
+    {
         return m_environmentMap.GetEquirectSrvGpuHandle();
     }
 
     /// @brief EnvironmentMapのキューブマップSRVハンドルを取得する
-    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapCubemapSrvGpuHandle() const {
+    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapCubemapSrvGpuHandle() const
+    {
         return m_environmentMap.GetCubemapSrvGpuHandle();
     }
 
     /// @brief EnvironmentMapのキューブマップUAVハンドルを取得する
-    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapCubemapUavGpuHandle() const {
+    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapCubemapUavGpuHandle() const
+    {
         return m_environmentMap.GetCubemapUavGpuHandle();
     }
 
     /// @brief EnvironmentMapのirradiance map SRVハンドルを取得する
-    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapIrradianceSrvGpuHandle() const {
+    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapIrradianceSrvGpuHandle() const
+    {
         return m_environmentMap.GetIrradianceSrvGpuHandle();
     }
 
     /// @brief EnvironmentMapのprefiltered map SRVハンドルを取得する
-    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapPrefilteredSrvGpuHandle() const {
+    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapPrefilteredSrvGpuHandle() const
+    {
         return m_environmentMap.GetPrefilteredSrvGpuHandle();
     }
 
     /// @brief EnvironmentMapのBRDF LUT SRVハンドルを取得する
-    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapBrdfLutSrvGpuHandle() const {
+    D3D12_GPU_DESCRIPTOR_HANDLE GetEnvMapBrdfLutSrvGpuHandle() const
+    {
         return m_environmentMap.GetBrdfLutSrvGpuHandle();
     }
 

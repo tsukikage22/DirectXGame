@@ -15,7 +15,8 @@
 
 class GraphicsDevice;
 
-class SwapChain {
+class SwapChain
+{
 public:
     SwapChain()  = default;
     ~SwapChain() = default;
@@ -26,8 +27,7 @@ public:
     /// @param height バックバッファの高さ
     /// @param hWnd ウィンドウハンドル
     /// @return 初期化に成功したかどうか
-    bool Init(GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height,
-        HWND hWnd);
+    bool Init(GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height, HWND hWnd);
 
     /// @brief 終了処理
     void Term();
@@ -39,31 +39,39 @@ public:
     /// @param graphicsDevice グラフィックスデバイス
     /// @param width 幅
     /// @param height 高さ
-    bool Resize(
-        GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height);
+    bool Resize(GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height);
 
     /// @brief フレームレイテンシ待機オブジェクトを待機する
     /// @param timeout タイムアウト時間（ミリ秒）
-    void WaitForFrameLatency(DWORD timeout = 1000) {
+    void WaitForFrameLatency(DWORD timeout = 1000)
+    {
         WaitForSingleObject(m_frameLatencyWaitableObject, timeout);
     }
 
     /// @brief スワップチェインの取得
-    IDXGISwapChain3* GetSwapChain() { return m_pSwapChain.Get(); }
+    IDXGISwapChain3* GetSwapChain()
+    {
+        return m_pSwapChain.Get();
+    }
 
     /// @brief 現在のフレーム番号を取得
-    uint32_t GetFrameIndex() const { return m_frameIndex; }
+    uint32_t GetFrameIndex() const
+    {
+        return m_frameIndex;
+    }
 
     /// @brief バックバッファの取得
-    ColorTarget& GetBackBuffer() { return m_colorTarget[m_frameIndex]; }
+    ColorTarget& GetBackBuffer()
+    {
+        return m_colorTarget[m_frameIndex];
+    }
 
 private:
     engine::ComPtr<IDXGISwapChain3> m_pSwapChain;  // スワップチェイン
-    uint32_t m_frameIndex = 0;                     // 現在のフレーム番号
-    HANDLE m_frameLatencyWaitableObject =
-        nullptr;  // フレームレイテンシ待機オブジェクト
+    uint32_t m_frameIndex               = 0;       // 現在のフレーム番号
+    HANDLE m_frameLatencyWaitableObject = nullptr; // フレームレイテンシ待機オブジェクト
 
-    ColorTarget m_colorTarget[config::kFrameCount];  // バックバッファ
+    ColorTarget m_colorTarget[config::kFrameCount]; // バックバッファ
 
     // コピー禁止
     SwapChain(const SwapChain&)            = delete;

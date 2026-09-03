@@ -3,8 +3,10 @@
 Application::Application()  = default;
 Application::~Application() = default;
 
-int Application::Run() {
-    if (!Init()) {
+int Application::Run()
+{
+    if (!Init())
+    {
         return -1;
     }
 
@@ -16,17 +18,20 @@ int Application::Run() {
 }
 
 // 初期化（ウィンドウの作成，D3D・ゲームロジックの初期化）
-bool Application::Init() {
+bool Application::Init()
+{
     // ウィンドウの作成
     const int windowWidth  = 1280;
     const int windowHeight = 720;
 
-    if (!m_Window.Create(windowWidth, windowHeight, L"DirectX Game")) {
+    if (!m_Window.Create(windowWidth, windowHeight, L"DirectX Game"))
+    {
         return false;
     }
 
     // エンジンの初期化
-    if (!m_Engine.Initialize(m_Window.GetHwnd(), windowWidth, windowHeight)) {
+    if (!m_Engine.Initialize(m_Window.GetHwnd(), windowWidth, windowHeight))
+    {
         return false;
     }
 
@@ -42,7 +47,8 @@ bool Application::Init() {
     return true;
 }
 
-void Application::Term() {
+void Application::Term()
+{
     // ウィンドウの破棄
     m_Window.Destroy();
 
@@ -50,7 +56,8 @@ void Application::Term() {
     m_Engine.Shutdown();
 }
 
-void Application::MainLoop() {
+void Application::MainLoop()
+{
     // 実行中フラグを立てる
     m_isRunning = true;
 
@@ -58,11 +65,11 @@ void Application::MainLoop() {
     m_lastFrameTime = std::chrono::high_resolution_clock::now();
 
     // メインループ
-    while (m_isRunning) {
+    while (m_isRunning)
+    {
         // 1. 経過時間の計測
-        auto now = std::chrono::high_resolution_clock::now();
-        m_deltaTime =
-            std::chrono::duration<float>(now - m_lastFrameTime).count();
+        auto now        = std::chrono::high_resolution_clock::now();
+        m_deltaTime     = std::chrono::duration<float>(now - m_lastFrameTime).count();
         m_lastFrameTime = now;
 
         // 2. 入力処理のフレーム開始
@@ -70,7 +77,8 @@ void Application::MainLoop() {
 
         // 3. メッセージポンプ
         // OSからのメッセージを処理する
-        if (!m_Window.ProcessMessages()) {
+        if (!m_Window.ProcessMessages())
+        {
             m_isRunning = false;
             break;
         }
@@ -80,11 +88,11 @@ void Application::MainLoop() {
 
         // 5. 描画処理
         // 最小化中は描画処理をスキップする
-        if (m_Window.IsMinimized()) {
+        if (m_Window.IsMinimized())
+        {
             // 最小化中はCPU使用率を下げるために待機する
             // QS_ALLINPUT：あらゆる入力/メッセージで反応
-            MsgWaitForMultipleObjectsEx(
-                0, nullptr, 100, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
+            MsgWaitForMultipleObjectsEx(0, nullptr, 100, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
 
             continue;
         }

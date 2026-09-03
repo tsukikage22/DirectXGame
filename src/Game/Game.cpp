@@ -9,30 +9,35 @@
 #include "Engine/Scene/Scene.h"
 #include "Game/CameraController.h"
 
-Game::Game()
-    : m_pEngine(nullptr),
-      m_pCameraController(std::make_unique<CameraController>()) {}
+Game::Game() : m_pEngine(nullptr), m_pCameraController(std::make_unique<CameraController>())
+{
+}
 
-Game::~Game() {}
+Game::~Game()
+{
+}
 
-void Game::Init(Engine* pEngine) {
+void Game::Init(Engine* pEngine)
+{
     m_pEngine      = pEngine;
     m_pInputSystem = &m_pEngine->GetInputSystem();
 
     m_pCameraController = std::make_unique<CameraController>();
 
     // カメラコントローラの初期化
-    m_pCameraController->Init(
-        &m_pEngine->GetScene().GetCamera(), &m_pEngine->GetInputSystem());
+    m_pCameraController->Init(&m_pEngine->GetScene().GetCamera(), &m_pEngine->GetInputSystem());
 
     // EV100 ≒ 10.3
     m_pEngine->GetScene().GetCamera().SetExposure(4.0f, 1.0f / 80.0f, 100.0f);
 
     // HDRIの読み込みとキューブマップの構築
     std::filesystem::path path;
-    if (!AssetPath().GetAssetPath(L"HDRI/venice_sunset_4k.hdr", path)) {
+    if (!AssetPath().GetAssetPath(L"HDRI/venice_sunset_4k.hdr", path))
+    {
         OutputDebugStringW(L"Failed to find HDRI file.\n");
-    } else if (!m_pEngine->BuildEnvironmentMap(path)) {
+    }
+    else if (!m_pEngine->BuildEnvironmentMap(path))
+    {
         OutputDebugStringW(L"Failed to build environment map.\n");
     }
 
@@ -59,7 +64,6 @@ void Game::Init(Engine* pEngine) {
     // ライトの作成
 
     // Directional
-    /*
     {
         m_pEngine->GetScene().SpawnDirectionalLight({
             .direction   = { 0.0f, -1.0f, 0.0f },
@@ -67,7 +71,6 @@ void Game::Init(Engine* pEngine) {
             .illuminance = 2000.0f,
         });
     }
-        */
 
     // 2 Spot lights
     /*
@@ -138,63 +141,78 @@ void Game::Init(Engine* pEngine) {
         */
 }
 
-void Game::Tick(float deltaTime) {
+void Game::Tick(float deltaTime)
+{
     // カメラ操作の更新
-    if (m_pCameraController) {
+    if (m_pCameraController)
+    {
         m_pCameraController->Update(deltaTime);
     }
 
     // ゲームオブジェクトの生成削除
-    if (m_pInputSystem->WasKeyPressed('1')) {
-        if (!m_testSphereObject.IsValid()) {
-            m_testSphereObject =
-                m_pEngine->GetScene().SpawnObject(m_testSphereModel);
-        } else {
+    if (m_pInputSystem->WasKeyPressed('1'))
+    {
+        if (!m_testSphereObject.IsValid())
+        {
+            m_testSphereObject = m_pEngine->GetScene().SpawnObject(m_testSphereModel);
+        }
+        else
+        {
             m_pEngine->GetScene().DespawnObject(m_testSphereObject);
             m_testSphereObject = {};
         }
     }
 
-    if (m_pInputSystem->WasKeyPressed('2')) {
-        if (!m_appleObject.IsValid()) {
+    if (m_pInputSystem->WasKeyPressed('2'))
+    {
+        if (!m_appleObject.IsValid())
+        {
             m_appleObject = m_pEngine->GetScene().SpawnObject(m_appleModel);
-            m_pEngine->GetScene()
-                .GetObject(m_appleObject)
-                ->GetTransform()
-                .SetScale({ 3.0f, 3.0f, 3.0f });
-        } else {
+            m_pEngine->GetScene().GetObject(m_appleObject)->GetTransform().SetScale({ 3.0f, 3.0f, 3.0f });
+        }
+        else
+        {
             m_pEngine->GetScene().DespawnObject(m_appleObject);
             m_appleObject = {};
         }
     }
 
-    if (m_pInputSystem->WasKeyPressed('3')) {
-        if (!m_katanaObject.IsValid()) {
+    if (m_pInputSystem->WasKeyPressed('3'))
+    {
+        if (!m_katanaObject.IsValid())
+        {
             m_katanaObject = m_pEngine->GetScene().SpawnObject(m_katanaModel);
-        } else {
+        }
+        else
+        {
             m_pEngine->GetScene().DespawnObject(m_katanaObject);
             m_katanaObject = {};
         }
     }
 
-    if (m_pInputSystem->WasKeyPressed('4')) {
-        if (!m_planeObject.IsValid()) {
+    if (m_pInputSystem->WasKeyPressed('4'))
+    {
+        if (!m_planeObject.IsValid())
+        {
             m_planeObject = m_pEngine->GetScene().SpawnObject(m_planeModel);
-            m_pEngine->GetScene()
-                .GetObject(m_planeObject)
-                ->GetTransform()
-                .SetPosition({ 0.0f, -1.0f, 0.0f });
-        } else {
+            m_pEngine->GetScene().GetObject(m_planeObject)->GetTransform().SetPosition({ 0.0f, -1.0f, 0.0f });
+            m_pEngine->GetScene().GetObject(m_planeObject)->GetTransform().SetScale({ 10.0f, 10.0f, 10.0f });
+        }
+        else
+        {
             m_pEngine->GetScene().DespawnObject(m_planeObject);
             m_planeObject = {};
         }
     }
 
-    if (m_pInputSystem->WasKeyPressed('5')) {
-        if (!m_normalTestObject.IsValid()) {
-            m_normalTestObject =
-                m_pEngine->GetScene().SpawnObject(m_normalTestModel);
-        } else {
+    if (m_pInputSystem->WasKeyPressed('5'))
+    {
+        if (!m_normalTestObject.IsValid())
+        {
+            m_normalTestObject = m_pEngine->GetScene().SpawnObject(m_normalTestModel);
+        }
+        else
+        {
             m_pEngine->GetScene().DespawnObject(m_normalTestObject);
             m_normalTestObject = {};
         }

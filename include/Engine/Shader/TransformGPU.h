@@ -4,11 +4,12 @@
 
 #include <DirectXMath.h>
 
-#include "Engine/Graphics/ConstantBuffer.h"
 #include "Engine/Core/DescriptorPool.h"
+#include "Engine/Graphics/ConstantBuffer.h"
 #include "Engine/Shader/ShaderConstants.h"
 
-class TransformGPU {
+class TransformGPU
+{
 public:
     TransformGPU();
     ~TransformGPU();
@@ -17,8 +18,8 @@ public:
     /// @param pDevice デバイス
     /// @param pPoolCBV 定数バッファ用のディスクリプタプール
     /// @return 成功したらtrue
-    bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
-        const DirectX::XMMATRIX& world = DirectX::XMMatrixIdentity());
+    bool Init(
+        ID3D12Device* pDevice, DescriptorPool* pPoolCBV, const DirectX::XMMATRIX& world = DirectX::XMMatrixIdentity());
 
     /// @brief 終了処理，リソースの解放
     void Term();
@@ -31,18 +32,20 @@ public:
     // アクセサ
     //========================================
     /// @brief GPUディスクリプタハンドルの取得
-    D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const {
+    D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const
+    {
         return m_constantBuffer.GetGPUHandle();
     }
 
     /// @brief GPU仮想アドレスの取得
-    D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const {
+    D3D12_GPU_VIRTUAL_ADDRESS GetGPUAddress() const
+    {
         return m_constantBuffer.GetGPUVirtualAddress();
     }
 
 private:
-    ConstantBuffer m_constantBuffer;         // ワールド行列用の定数バッファ
-    shader::TransformConstants m_constants;  // 定数バッファ用データ
+    ConstantBuffer m_constantBuffer;        // ワールド行列用の定数バッファ
+    shader::TransformConstants m_constants; // 定数バッファ用データ
 
     // コピー禁止
     TransformGPU(const TransformGPU&)            = delete;

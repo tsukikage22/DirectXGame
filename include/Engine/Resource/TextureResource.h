@@ -9,7 +9,8 @@
 #include "Engine/Core/ComPtr.h"
 
 /// @brief GPU上のテクスチャリソース
-class TextureResource {
+class TextureResource
+{
 public:
     TextureResource();
     ~TextureResource();
@@ -26,15 +27,12 @@ public:
 
     /// @brief 新規テクスチャをDEFAULTヒープ上に作成
     /// @return
-    bool InitAsTexture2D(ID3D12Device* pDevice, UINT width, UINT height,
-        DXGI_FORMAT format, UINT mipLevels, D3D12_RESOURCE_FLAGS flags,
-        D3D12_RESOURCE_STATES initState,
-        const D3D12_CLEAR_VALUE* pClearValue = nullptr);
+    bool InitAsTexture2D(ID3D12Device* pDevice, UINT width, UINT height, DXGI_FORMAT format, UINT mipLevels,
+        D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES initState, const D3D12_CLEAR_VALUE* pClearValue = nullptr);
 
     /// @brief 新規テクスチャ配列をDEFAULTヒープ上に作成
-    bool InitAsTexture2DArray(ID3D12Device* pDevice, UINT width, UINT height,
-        DXGI_FORMAT format, UINT16 arraySize, UINT mipLevels,
-        D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES initState,
+    bool InitAsTexture2DArray(ID3D12Device* pDevice, UINT width, UINT height, DXGI_FORMAT format, UINT16 arraySize,
+        UINT mipLevels, D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES initState,
         const D3D12_CLEAR_VALUE* pClearValue = nullptr);
 
     /// @brief リソースの解放
@@ -43,21 +41,26 @@ public:
     //=======================================
     // アクセサ
     //=======================================
-    ID3D12Resource* GetResource() const { return m_pResource.Get(); }
+    ID3D12Resource* GetResource() const
+    {
+        return m_pResource.Get();
+    }
 
-    D3D12_RESOURCE_DESC GetDesc() const {
-        if (!m_pResource) {
+    D3D12_RESOURCE_DESC GetDesc() const
+    {
+        if (!m_pResource)
+        {
             assert(false && "Resource is not initialized");
         }
         return m_pResource->GetDesc();
     }
 
 private:
-    engine::ComPtr<ID3D12Resource> m_pResource;  // テクスチャリソース本体
-    uint32_t m_width;                            // テクスチャ幅
-    uint32_t m_height;                           // テクスチャ高さ
-    uint32_t m_mipLevels;                        // ミップレベル数
-    uint32_t m_arraySize;  // 配列サイズ（Texture2DArray用）
+    engine::ComPtr<ID3D12Resource> m_pResource; // テクスチャリソース本体
+    uint32_t m_width;                           // テクスチャ幅
+    uint32_t m_height;                          // テクスチャ高さ
+    uint32_t m_mipLevels;                       // ミップレベル数
+    uint32_t m_arraySize;                       // 配列サイズ（Texture2DArray用）
 
     TextureResource(const TextureResource&)            = delete;
     TextureResource& operator=(const TextureResource&) = delete;

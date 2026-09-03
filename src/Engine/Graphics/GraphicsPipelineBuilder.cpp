@@ -5,13 +5,15 @@
 
 #include "Engine/Core/DxDebug.h"
 
-GraphicsPipelineBuilder::GraphicsPipelineBuilder() : m_pPipelineState() {
+GraphicsPipelineBuilder::GraphicsPipelineBuilder() : m_pPipelineState()
+{
     // デフォルトのパイプライン設定を行う
     SetDefault();
 }
 
 // デフォルトのパイプライン設定
-void GraphicsPipelineBuilder::SetDefault() {
+void GraphicsPipelineBuilder::SetDefault()
+{
     // ラスタライザステートの設定
     D3D12_RASTERIZER_DESC RSdesc = {};
     RSdesc.FillMode              = D3D12_FILL_MODE_SOLID;
@@ -49,7 +51,8 @@ void GraphicsPipelineBuilder::SetDefault() {
     D3D12_BLEND_DESC BSdesc       = {};
     BSdesc.AlphaToCoverageEnable  = FALSE;
     BSdesc.IndependentBlendEnable = FALSE;
-    for (auto i = 0u; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; i++) {
+    for (auto i = 0u; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
+    {
         BSdesc.RenderTarget[i] = RTVdesc;
     }
 
@@ -67,15 +70,16 @@ void GraphicsPipelineBuilder::SetDefault() {
 }
 
 // ルートシグニチャの設定
-GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetRootSignature(
-    ID3D12RootSignature* pRootSignature) {
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetRootSignature(ID3D12RootSignature* pRootSignature)
+{
     m_PSOdesc.pRootSignature = pRootSignature;
     return *this;
 }
 
 // 頂点シェーダーの設定
 GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetVertexShader(
-    const std::byte* pShaderBytecode, std::size_t bytecodeLength) {
+    const std::byte* pShaderBytecode, std::size_t bytecodeLength)
+{
     m_PSOdesc.VS.pShaderBytecode = pShaderBytecode;
     m_PSOdesc.VS.BytecodeLength  = bytecodeLength;
     return *this;
@@ -83,96 +87,122 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetVertexShader(
 
 // ピクセルシェーダーの設定
 GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetPixelShader(
-    const std::byte* pShaderBytecode, std::size_t bytecodeLength) {
+    const std::byte* pShaderBytecode, std::size_t bytecodeLength)
+{
     m_PSOdesc.PS.pShaderBytecode = pShaderBytecode;
     m_PSOdesc.PS.BytecodeLength  = bytecodeLength;
     return *this;
 }
 
 // 入力レイアウトの設定
-GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetInputLayout(
-    const std::vector<D3D12_INPUT_ELEMENT_DESC>& elements) {
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetInputLayout(const std::vector<D3D12_INPUT_ELEMENT_DESC>& elements)
+{
     m_InputElements = elements;
 
     m_PSOdesc.InputLayout.pInputElementDescs = m_InputElements.data();
-    m_PSOdesc.InputLayout.NumElements =
-        static_cast<UINT>(m_InputElements.size());
+    m_PSOdesc.InputLayout.NumElements        = static_cast<UINT>(m_InputElements.size());
     return *this;
 }
 
 // 全RTに指定したBlendModeを設定する
-GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetBlendState(
-    BlendMode blendMode) {
-    for (auto& target : m_PSOdesc.BlendState.RenderTarget) {
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetBlendState(BlendMode blendMode)
+{
+    for (auto& target : m_PSOdesc.BlendState.RenderTarget)
+    {
         target = MakeRenderTargetBlendDesc(blendMode);
     }
     return *this;
 }
 
+// DSVフォーマットを設定する
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDSVFormat(DXGI_FORMAT format)
+{
+    m_PSOdesc.DSVFormat = format;
+    return *this;
+}
+
 // 深度バッファの設定を行う
-GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDepthMode(
-    DepthMode depthMode) {
-    switch (depthMode) {
-        case DepthMode::Default:
-            m_PSOdesc.DepthStencilState.DepthEnable = TRUE;
-            m_PSOdesc.DepthStencilState.DepthWriteMask =
-                D3D12_DEPTH_WRITE_MASK_ALL;
-            m_PSOdesc.DSVFormat = config::kDepthBufferFormat;
-            break;
-        case DepthMode::ReadOnly:
-            m_PSOdesc.DepthStencilState.DepthEnable = TRUE;
-            m_PSOdesc.DepthStencilState.DepthWriteMask =
-                D3D12_DEPTH_WRITE_MASK_ZERO;
-            m_PSOdesc.DSVFormat = config::kDepthBufferFormat;
-            break;
-        case DepthMode::Disabled:
-            m_PSOdesc.DepthStencilState.DepthEnable = FALSE;
-            m_PSOdesc.DepthStencilState.DepthWriteMask =
-                D3D12_DEPTH_WRITE_MASK_ZERO;
-            m_PSOdesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
-            break;
-        default:
-            assert(false && "Invalid DepthMode");
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDepthMode(DepthMode depthMode)
+{
+    switch (depthMode)
+    {
+    case DepthMode::Default:
+        m_PSOdesc.DepthStencilState.DepthEnable    = TRUE;
+        m_PSOdesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+        break;
+    case DepthMode::ReadOnly:
+        m_PSOdesc.DepthStencilState.DepthEnable    = TRUE;
+        m_PSOdesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+        break;
+    case DepthMode::Disabled:
+        m_PSOdesc.DepthStencilState.DepthEnable    = FALSE;
+        m_PSOdesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+        m_PSOdesc.DSVFormat                        = DXGI_FORMAT_UNKNOWN;
+        break;
+    default:
+        assert(false && "Invalid DepthMode");
     }
     return *this;
 }
 
+// 深度クリップの有効/無効を設定する
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDepthClipEnable(bool enable)
+{
+    m_PSOdesc.RasterizerState.DepthClipEnable = enable;
+    return *this;
+}
+
 // RTLayout定数からPSOの設定を行う
-GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetRenderTargetLayout(
-    const RenderTargetLayout& layout) {
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetRenderTargetLayout(const RenderTargetLayout& layout)
+{
     m_PSOdesc.NumRenderTargets = layout.numRenderTargets;
-    std::copy(layout.rtvFormats.begin(), layout.rtvFormats.end(),
-        m_PSOdesc.RTVFormats);
+    std::copy(layout.rtvFormats.begin(), layout.rtvFormats.end(), m_PSOdesc.RTVFormats);
     m_PSOdesc.SampleDesc.Count   = layout.sampleCount;
     m_PSOdesc.SampleDesc.Quality = 0;
 
     return *this;
 }
 
+// カリングモードを設定する
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetCullMode(D3D12_CULL_MODE cullMode)
+{
+    m_PSOdesc.RasterizerState.CullMode = cullMode;
+    return *this;
+}
+
+// 深度バイアスを設定する
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDepthBias(
+    int depthBias, float depthBiasClamp, float slopeScaledDepthBias)
+{
+    m_PSOdesc.RasterizerState.DepthBias            = depthBias;
+    m_PSOdesc.RasterizerState.DepthBiasClamp       = depthBiasClamp;
+    m_PSOdesc.RasterizerState.SlopeScaledDepthBias = slopeScaledDepthBias;
+    return *this;
+}
+
 // パイプラインステートの生成
-bool GraphicsPipelineBuilder::Build(ID3D12Device* pDevice) {
-    // 頂点シェーダーとピクセルシェーダーが設定されているか
-    assert(m_PSOdesc.VS.pShaderBytecode != nullptr &&
-           m_PSOdesc.PS.pShaderBytecode != nullptr &&
-           "Vertex shader and pixel shader must be set before building the "
-           "pipeline state.");
+bool GraphicsPipelineBuilder::Build(ID3D12Device* pDevice)
+{
+    // 頂点シェーダーが設定されているか
+    // 深度専用パスではピクセルシェーダーを使わないため，ピクセルシェーダーの設定は必須ではない
+    assert(m_PSOdesc.VS.pShaderBytecode != nullptr && "Vertex shader must be set before building the pipeline state.");
+
+    // レンダーターゲットが設定されている場合はピクセルシェーダーが設定されている必要がある
+    assert((m_PSOdesc.PS.pShaderBytecode != nullptr || m_PSOdesc.NumRenderTargets == 0) &&
+           "Pixel shader must be set when render targets are used.");
 
     // ルートシグニチャが設定されているか
-    assert(m_PSOdesc.pRootSignature != nullptr &&
-           "Root signature must be set before building the pipeline state.");
+    assert(m_PSOdesc.pRootSignature != nullptr && "Root signature must be set before building the pipeline state.");
 
     // 深度を使う場合はDSVフォーマットが設定されているか
-    const bool depthUsed = m_PSOdesc.DepthStencilState.DepthEnable ||
-                           m_PSOdesc.DepthStencilState.StencilEnable;
+    const bool depthUsed = m_PSOdesc.DepthStencilState.DepthEnable || m_PSOdesc.DepthStencilState.StencilEnable;
     const bool hasDSV    = (m_PSOdesc.DSVFormat != DXGI_FORMAT_UNKNOWN);
 
-    assert((!depthUsed || hasDSV) &&
-           "DSV format is required when depth or stencil is enabled");
+    assert((!depthUsed || hasDSV) && "DSV format is required when depth or stencil is enabled");
 
     // パイプラインステートの生成
-    CHECK_HR(
-        pDevice, pDevice->CreateGraphicsPipelineState(&m_PSOdesc,
-                     IID_PPV_ARGS(m_pPipelineState.ReleaseAndGetAddressOf())));
+    CHECK_HR(pDevice,
+        pDevice->CreateGraphicsPipelineState(&m_PSOdesc, IID_PPV_ARGS(m_pPipelineState.ReleaseAndGetAddressOf())));
 
     return true;
 }

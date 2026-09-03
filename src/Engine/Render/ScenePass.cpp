@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Engine/Core/DxDebug.h"
+#include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/GraphicsDevice.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
 #include "Engine/Graphics/RootSignatureBuilder.h"
@@ -13,7 +14,8 @@
 #include "Engine/Resource/ShaderLoader.h"
 #include "Engine/Scene/Scene.h"
 
-bool ScenePass::Init(GraphicsDevice& device) {
+bool ScenePass::Init(GraphicsDevice& device)
+{
     m_pDevice = &device;
 
     // ルートシグネチャの生成
@@ -23,39 +25,38 @@ bool ScenePass::Init(GraphicsDevice& device) {
         // SRVのレンジを作成
         // [t0-t4, space0] PBR Textures (Descriptor Table SRV)
         std::vector<D3D12_DESCRIPTOR_RANGE1> range;
-        range.push_back(
-            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                5, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
+        range.push_back(RootSignatureBuilder::CreateRange(
+            D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 5, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
 
         // [t0, space1] IES Profile Texture(Descriptor Table SRV)
         std::vector<D3D12_DESCRIPTOR_RANGE1> iesRange;
-        iesRange.push_back(
-            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                1, 0, 1, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
+        iesRange.push_back(RootSignatureBuilder::CreateRange(
+            D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 1, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
 
         // [t0, space2] Light StructuredBuffer (Descriptor Table SRV)
         std::vector<D3D12_DESCRIPTOR_RANGE1> lightRange;
         lightRange.push_back(RootSignatureBuilder::CreateRange(
-            D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 2,
-            D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE));
+            D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 2, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE));
 
         // [t0, space3] irradiance map (Descriptor Table SRV)
         std::vector<D3D12_DESCRIPTOR_RANGE1> irradianceRange;
-        irradianceRange.push_back(
-            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                1, 0, 3, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
+        irradianceRange.push_back(RootSignatureBuilder::CreateRange(
+            D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 3, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
 
         // [t1, space3] prefiltered map (Descriptor Table SRV)
         std::vector<D3D12_DESCRIPTOR_RANGE1> prefilteredRange;
-        prefilteredRange.push_back(
-            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                1, 1, 3, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
+        prefilteredRange.push_back(RootSignatureBuilder::CreateRange(
+            D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1, 3, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
 
         // [t2, space3] BRDF LUT (Descriptor Table SRV)
         std::vector<D3D12_DESCRIPTOR_RANGE1> brdfLutRange;
-        brdfLutRange.push_back(
-            RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                1, 2, 3, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
+        brdfLutRange.push_back(RootSignatureBuilder::CreateRange(
+            D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2, 3, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
+
+        // [t0, space4] Shadow Map (Descriptor Table SRV)
+        std::vector<D3D12_DESCRIPTOR_RANGE1> shadowMapRange;
+        shadowMapRange.push_back(RootSignatureBuilder::CreateRange(
+            D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 4, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE));
 
         // ルートシグニチャ構成
         // [b0] SceneConstants (Root CBV)
@@ -69,16 +70,14 @@ bool ScenePass::Init(GraphicsDevice& device) {
         // [t0, space3] irradiance map (Descriptor Table SRV)
         // [t1, space3] prefiltered map (Descriptor Table SRV)
         // [t2, space3] BRDF LUT (Descriptor Table SRV)
+        // [t0, space4] Shadow Map (Descriptor Table SRV)
         // [s0] Default Sampler (Static Sampler)
         // [s1] IES Profile Sampler (Static Sampler)
         // [s2] irradiance/LUT Sampler (Static Sampler)
-        builder
-            .SetFlags(
-                D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)
-            .AddCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL,
-                D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
-            .AddCBV(1, 0, D3D12_SHADER_VISIBILITY_VERTEX,
-                D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
+        // [s3] Shadow Map Sampler (Static Sampler)
+        builder.SetFlags(D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)
+            .AddCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
+            .AddCBV(1, 0, D3D12_SHADER_VISIBILITY_VERTEX, D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
             .AddCBV(2, 0, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL)
@@ -87,18 +86,38 @@ bool ScenePass::Init(GraphicsDevice& device) {
             .AddDescriptorTable(irradianceRange, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(prefilteredRange, D3D12_SHADER_VISIBILITY_PIXEL)
             .AddDescriptorTable(brdfLutRange, D3D12_SHADER_VISIBILITY_PIXEL)
-            .AddStaticSampler(0)
-            .AddStaticSampler(1, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // 垂直角は端で止める
-                D3D12_TEXTURE_ADDRESS_MODE_WRAP,   // 水平角は0-360°でループする
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP)
-            .AddStaticSampler(2, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
-                D3D12_TEXTURE_ADDRESS_MODE_CLAMP, 0,
-                D3D12_SHADER_VISIBILITY_PIXEL);
+            .AddDescriptorTable(shadowMapRange, D3D12_SHADER_VISIBILITY_PIXEL)
+            .AddStaticSampler({
+                .shaderRegister = 0,
+            })
+            .AddStaticSampler({
+                .shaderRegister = 1,
+                .filter         = D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+                // 垂直角は端で止める
+                .addressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                // 水平角は0-360°でループする
+                .addressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+                .addressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            })
+            .AddStaticSampler({
+                .shaderRegister = 2,
+                .filter         = D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+                .addressU       = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                .addressV       = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                .addressW       = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            })
+            .AddStaticSampler({
+                .shaderRegister = 3,
+                .filter         = D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
+                .addressU       = D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+                .addressV       = D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+                .addressW       = D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+                .comparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL,
+                .borderColor    = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE,
+            });
 
-        if (!builder.Build(m_pDevice->GetDevice())) {
+        if (!builder.Build(m_pDevice->GetDevice()))
+        {
             OutputDebugStringW(L"Failed to build root signature.\n");
             return false;
         }
@@ -111,8 +130,8 @@ bool ScenePass::Init(GraphicsDevice& device) {
         // シェーダーの読み込み
         std::vector<std::byte> vsData;
         std::vector<std::byte> psData;
-        if (!LoadShader(L"shader/SceneVS.cso", vsData) ||
-            !LoadShader(L"shader/ScenePS.cso", psData)) {
+        if (!LoadShader(L"shader/SceneVS.cso", vsData) || !LoadShader(L"shader/ScenePS.cso", psData))
+        {
             OutputDebugStringW(L"Failed to load shaders.\n");
             return false;
         }
@@ -125,9 +144,11 @@ bool ScenePass::Init(GraphicsDevice& device) {
             .SetInputLayout(StandardVertex::GetInputLayout())
             .SetBlendState(BlendMode::Opaque)
             .SetDepthMode(DepthMode::Default)
+            .SetDSVFormat(config::kDepthBufferFormat)
             .SetRenderTargetLayout(kSceneLayout);
 
-        if (!pipelineBuilder.Build(m_pDevice->GetDevice())) {
+        if (!pipelineBuilder.Build(m_pDevice->GetDevice()))
+        {
             OutputDebugStringW(L"Failed to build graphics pipeline state.\n");
             return false;
         }
@@ -138,14 +159,16 @@ bool ScenePass::Init(GraphicsDevice& device) {
     return true;
 }
 
-void ScenePass::Term() {
+void ScenePass::Term()
+{
     m_pDevice = nullptr;
 
     m_pPSO.Reset();
     m_pRootSignature.Reset();
 }
 
-void ScenePass::Draw(const ScenePassBindings& passBindings, Scene& scene) {
+void ScenePass::Draw(const ScenePassBindings& passBindings, Scene& scene)
+{
     auto pCmdList = passBindings.pCmdList;
 
     // パイプライン設定
@@ -156,32 +179,28 @@ void ScenePass::Draw(const ScenePassBindings& passBindings, Scene& scene) {
     pCmdList->SetDescriptorHeaps(1, ppHeaps);
 
     // [b0] SceneConstants (共通)
-    pCmdList->SetGraphicsRootConstantBufferView(
-        RootParam::CBV_Scene, passBindings.sceneCB);
+    pCmdList->SetGraphicsRootConstantBufferView(RootParam::CBV_Scene, passBindings.sceneCB);
 
     // [b3] DisplayConstants (共通)
-    pCmdList->SetGraphicsRootConstantBufferView(
-        RootParam::CBV_Display, passBindings.displayCB);
+    pCmdList->SetGraphicsRootConstantBufferView(RootParam::CBV_Display, passBindings.displayCB);
 
     // [t0, space1] IESプロファイルテクスチャ (共通)
-    pCmdList->SetGraphicsRootDescriptorTable(
-        RootParam::SRV_IESProfile, passBindings.iesSRV);
+    pCmdList->SetGraphicsRootDescriptorTable(RootParam::SRV_IESProfile, passBindings.iesSRV);
 
     // [t0, space2] Light StructuredBuffer (共通)
-    pCmdList->SetGraphicsRootDescriptorTable(
-        RootParam::SRV_Lights, passBindings.lightSRV);
+    pCmdList->SetGraphicsRootDescriptorTable(RootParam::SRV_Lights, passBindings.lightSRV);
 
     // [t0, space3] irradiance map (共通)
-    pCmdList->SetGraphicsRootDescriptorTable(
-        RootParam::SRV_Irradiance, passBindings.irradianceSRV);
+    pCmdList->SetGraphicsRootDescriptorTable(RootParam::SRV_Irradiance, passBindings.irradianceSRV);
 
     // [t1, space3] prefiltered env map (共通)
-    pCmdList->SetGraphicsRootDescriptorTable(
-        RootParam::SRV_Prefiltered, passBindings.prefilteredSRV);
+    pCmdList->SetGraphicsRootDescriptorTable(RootParam::SRV_Prefiltered, passBindings.prefilteredSRV);
 
     // [t2, space3] BRDF LUT (共通)
-    pCmdList->SetGraphicsRootDescriptorTable(
-        RootParam::SRV_BrdfLut, passBindings.brdfLutSRV);
+    pCmdList->SetGraphicsRootDescriptorTable(RootParam::SRV_BrdfLut, passBindings.brdfLutSRV);
+
+    // [t0, space4] Shadow Map (共通)
+    pCmdList->SetGraphicsRootDescriptorTable(RootParam::SRV_ShadowMap, passBindings.shadowMapSRV);
 
     // PrimitiveTopologyの指定
     pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -189,33 +208,35 @@ void ScenePass::Draw(const ScenePassBindings& passBindings, Scene& scene) {
     // 全オブジェクトを描画
     scene.ForEachObject([&](GameObject& obj) {
         // [b1] TransformConstants (モデル単位)
-        pCmdList->SetGraphicsRootConstantBufferView(RootParam::CBV_Transform,
-            obj.GetTransformGPU(passBindings.frameIndex).GetGPUAddress());
+        pCmdList->SetGraphicsRootConstantBufferView(
+            RootParam::CBV_Transform, obj.GetTransformGPU(passBindings.frameIndex).GetGPUAddress());
 
         // 各メッシュを描画
         const auto model = scene.GetModel(obj.GetModelHandle());
-        if (model == nullptr) return;
+        if (model == nullptr)
+            return;
         const auto& meshes    = model->GetMeshes();
         const auto& materials = model->GetMaterials();
-        for (auto& mesh : meshes) {
+        for (auto& mesh : meshes)
+        {
             // このメッシュが使うマテリアルを取得
             uint32_t materialID = mesh->GetMaterialID();
 
             // マテリアルが存在しない場合は描画しない
-            if (materialID >= materials.size() ||
-                materials[materialID] == nullptr) {
+            if (materialID >= materials.size() || materials[materialID] == nullptr)
+            {
                 assert(false && "Mesh has no valid material.");
                 continue;
             }
 
             // マテリアルをバインド
             // [b2] MaterialConstants (マテリアル単位)
-            pCmdList->SetGraphicsRootConstantBufferView(RootParam::CBV_Material,
-                materials[materialID]->GetConstantBufferGPUAddress());
+            pCmdList->SetGraphicsRootConstantBufferView(
+                RootParam::CBV_Material, materials[materialID]->GetConstantBufferGPUAddress());
 
             // [t0-t4] PBR Textures
-            pCmdList->SetGraphicsRootDescriptorTable(RootParam::SRV_Texture,
-                materials[materialID]->GetSrvTableBaseGPUHandle());
+            pCmdList->SetGraphicsRootDescriptorTable(
+                RootParam::SRV_Texture, materials[materialID]->GetSrvTableBaseGPUHandle());
 
             // 頂点バッファ・インデックスバッファの設定
             auto vbv = mesh->GetVertexBufferView();

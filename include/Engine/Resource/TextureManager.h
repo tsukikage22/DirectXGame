@@ -15,10 +15,14 @@
 #include "Engine/Resource/TextureResource.h"
 
 /// @brief テクスチャの所有とハンドル管理
-class TextureManager {
+class TextureManager
+{
 public:
     TextureManager();
-    ~TextureManager() { Term(); }
+    ~TextureManager()
+    {
+        Term();
+    }
 
     bool Init(ID3D12Device* pDevice);
 
@@ -26,8 +30,7 @@ public:
 
     /// @brief
     /// ModelAssetからのテクスチャ構築とマテリアル内テクスチャハンドルの解決
-    void BuildTexturesFromModelAsset(
-        ModelAsset& modelAsset, DirectX::ResourceUploadBatch& batch);
+    void BuildTexturesFromModelAsset(ModelAsset& modelAsset, DirectX::ResourceUploadBatch& batch);
 
     //=========================================
     // デフォルトテクスチャの取得
@@ -40,13 +43,11 @@ public:
     //=========================================
     /// @brief ImageAssetからテクスチャを生成
     /// @return 生成したテクスチャのインデックス
-    uint32_t CreateFromImageAsset(
-        const ImageAsset& image, DirectX::ResourceUploadBatch& batch);
+    uint32_t CreateFromImageAsset(const ImageAsset& image, DirectX::ResourceUploadBatch& batch);
 
     /// @brief 単色テクスチャの生成
-    bool CreateSolidColorTexture(DirectX::ResourceUploadBatch& batch, uint8_t r,
-        uint8_t g, uint8_t b, uint8_t a, DescriptorPool* poolSRV,
-        ShaderResourceTexture& outTexture);
+    bool CreateSolidColorTexture(DirectX::ResourceUploadBatch& batch, uint8_t r, uint8_t g, uint8_t b, uint8_t a,
+        DescriptorPool* poolSRV, ShaderResourceTexture& outTexture);
 
     /// @brief デフォルトテクスチャすべての生成
     bool CreateDefaultTextures(DirectX::ResourceUploadBatch& batch);
@@ -59,7 +60,10 @@ public:
     ShaderResourceTexture* GetTexture(uint32_t index);
 
     /// @brief テクスチャ数の取得
-    size_t GetTextureCount() const { return m_textures.size(); }
+    size_t GetTextureCount() const
+    {
+        return m_textures.size();
+    }
 
     /// @brief SRVハンドルの取得
     D3D12_GPU_DESCRIPTOR_HANDLE GetSrvGPUHandle(TextureHandle handle) const;
@@ -67,10 +71,9 @@ public:
     D3D12_CPU_DESCRIPTOR_HANDLE GetSrvCpuHandle(TextureHandle handle) const;
 
 private:
-    ID3D12Device* m_pDevice;  // デバイス
-    std::unique_ptr<DescriptorPool>
-        m_pPoolAssetSRV;  // アセットSRV用ディスクリプタプール（ステージングに使う）
-    std::vector<ShaderResourceTexture> m_textures;  // テクスチャプール
+    ID3D12Device* m_pDevice;                         // デバイス
+    std::unique_ptr<DescriptorPool> m_pPoolAssetSRV; // アセットSRV用ディスクリプタプール（ステージングに使う）
+    std::vector<ShaderResourceTexture> m_textures;   // テクスチャプール
 
     // デフォルトテクスチャ
     std::unique_ptr<ShaderResourceTexture> m_pDefaultWhiteTexture;

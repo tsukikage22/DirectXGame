@@ -1,5 +1,5 @@
-/// @file CompositePass.h
-/// @brief UI合成パス
+/// @file ShadowPass.h
+/// @brief シャドウマップの描画パス
 
 #pragma once
 
@@ -7,34 +7,32 @@
 
 #include "Engine/Core/ComPtr.h"
 
-// 前方宣言
-struct CompositePassBindings;
 class GraphicsDevice;
+class Scene;
+struct ShadowPassBindings;
 
-class CompositePass
+class ShadowPass
 {
 public:
-    CompositePass()  = default;
-    ~CompositePass() = default;
+    ShadowPass()  = default;
+    ~ShadowPass() = default;
 
     /// @brief PSOとRSの構築
     /// @param device デバイス
     /// @return 成功した場合はtrue，失敗した場合はfalse
     bool Init(GraphicsDevice& device);
 
-    /// @brief 終了処理
     void Term();
 
     /// @brief 描画コマンドの記録
-    void Draw(const CompositePassBindings& passBindings);
+    /// @param passBindings パスバインディング
+    void Draw(const ShadowPassBindings& passBindings, Scene& scene);
 
 private:
-    // ルートシグネチャ内でのルートパラメータ番号
-    // Addxxxの呼び出し順と一致させる
     enum RootParam
     {
-        CBV_Display = 0, // b3
-        SRV_UI      = 1, // t0
+        CBV_Scene     = 0, // b0
+        CBV_Transform = 1, // b1
     };
 
     GraphicsDevice* m_pDevice = nullptr;

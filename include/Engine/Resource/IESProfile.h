@@ -19,31 +19,33 @@ class GraphicsDevice;
 //-----------------------------------------------
 // Light Source Structure
 //-----------------------------------------------
-struct IESProfileData {
-    int lampCount;  // ランプ数
+struct IESProfileData
+{
+    int lampCount; // ランプ数
 
-    float lumensPerLamp;      // ランプあたりの光束
-    float candelaMultiplier;  // 乗算係数
+    float lumensPerLamp;     // ランプあたりの光束
+    float candelaMultiplier; // 乗算係数
 
-    int photometricType;  // 測定座標系
-    int unitType;         // 単位
+    int photometricType; // 測定座標系
+    int unitType;        // 単位
 
-    float shapeWidth;   // 形状横幅
-    float shapeLength;  // 形状奥行
-    float shapeHeight;  // 形状高さ
+    float shapeWidth;  // 形状横幅
+    float shapeLength; // 形状奥行
+    float shapeHeight; // 形状高さ
 
-    float ballastFactor;  // 安定器光出力係数
-    float inputWattage;   // 入力ワット数
+    float ballastFactor; // 安定器光出力係数
+    float inputWattage;  // 入力ワット数
 
-    std::vector<float> anglesV;  // 垂直角
-    std::vector<float> anglesH;  // 水平角
-    std::vector<float> candela;  // カンデラ値
+    std::vector<float> anglesV; // 垂直角
+    std::vector<float> anglesH; // 水平角
+    std::vector<float> candela; // カンデラ値
 
-    float maxCandela;   // 最大カンデラ値
-    float meanCandela;  // 全球平均光度[cd] 立体角で重み付けした平均
+    float maxCandela;  // 最大カンデラ値
+    float meanCandela; // 全球平均光度[cd] 立体角で重み付けした平均
 };
 
-class IESProfile {
+class IESProfile
+{
 public:
     IESProfile() = default;
     ~IESProfile();
@@ -56,26 +58,28 @@ public:
 
     /// @brief IESProfileを読み込み，テクスチャを追加する
     /// @return 作成したテクスチャのインデックス（Lightに渡す）
-    std::optional<uint32_t> CreateIESTexture(
-        const std::filesystem::path& path, DirectX::ResourceUploadBatch& batch);
+    std::optional<uint32_t> CreateIESTexture(const std::filesystem::path& path, DirectX::ResourceUploadBatch& batch);
 
     //------------------------------------------------
     // アクセサ
     //------------------------------------------------
     D3D12_GPU_DESCRIPTOR_HANDLE GetSrvGpuHandle() const;
-    uint32_t GetCount() const { return m_count; }
+    uint32_t GetCount() const
+    {
+        return m_count;
+    }
 
 private:
-    constexpr static uint32_t kMaxIESProfiles = 8;  // 最大IESプロファイル数
-    constexpr static uint32_t kWidth  = 256;  // テクスチャの幅 θ（垂直角）
-    constexpr static uint32_t kHeight = 128;  // テクスチャの高さ φ（水平角）
+    constexpr static uint32_t kMaxIESProfiles = 8;   // 最大IESプロファイル数
+    constexpr static uint32_t kWidth          = 256; // テクスチャの幅 θ（垂直角）
+    constexpr static uint32_t kHeight         = 128; // テクスチャの高さ φ（水平角）
 
-    TextureResource m_textureArray;        // IESプロファイルのテクスチャ
-    DescriptorAllocation m_srv;            // SRVディスクリプタ
-    DescriptorPool* m_pPoolSRV = nullptr;  // ディスクリプタプール
-    ID3D12Device* m_pDevice    = nullptr;  // デバイス
+    TextureResource m_textureArray;       // IESプロファイルのテクスチャ
+    DescriptorAllocation m_srv;           // SRVディスクリプタ
+    DescriptorPool* m_pPoolSRV = nullptr; // ディスクリプタプール
+    ID3D12Device* m_pDevice    = nullptr; // デバイス
 
-    uint32_t m_count = 0;  // 読み込まれたIESプロファイルの数
+    uint32_t m_count = 0; // 読み込まれたIESプロファイルの数
 
     // コピー禁止
     IESProfile(const IESProfile&)            = delete;

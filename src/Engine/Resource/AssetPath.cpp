@@ -2,7 +2,8 @@
 #include "Engine/Resource/AssetPath.h"
 
 // 検索パスを初期化
-void AssetPath::InitSearchPaths() {
+void AssetPath::InitSearchPaths()
+{
     // 実行ファイルのパスを取得
     wchar_t exePath[MAX_PATH] = {};
     GetModuleFileNameW(nullptr, exePath, MAX_PATH);
@@ -16,18 +17,22 @@ void AssetPath::InitSearchPaths() {
 }
 
 // 検索パスを追加
-void AssetPath::AddSearchPath(const std::filesystem::path& path) {
-    if (std::filesystem::exists(path)) {
+void AssetPath::AddSearchPath(const std::filesystem::path& path)
+{
+    if (std::filesystem::exists(path))
+    {
         m_searchPaths.push_back(path);
     }
 }
 
 // アセットのパスを取得
-bool AssetPath::GetAssetPath(const std::filesystem::path& filename,
-    std::filesystem::path& result) const {
-    for (const auto& base : m_searchPaths) {
+bool AssetPath::GetAssetPath(const std::filesystem::path& filename, std::filesystem::path& result) const
+{
+    for (const auto& base : m_searchPaths)
+    {
         auto fullPath = base / filename;
-        if (std::filesystem::exists(fullPath)) {
+        if (std::filesystem::exists(fullPath))
+        {
             result = fullPath;
             return true;
         }

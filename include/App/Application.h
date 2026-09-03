@@ -8,7 +8,8 @@
 #include "Engine/Engine.h"
 #include "Game/Game.h"
 
-class Application {
+class Application
+{
 public:
     Application();
     ~Application();
@@ -19,19 +20,19 @@ private:
     //==================================
     // private members
     //==================================
-    Window m_Window;           // ウィンドウ
-    Engine m_Engine;           // エンジン
-    Game m_Game;               // ゲームロジック
-    bool m_isRunning = false;  // 実行中フラグ
+    Window m_Window;          // ウィンドウ
+    Engine m_Engine;          // エンジン
+    Game m_Game;              // ゲームロジック
+    bool m_isRunning = false; // 実行中フラグ
 
-    std::chrono::steady_clock::time_point m_lastFrameTime;  // 前フレームの時間
-    float m_deltaTime = 0.0f;  // 前フレームからの経過時間（秒）
+    std::chrono::steady_clock::time_point m_lastFrameTime; // 前フレームの時間
+    float m_deltaTime = 0.0f;                              // 前フレームからの経過時間（秒）
 
     //==================================
     // private methods
     //==================================
-    bool Init();  // 初期化
-    void Term();  // 終了処理
+    bool Init(); // 初期化
+    void Term(); // 終了処理
 
-    void MainLoop();  // メインループ
+    void MainLoop(); // メインループ
 };

@@ -7,7 +7,8 @@
 #include "Engine/Input/InputSystem.h"
 #include "Engine/Scene/Camera.h"
 
-class CameraController {
+class CameraController
+{
 public:
     CameraController();
     ~CameraController();
@@ -29,8 +30,8 @@ private:
     InputSystem* m_pInputSystem;
 
     // パラメータ
-    float m_moveSpeed;    // 移動速度
-    float m_sensitivity;  // マウス感度
-    float m_pitch;        // ピッチ角（度）
-    float m_yaw;          // ヨー角（度）
+    float m_moveSpeed;   // 移動速度
+    float m_sensitivity; // マウス感度
+    float m_pitch;       // ピッチ角（度）
+    float m_yaw;         // ヨー角（度）
 };

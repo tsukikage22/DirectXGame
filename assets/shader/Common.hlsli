@@ -16,6 +16,8 @@
 //   t0 space1 / s1  IES     … Lighting.hlsli
 //   t0 space2  ライトバッファ … Lighting.hlsli
 //   t0 space3  環境マップのirradiance map … IBL.hlsli
+//   t0 space4  シャドウマップ … Shadow.hlsli
+//   s3 シャドウマップ用の比較サンプラー … Shadow.hlsli
 //==============================================================
 
 //==============================================
@@ -34,6 +36,10 @@ static const uint DEBUG_VIEW_AO = 5;
 static const uint DEBUG_VIEW_WHITE = 6;
 static const uint DEBUG_VIEW_DIFFUSE_IBL = 7;
 static const uint DEBUG_VIEW_SPECULAR_IBL = 8;
+static const uint DEBUG_VIEW_SHADOW = 9;
+
+// シャドウマップを生成するライトの無効値
+static const uint INVALID_LIGHT_INDEX = 0xffffffff;
 
 //==============================================================
 // Structures
@@ -61,6 +67,7 @@ struct SceneConstants
     float4x4 view;        // ビュー行列
     float4x4 proj;        // プロジェクション行列
     float4x4 invViewProj; // NDCからワールド座標に変換するための行列
+    float4x4 lightViewProj; // ライトのビュー射影行列（シャドウマップ用）
     float3 cameraPos;     // カメラ位置（ワールド座標系）
     float time;           // 経過時間（秒）
     float exposure;       // 露出
@@ -68,6 +75,13 @@ struct SceneConstants
     uint debugView;       // 表示モード
     float envIntensity;   // 環境マップの輝度スケール係数
     uint prefilteredMipCount; // prefilteredのmip数
+    uint shadowLightIndex; // シャドウマップを生成するライトのインデックス
+};
+
+/// @brief ワールド変換行列構造体
+struct TransformConstants {
+    float4x4 world;
+    float4x4 worldInv;
 };
 
 //==============================================================
@@ -75,5 +89,8 @@ struct SceneConstants
 //==============================================================
 // [b0] シーン定数（View, Projection行列）
 ConstantBuffer<SceneConstants> g_scene: register(b0);
+
+// [b1] ワールド変換行列
+ConstantBuffer<TransformConstants> g_transform: register(b1);
 
 #endif // COMMON_HLSLI

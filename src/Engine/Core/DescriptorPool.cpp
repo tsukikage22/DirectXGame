@@ -4,35 +4,39 @@
 
 #include "Engine/Core/DescriptorAllocation.h"
 
-std::unique_ptr<DescriptorPool> DescriptorPool::Create(ID3D12Device* pDevice,
-    D3D12_DESCRIPTOR_HEAP_TYPE type, D3D12_DESCRIPTOR_HEAP_FLAGS flags,
-    uint32_t capacity) {
+std::unique_ptr<DescriptorPool> DescriptorPool::Create(
+    ID3D12Device* pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type, D3D12_DESCRIPTOR_HEAP_FLAGS flags, uint32_t capacity)
+{
     // 引数チェック
-    if (pDevice == nullptr) {
+    if (pDevice == nullptr)
+    {
         return nullptr;
     }
 
     // プールのインスタンス生成
     std::unique_ptr<DescriptorPool> pool(new (std::nothrow) DescriptorPool());
-    if (!pool) {
+    if (!pool)
+    {
         return nullptr;
     }
 
     // ディスクリプタヒープ生成
-    try {
-        pool->m_pHeap = std::make_unique<DirectX::DescriptorHeap>(
-            pDevice, type, flags, capacity);
-    } catch (const std::exception&) {
+    try
+    {
+        pool->m_pHeap = std::make_unique<DirectX::DescriptorHeap>(pDevice, type, flags, capacity);
+    }
+    catch (const std::exception&)
+    {
         return nullptr;
     }
 
-    pool->m_capacity = capacity;
-    pool->m_shaderVisible =
-        (flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) != 0;
+    pool->m_capacity      = capacity;
+    pool->m_shaderVisible = (flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) != 0;
 
     // フリーリスト作成
     pool->m_free.reserve(capacity);
-    for (uint32_t i = 0; i < capacity; i++) {
+    for (uint32_t i = 0; i < capacity; i++)
+    {
         pool->m_free.push_back(i);
     }
 
@@ -41,24 +45,29 @@ std::unique_ptr<DescriptorPool> DescriptorPool::Create(ID3D12Device* pDevice,
 }
 
 // ディスクリプタプールへの割り当て
-DescriptorAllocation DescriptorPool::Allocate() {
+DescriptorAllocation DescriptorPool::Allocate()
+{
     uint32_t index = ReserveIndex();
     return DescriptorAllocation(this, index);
 }
 
-DescriptorAllocation DescriptorPool::AllocateRange(uint32_t count) {
+DescriptorAllocation DescriptorPool::AllocateRange(uint32_t count)
+{
     // 引数チェック
-    if (count == 0) {
+    if (count == 0)
+    {
         assert(false && "Range count must be greater than 0");
         return DescriptorAllocation(nullptr, UINT32_MAX, 0);
     }
-    if (count == 1) return Allocate();
+    if (count == 1)
+        return Allocate();
 
     // m_freeのデータ競合を防ぐため，mutexで保護する
     // lockがスコープを抜ける時に自動でunlockされる
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    if (m_free.size() < count) {
+    if (m_free.size() < count)
+    {
         assert(false && "Not enough free descriptors");
         return DescriptorAllocation(nullptr, UINT32_MAX, 0);
     }
@@ -67,17 +76,21 @@ DescriptorAllocation DescriptorPool::AllocateRange(uint32_t count) {
     std::sort(m_free.begin(), m_free.end());
 
     // 連続した領域を検索
-    for (size_t i = 0; i + count <= m_free.size(); i++) {
+    for (size_t i = 0; i + count <= m_free.size(); i++)
+    {
         bool continuous = true;
-        for (uint32_t j = 1; j < count; j++) {
+        for (uint32_t j = 1; j < count; j++)
+        {
             // i番目からcount個の要素が連続しているか確認
-            if (m_free[i + j] != m_free[i] + j) {
+            if (m_free[i + j] != m_free[i] + j)
+            {
                 continuous = false;
                 break;
             }
         }
 
-        if (continuous) {
+        if (continuous)
+        {
             uint32_t startIndex = m_free[i];
             // 割り当てた領域をフリーリストから削除
             m_free.erase(m_free.begin() + i, m_free.begin() + i + count);
@@ -93,7 +106,8 @@ DescriptorAllocation DescriptorPool::AllocateRange(uint32_t count) {
 // private methods
 //========================================================================
 // インデックスの確保
-uint32_t DescriptorPool::ReserveIndex() {
+uint32_t DescriptorPool::ReserveIndex()
+{
     // m_freeのデータ競合を防ぐため，mutexで保護する
     // lockがスコープを抜ける時に自動でunlockされる
     std::lock_guard<std::mutex> lock(m_mutex);
@@ -106,22 +120,25 @@ uint32_t DescriptorPool::ReserveIndex() {
 }
 
 // 割り当ての解放
-void DescriptorPool::Free(uint32_t index) {
+void DescriptorPool::Free(uint32_t index)
+{
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    if (index >= m_capacity) return;
+    if (index >= m_capacity)
+        return;
     m_free.push_back(index);
 }
 
 // CPUハンドル取得
-D3D12_CPU_DESCRIPTOR_HANDLE DescriptorPool::GetCPUHandle(uint32_t index) const {
+D3D12_CPU_DESCRIPTOR_HANDLE DescriptorPool::GetCPUHandle(uint32_t index) const
+{
     return m_pHeap->GetCpuHandle(index);
 }
 
 // GPUハンドル取得
-D3D12_GPU_DESCRIPTOR_HANDLE DescriptorPool::GetGPUHandle(uint32_t index) const {
-    assert(m_shaderVisible &&
-           "DescriptorPool: GPU handle requested for non-shader-visible heap");
+D3D12_GPU_DESCRIPTOR_HANDLE DescriptorPool::GetGPUHandle(uint32_t index) const
+{
+    assert(m_shaderVisible && "DescriptorPool: GPU handle requested for non-shader-visible heap");
     return m_pHeap->GetGpuHandle(index);
 }
 
@@ -129,9 +146,12 @@ D3D12_GPU_DESCRIPTOR_HANDLE DescriptorPool::GetGPUHandle(uint32_t index) const {
 // コンストラクタ・デストラクタ
 //========================================================================
 
-DescriptorPool::DescriptorPool() : m_capacity(0), m_shaderVisible(false) {}
+DescriptorPool::DescriptorPool() : m_capacity(0), m_shaderVisible(false)
+{
+}
 
-DescriptorPool::~DescriptorPool() {
+DescriptorPool::~DescriptorPool()
+{
     m_pHeap.reset();
     m_free.clear();
     m_capacity = 0;

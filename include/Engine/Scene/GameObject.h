@@ -8,7 +8,8 @@
 #include "Engine/Scene/Transform.h"
 #include "Engine/Shader/TransformGPU.h"
 
-class GameObject {
+class GameObject
+{
 public:
     GameObject(engine::ModelHandle handle);
     ~GameObject();
@@ -19,18 +20,27 @@ public:
     //=========================================
     // アクセサ
     //=========================================
-    Transform& GetTransform() { return m_transform; }
-    TransformGPU& GetTransformGPU(int frameIndex) {
+    Transform& GetTransform()
+    {
+        return m_transform;
+    }
+    TransformGPU& GetTransformGPU(int frameIndex)
+    {
         return m_transformGPU[frameIndex];
     }
 
-    void SetModelHandle(engine::ModelHandle handle) { m_modelHandle = handle; }
-    const engine::ModelHandle GetModelHandle() const { return m_modelHandle; }
+    void SetModelHandle(engine::ModelHandle handle)
+    {
+        m_modelHandle = handle;
+    }
+    const engine::ModelHandle GetModelHandle() const
+    {
+        return m_modelHandle;
+    }
 
 private:
     Transform m_transform;
-    TransformGPU m_transformGPU
-        [config::kFrameCount];  // ワールド行列のシェーダーリソース
+    TransformGPU m_transformGPU[config::kFrameCount]; // ワールド行列のシェーダーリソース
 
     engine::ModelHandle m_modelHandle;
 };

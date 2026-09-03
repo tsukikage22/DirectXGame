@@ -12,13 +12,14 @@ class TextureManager;
 class MaterialGPU;
 
 /// @brief マテリアル用のSRVテーブルの管理
-class MaterialSrvTable {
+class MaterialSrvTable
+{
 public:
     MaterialSrvTable() = default;
 
     /// @brief SRVプール上の連続領域の確保
-    bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolSRV,
-        const MaterialGPU* pMaterialGPU, TextureManager* pTextureManager);
+    bool Init(ID3D12Device* pDevice, DescriptorPool* pPoolSRV, const MaterialGPU* pMaterialGPU,
+        TextureManager* pTextureManager);
 
     /// @brief 確保した領域の解放
     void Term();
@@ -28,5 +29,5 @@ public:
 
 private:
     DescriptorPool* m_pPoolSRV = nullptr;
-    DescriptorAllocation m_SRVbase;  // SRVテーブルの先頭インデックス
+    DescriptorAllocation m_SRVbase; // SRVテーブルの先頭インデックス
 };

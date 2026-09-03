@@ -10,6 +10,7 @@
 #include "Lighting.hlsli"
 #include "Materials.hlsli"
 #include "IBL.hlsli"
+#include "Shadow.hlsli"
 
 //==============================================================
 // Constants
@@ -32,6 +33,7 @@ struct SurfaceParams {
     float3 N;
     float3 V;
     float2 uv;
+    float shadowFactor;
 };
 
 //==============================================================
@@ -75,6 +77,13 @@ float3 EvaluateDebugView(SurfaceParams surf, float3 finalColor) {
         case DEBUG_VIEW_AO:
             return ToDebugParam(float3(surf.ao, surf.ao, surf.ao));
         case DEBUG_VIEW_WHITE:
+            return finalColor;
+        case DEBUG_VIEW_DIFFUSE_IBL:
+            return finalColor;
+        case DEBUG_VIEW_SPECULAR_IBL:
+            return finalColor;
+        case DEBUG_VIEW_SHADOW:
+            return ToScRGB(surf.shadowFactor.xxx);
         default:
             return finalColor;
     }
@@ -134,6 +143,9 @@ PSOutput main(VSOutput input)
     // ライティング計算
     //==============================================
     float3 litColor = float3(0.0f, 0.0f, 0.0f);
+
+    // デバッグ表示用にシャドウマップの係数を保持する
+    float shadowFactor = 1.0f;
     
     // 光源の数だけループしてfinalColorに加算
     for(uint i=0; i<g_scene.lightCount; i++) {
@@ -148,7 +160,15 @@ PSOutput main(VSOutput input)
 
         // BRDFの計算
         float3 BRDF = EvaluateBRDF(N, V, L, baseColor.rgb, metallic, roughness, F0, energyCompensation);
-        litColor += E * NL * BRDF;
+
+        // ライトがシャドウマップを生成するライトの場合は，影の計算を行う
+        if(g_scene.shadowLightIndex == i) {
+            // シャドウマップの計算
+            shadowFactor = ComputeShadow(input.worldPos);
+            litColor += BRDF * E * NL * shadowFactor;
+        } else {
+            litColor += BRDF * E * NL;
+        }
     }
 
     // デバッグビューがIBLかWhite Furnace Testのときは，IBLの計算結果だけを返す
@@ -178,6 +198,7 @@ PSOutput main(VSOutput input)
     surf.ao = ao;
     surf.N = N;
     surf.V = V;
+    surf.shadowFactor = shadowFactor;
     float3 finalColor = EvaluateDebugView(surf, toneMapped);
 
     output.color = float4(finalColor, baseColor.a);

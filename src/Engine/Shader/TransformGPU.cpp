@@ -1,25 +1,30 @@
 #include "Engine/Shader/TransformGPU.h"
 
 // コンストラクタ
-TransformGPU::TransformGPU() : m_constantBuffer(), m_constants() {
+TransformGPU::TransformGPU() : m_constantBuffer(), m_constants()
+{
     DirectX::XMStoreFloat4x4(&m_constants.world, DirectX::XMMatrixIdentity());
-    DirectX::XMStoreFloat4x4(
-        &m_constants.worldInverse, DirectX::XMMatrixIdentity());
+    DirectX::XMStoreFloat4x4(&m_constants.worldInverse, DirectX::XMMatrixIdentity());
 }
 
 // デストラクタ
-TransformGPU::~TransformGPU() { Term(); }
+TransformGPU::~TransformGPU()
+{
+    Term();
+}
 
 // 初期化処理，定数バッファの作成
-bool TransformGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
-    const DirectX::XMMATRIX& world) {
+bool TransformGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV, const DirectX::XMMATRIX& world)
+{
     // 引数チェック
-    if (pDevice == nullptr || pPoolCBV == nullptr) {
+    if (pDevice == nullptr || pPoolCBV == nullptr)
+    {
         return false;
     }
 
     // 定数バッファの作成
-    if (!m_constantBuffer.Init<shader::TransformConstants>(pDevice, pPoolCBV)) {
+    if (!m_constantBuffer.Init<shader::TransformConstants>(pDevice, pPoolCBV))
+    {
         return false;
     }
 
@@ -30,18 +35,22 @@ bool TransformGPU::Init(ID3D12Device* pDevice, DescriptorPool* pPoolCBV,
 }
 
 // 終了処理，リソースの解放
-void TransformGPU::Term() { m_constantBuffer.Term(); }
+void TransformGPU::Term()
+{
+    m_constantBuffer.Term();
+}
 
 // ワールド行列の更新
-void TransformGPU::Update(const DirectX::XMMATRIX& world) {
+void TransformGPU::Update(const DirectX::XMMATRIX& world)
+{
     // 逆行列の計算
     // 今はやっていないが剛体変換かどうかを判定することで最適化ができる
-    DirectX::XMVECTOR det;  // 行列式
+    DirectX::XMVECTOR det; // 行列式
     DirectX::XMMATRIX inv = DirectX::XMMatrixInverse(&det, world);
 
     // 行列式が0に近い場合は逆行列が不安定になるため単位行列を返す
-    if (DirectX::XMVector4NearEqual(
-            det, DirectX::XMVectorZero(), DirectX::XMVectorSplatEpsilon())) {
+    if (DirectX::XMVector4NearEqual(det, DirectX::XMVectorZero(), DirectX::XMVectorSplatEpsilon()))
+    {
         inv = DirectX::XMMatrixIdentity();
     }
 

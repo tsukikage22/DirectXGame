@@ -5,37 +5,39 @@
 #include <vector>
 
 #include "Engine/Core/DxDebug.h"
+#include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/GraphicsDevice.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
 #include "Engine/Graphics/RootSignatureBuilder.h"
 #include "Engine/Render/PassBindings.h"
 #include "Engine/Resource/ShaderLoader.h"
 
-bool SkyboxPass::Init(GraphicsDevice& device) {
+bool SkyboxPass::Init(GraphicsDevice& device)
+{
     m_pDevice = &device;
 
     // ルートシグネチャの構築
     RootSignatureBuilder rsBuilder;
     std::vector<D3D12_DESCRIPTOR_RANGE1> range;
-    range.push_back(
-        RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0,
-            0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
+    range.push_back(RootSignatureBuilder::CreateRange(
+        D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC));
     // ルートシグネチャ構成
     // [b0] SceneConstants (Root CBV)
     // [b3] Display Constants (Root CBV)
     // [t0, space0] Skybox Texture (Descriptor Table SRV)
     // [s0] Sampler: Linear sampler
-    rsBuilder
-        .AddCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL,
-            D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
-        .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL,
-            D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
+    rsBuilder.AddCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
+        .AddCBV(3, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
         .AddDescriptorTable(range, D3D12_SHADER_VISIBILITY_PIXEL)
-        .AddStaticSampler(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-            D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
-            D3D12_TEXTURE_ADDRESS_MODE_CLAMP, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+        .AddStaticSampler({
+            .filter   = D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+            .addressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            .addressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+            .addressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+        });
 
-    if (!rsBuilder.Build(m_pDevice->GetDevice())) {
+    if (!rsBuilder.Build(m_pDevice->GetDevice()))
+    {
         OutputDebugStringW(L"Failed to build root signature.\n");
         return false;
     }
@@ -46,8 +48,8 @@ bool SkyboxPass::Init(GraphicsDevice& device) {
     // シェーダーの読み込み
     std::vector<std::byte> vsData;
     std::vector<std::byte> psData;
-    if (!LoadShader(L"shader/SkyboxVS.cso", vsData) ||
-        !LoadShader(L"shader/SkyboxPS.cso", psData)) {
+    if (!LoadShader(L"shader/SkyboxVS.cso", vsData) || !LoadShader(L"shader/SkyboxPS.cso", psData))
+    {
         OutputDebugStringW(L"Failed to load shaders.\n");
         return false;
     }
@@ -56,9 +58,11 @@ bool SkyboxPass::Init(GraphicsDevice& device) {
         .SetPixelShader(psData.data(), psData.size())
         .SetBlendState(BlendMode::Opaque)
         .SetDepthMode(DepthMode::ReadOnly)
+        .SetDSVFormat(config::kDepthBufferFormat)
         .SetRenderTargetLayout(kSceneLayout);
 
-    if (!psoBuilder.Build(m_pDevice->GetDevice())) {
+    if (!psoBuilder.Build(m_pDevice->GetDevice()))
+    {
         OutputDebugStringW(L"Failed to build graphics pipeline state.\n");
         return false;
     }
@@ -67,7 +71,8 @@ bool SkyboxPass::Init(GraphicsDevice& device) {
     return true;
 }
 
-void SkyboxPass::Term() {
+void SkyboxPass::Term()
+{
     m_pDevice = nullptr;
 
     m_pPSO.Reset();
@@ -75,7 +80,8 @@ void SkyboxPass::Term() {
 }
 
 // 描画コマンドの記録
-void SkyboxPass::Draw(const SkyboxPassBindings& passBindings) {
+void SkyboxPass::Draw(const SkyboxPassBindings& passBindings)
+{
     auto pCmdList = passBindings.pCmdList;
 
     // パイプライン設定
@@ -86,18 +92,15 @@ void SkyboxPass::Draw(const SkyboxPassBindings& passBindings) {
     pCmdList->SetDescriptorHeaps(1, ppHeaps);
 
     // [b0] SceneConstants (共通)
-    pCmdList->SetGraphicsRootConstantBufferView(
-        RootParam::CBV_Scene, passBindings.sceneCB);
+    pCmdList->SetGraphicsRootConstantBufferView(RootParam::CBV_Scene, passBindings.sceneCB);
 
     // [b3] Display Constants (共通)
-    pCmdList->SetGraphicsRootConstantBufferView(
-        RootParam::CBV_Display, passBindings.displayCB);
+    pCmdList->SetGraphicsRootConstantBufferView(RootParam::CBV_Display, passBindings.displayCB);
 
     // [t0, space0] Skybox Texture (Descriptor Table SRV)
-    pCmdList->SetGraphicsRootDescriptorTable(
-        RootParam::SRV_Skybox, passBindings.skyboxSRV);
+    pCmdList->SetGraphicsRootDescriptorTable(RootParam::SRV_Skybox, passBindings.skyboxSRV);
 
     // 描画
     pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    pCmdList->DrawInstanced(3, 1, 0, 0);  // フルスクリーン三角形を描画
+    pCmdList->DrawInstanced(3, 1, 0, 0); // フルスクリーン三角形を描画
 }
