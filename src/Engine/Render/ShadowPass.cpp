@@ -44,6 +44,7 @@ bool ShadowPass::Init(GraphicsDevice& device) {
         .SetVertexShader(vsData.data(), vsData.size())
         .SetDepthClipEnable(false)  // シャドウマップは深度クリップを無効化
         .SetDepthMode(DepthMode::Default)
+        .SetDSVFormat(config::kShadowMapFormat)
         .SetRenderTargetLayout(kShadowLayout)
         .SetInputLayout(StandardVertex::GetInputLayout())
         .SetDepthBias(config::kShadowDepthBias, 0.0f,

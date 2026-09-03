@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Engine/Core/DxDebug.h"
+#include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/GraphicsDevice.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
 #include "Engine/Graphics/RootSignatureBuilder.h"
@@ -59,6 +60,7 @@ bool SkyboxPass::Init(GraphicsDevice& device) {
         .SetPixelShader(psData.data(), psData.size())
         .SetBlendState(BlendMode::Opaque)
         .SetDepthMode(DepthMode::ReadOnly)
+        .SetDSVFormat(config::kDepthBufferFormat)
         .SetRenderTargetLayout(kSceneLayout);
 
     if (!psoBuilder.Build(m_pDevice->GetDevice())) {

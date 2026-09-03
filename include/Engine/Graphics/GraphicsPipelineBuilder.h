@@ -60,6 +60,10 @@ public:
     /// @param blendMode ブレンドモード
     GraphicsPipelineBuilder& SetBlendState(BlendMode blendMode);
 
+    /// @brief DSVフォーマットを設定する
+    /// @param format
+    GraphicsPipelineBuilder& SetDSVFormat(DXGI_FORMAT format);
+
     /// @brief 深度バッファの設定を行う
     /// @param depthMode 深度モード
     GraphicsPipelineBuilder& SetDepthMode(DepthMode depthMode);

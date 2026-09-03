@@ -109,6 +109,13 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetBlendState(
     return *this;
 }
 
+// DSVフォーマットを設定する
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDSVFormat(
+    DXGI_FORMAT format) {
+    m_PSOdesc.DSVFormat = format;
+    return *this;
+}
+
 // 深度バッファの設定を行う
 GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDepthMode(
     DepthMode depthMode) {
@@ -117,13 +124,11 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDepthMode(
             m_PSOdesc.DepthStencilState.DepthEnable = TRUE;
             m_PSOdesc.DepthStencilState.DepthWriteMask =
                 D3D12_DEPTH_WRITE_MASK_ALL;
-            m_PSOdesc.DSVFormat = config::kDepthBufferFormat;
             break;
         case DepthMode::ReadOnly:
             m_PSOdesc.DepthStencilState.DepthEnable = TRUE;
             m_PSOdesc.DepthStencilState.DepthWriteMask =
                 D3D12_DEPTH_WRITE_MASK_ZERO;
-            m_PSOdesc.DSVFormat = config::kDepthBufferFormat;
             break;
         case DepthMode::Disabled:
             m_PSOdesc.DepthStencilState.DepthEnable = FALSE;
@@ -137,6 +142,7 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDepthMode(
     return *this;
 }
 
+// 深度クリップの有効/無効を設定する
 GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDepthClipEnable(
     bool enable) {
     m_PSOdesc.RasterizerState.DepthClipEnable = enable;

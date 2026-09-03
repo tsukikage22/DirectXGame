@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Engine/Core/DxDebug.h"
+#include "Engine/Core/EngineConfig.h"
 #include "Engine/Core/GraphicsDevice.h"
 #include "Engine/Graphics/GraphicsPipelineBuilder.h"
 #include "Engine/Graphics/RootSignatureBuilder.h"
@@ -152,6 +153,7 @@ bool ScenePass::Init(GraphicsDevice& device) {
             .SetInputLayout(StandardVertex::GetInputLayout())
             .SetBlendState(BlendMode::Opaque)
             .SetDepthMode(DepthMode::Default)
+            .SetDSVFormat(config::kDepthBufferFormat)
             .SetRenderTargetLayout(kSceneLayout);
 
         if (!pipelineBuilder.Build(m_pDevice->GetDevice())) {
