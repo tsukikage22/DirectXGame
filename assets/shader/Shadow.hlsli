@@ -7,6 +7,11 @@
 #define SHADOW_HLSLI
 
 //==============================================================
+// include
+//==============================================================
+#include "Common.hlsli"
+
+//==============================================================
 // Resource Bindings
 //==============================================================
 Texture2D<float> g_shadowMap : register(t0, space4); // シャドウマップ
@@ -43,6 +48,8 @@ float ComputeShadow(float3 worldPos) {
     float3 lightNDCPos = lightClipPos.xyz / lightClipPos.w;
 
     // ライトのNDC座標を[0, 1]の範囲に変換
+    // 正射影ではw=1なので，wで割る必要はないが，
+    // 透視投影ではwで割る必要があるためこのままにする
     float2 shadowMapUV = lightNDCPos.xy * float2(0.5f, -0.5f) + 0.5f;
 
     // farより遠い場合は影の計算を行わない
