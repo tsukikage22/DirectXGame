@@ -77,8 +77,11 @@ float3 EvaluateDebugView(SurfaceParams surf, float3 finalColor) {
         case DEBUG_VIEW_AO:
             return ToDebugParam(float3(surf.ao, surf.ao, surf.ao));
         case DEBUG_VIEW_WHITE:
+            return finalColor;
         case DEBUG_VIEW_DIFFUSE_IBL:
+            return finalColor;
         case DEBUG_VIEW_SPECULAR_IBL:
+            return finalColor;
         case DEBUG_VIEW_SHADOW:
             return ToScRGB(surf.shadowFactor.xxx);
         default:
