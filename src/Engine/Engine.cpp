@@ -80,7 +80,10 @@ void Engine::Update() {
 void Engine::Render() {
     // シャドウマップの描画
     m_Renderer.BeginShadowPass();
+    if (m_Renderer.HasShadowLight())
+    {
     m_ShadowPass.Draw(m_Renderer.MakeShadowPassBindings(), m_Scene);
+    }
     m_Renderer.EndShadowPass();
 
     // シーンの描画

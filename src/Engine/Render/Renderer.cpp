@@ -292,7 +292,7 @@ void Renderer::UpdateConstants(Scene& scene, uint32_t debugView) {
     std::array<shader::LightConstants, config::kMaxLights> lights = {};
     uint32_t count = 0;  // 実際にコピーされたライトの数
     // シャドウマップ用のライトのパラメータ
-    uint32_t shadowLightIndex            = shader::kInvalidLightIndex;
+    m_shadowLightIndex                   = shader::kInvalidLightIndex;
     DirectX::XMFLOAT3 shadowLightForward = { 0.0f, 0.0f, -1.0f };
     DirectX::XMFLOAT3 shadowLightUp      = { 0.0f, 1.0f, 0.0f };
     scene.ForEachLight([&](Light& light) {
@@ -300,9 +300,9 @@ void Renderer::UpdateConstants(Scene& scene, uint32_t debugView) {
         if (!light.IsEnabled() || count >= config::kMaxLights) return;
 
         // 最初に見つかったdirectional lightをシャドウマップ用のライトとして使う
-        if (light.GetType() == LightType::Directional &&
-            shadowLightIndex == shader::kInvalidLightIndex) {
-            shadowLightIndex   = count;
+        if (light.GetType() == LightType::Directional && m_shadowLightIndex == shader::kInvalidLightIndex)
+        {
+            m_shadowLightIndex = count;
             shadowLightForward = light.GetTransform().GetForward();
             shadowLightUp      = light.GetTransform().GetUp();
         }
@@ -335,7 +335,8 @@ void Renderer::UpdateConstants(Scene& scene, uint32_t debugView) {
 
     // ライトのビュー射影行列を作成する
     DirectX::XMMATRIX lightViewProj = DirectX::XMMatrixIdentity();
-    if (shadowLightIndex != shader::kInvalidLightIndex) {
+    if (m_shadowLightIndex != shader::kInvalidLightIndex)
+    {
         // 視錐台を覆う球を計算する
         DirectX::BoundingSphere shadowSphere =
             camera.ComputeBoundingSphere(camera.GetNearZ(), kShadowDistance);
@@ -348,15 +349,14 @@ void Renderer::UpdateConstants(Scene& scene, uint32_t debugView) {
         &sc.lightViewProj, DirectX::XMMatrixTranspose(lightViewProj));
 
     // カメラ位置・時間・ライト数・露出・デバッグビューの設定
-    sc.cameraPosition = camera.GetTransform().GetPosition();
-    sc.time           = static_cast<float>(GetTickCount64()) / 1000.0f;
-    sc.lightCount     = uploadedCount;  // 実際にアップロードされたライトの数
-    sc.exposure       = camera.ComputeExposure();
-    sc.debugView      = debugView;
-    sc.envIntensity   = scene.GetEnvIntensity();
-    sc.prefilteredMipCount =
-        EnvironmentMap::kPrefilteredMipLevels;  // prefilteredのmip数
-    sc.shadowLightIndex = shadowLightIndex;     // シャドウマップ用のライト
+    sc.cameraPosition      = camera.GetTransform().GetPosition();
+    sc.time                = static_cast<float>(GetTickCount64()) / 1000.0f;
+    sc.lightCount          = uploadedCount; // 実際にアップロードされたライトの数
+    sc.exposure            = camera.ComputeExposure();
+    sc.debugView           = debugView;
+    sc.envIntensity        = scene.GetEnvIntensity();
+    sc.prefilteredMipCount = EnvironmentMap::kPrefilteredMipLevels; // prefilteredのmip数
+    sc.shadowLightIndex    = m_shadowLightIndex;                    // シャドウマップ用のライト
 
     frameResource.GetSceneConstants().Update(sc);
 }

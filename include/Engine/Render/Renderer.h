@@ -100,6 +100,12 @@ public:
     /// @brief シャドウマップ描画パスに渡す情報をまとめた構造体を作成する
     ShadowPassBindings MakeShadowPassBindings();
 
+    /// @brief シャドウマップを生成するライトが存在するかどうかを返す
+    bool HasShadowLight() const
+    {
+        return m_shadowLightIndex != shader::kInvalidLightIndex;
+    }
+
     //==========================================================
     // アクセサ
     //==========================================================
@@ -128,9 +134,13 @@ private:
 
     FrameResource m_frameResources[config::kFrameCount];  // フレームリソース
 
-    DisplayInfo m_displayInfo = {};             // ディスプレイ情報
-    DisplayConstantsGPU m_displayConstantsGPU;  // ディスプレイCB
-    HWND m_hWnd = nullptr;                      // ウィンドウハンドル
+    DisplayInfo m_displayInfo = {};            // ディスプレイ情報
+    DisplayConstantsGPU m_displayConstantsGPU; // ディスプレイCB
+    HWND m_hWnd = nullptr;                     // ウィンドウハンドル
+
+    // シャドウマップを生成するライトのインデックス
+    // ライトの有無をもとに描画命令をスキップするかを決めるために使う
+    uint32_t m_shadowLightIndex = shader::kInvalidLightIndex;
 
     // コピー禁止
     Renderer(const Renderer&)            = delete;
