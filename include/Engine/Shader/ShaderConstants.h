@@ -56,13 +56,16 @@ struct SceneConstants {
     DirectX::XMFLOAT4X4 invViewProj;  // NDCからワールド座標に変換するための行列
     DirectX::XMFLOAT4X4
         lightViewProj;  // ライトのビュー射影行列（シャドウマッピング用）
+
     DirectX::XMFLOAT3 cameraPosition;  // カメラ位置
     float time;                        // ゲーム時間
-    float exposure;                    // 露出調整値
-    uint32_t lightCount;               // ライトの数
-    uint32_t debugView;                // 表示モード DebugViewの値を格納
-    float envIntensity;                // 環境マップの輝度スケール係数
-    uint32_t prefilteredMipCount;      // prefilteredのmip数
+
+    float exposure;       // 露出調整値
+    uint32_t lightCount;  // ライトの数
+    uint32_t debugView;   // 表示モード DebugViewの値を格納
+    float envIntensity;   // 環境マップの輝度スケール係数
+
+    uint32_t prefilteredMipCount;  // prefilteredのmip数
     uint32_t shadowLightIndex;  // シャドウマップを生成するライトのインデックス
     float _padding[2];          // 16バイトアラインメント用
 };

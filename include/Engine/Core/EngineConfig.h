@@ -23,6 +23,18 @@ inline constexpr uint32_t kFrameCount = 2;      // フレームリソースの�
 inline constexpr uint32_t kMaxObjects = 10000;  // 最大オブジェクト数
 inline constexpr uint32_t kMaxLights  = 64;     // 最大ライト数
 
+// シャドウマップの深度バイアス
+// SampleCmpLevelZeroはバイリニアPCFで2x2を参照する
+inline constexpr float kShadowPcfFootprintTexels = 2.0f;
+// MaxDepthSlope は max(|dz/dx|, |dz/dy|) であり、
+// 勾配が対角方向を向くと真の勾配を最大 √2 だけ過小評価する
+inline constexpr float kShadowDiagonalCompensation = 1.41421356237f;
+// シャドウマップのslope-scaled depth bias
+inline constexpr float kShadowSlopeScaledBias =
+    kShadowPcfFootprintTexels * kShadowDiagonalCompensation;
+// 深度バイアス
+inline constexpr int kShadowDepthBias = 1000;
+
 // 1マテリアル当たりの見積もり
 inline constexpr uint32_t kMaxMaterials       = 2560;  // 最大マテリアル数
 inline constexpr uint32_t kTexturePerMaterial = 5;

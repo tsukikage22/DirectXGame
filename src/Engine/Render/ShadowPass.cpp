@@ -45,7 +45,8 @@ bool ShadowPass::Init(GraphicsDevice& device) {
         .SetDepthMode(DepthMode::Default)
         .SetRenderTargetLayout(kShadowLayout)
         .SetInputLayout(StandardVertex::GetInputLayout())
-        .SetDepthBias(0, 0.0f, 1.0f);  // シャドウマップ用の深度バイアス
+        .SetDepthBias(config::kShadowDepthBias, 0.0f,
+            config::kShadowSlopeScaledBias);  // シャドウマップ用の深度バイアス
 
     if (!psoBuilder.Build(m_pDevice->GetDevice())) {
         OutputDebugStringW(L"Failed to build graphics pipeline state.\n");
