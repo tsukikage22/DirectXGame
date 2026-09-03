@@ -362,7 +362,6 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-.clang-format
 .vscode/
 *.code-workspace
 AGENTS.md
@@ -370,24 +369,24 @@ CLAUDE.md
 .claude/
 .github/
 
-#Ignore vscode AI rules
+#vscode AI rules
 .github\instructions\codacy.instructions.md
 
-#Ignore vcpkg installed libraries
+#vcpkg installed libraries
 vcpkg_installed/
 
-#Ignore 3D Model files
+#Ignore assets without shaders
 assets/model
-
-#Ignore ies files
 assets/ies
-
-#Ignore HDRI
 assets/HDRI
 
+# external libraries
 external/**/x64/
 external/**/*.obj
+external/**/.clang-format
 
+# ImGui Windows settings file
 imgui.ini
 
+# Codacy configuration file
 .codacy
