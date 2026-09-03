@@ -1,0 +1,5 @@
+# blameから除外するコミット（整形のみで内容変更を含まないもの）
+# git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# .clang-formatの設定変更に伴いC++ソース全体を再整形した
+51cf6672831c1ae59273f94b7dbd83e11172dc4c
