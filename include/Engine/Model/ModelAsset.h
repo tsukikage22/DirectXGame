@@ -8,32 +8,42 @@
 #include "Engine/Model/VertexTypes.h"
 
 /// @brief CPU側メッシュデータ
-struct MeshAsset {
-    std::vector<StandardVertex> vertices;  // 頂点データ
-    std::vector<uint32_t> indices;         // インデックスデータ
-    uint32_t materialID = 0;               // マテリアルID
+struct MeshAsset
+{
+    std::vector<StandardVertex> vertices; // 頂点データ
+    std::vector<uint32_t> indices;        // インデックスデータ
+    uint32_t materialID = 0;              // マテリアルID
 };
 
 /// @brief CPU側画像データ
-struct ImageAsset {
-    std::vector<uint8_t> imageData;  // GLBの埋め込み画像データ
-    std::string format;              // tex->achFormatの文字列，"jpg"や"png"など
-    bool isSRGB = false;             // sRGBとして扱うかどうか
+struct ImageAsset
+{
+    std::vector<uint8_t> imageData; // GLBの埋め込み画像データ
+    std::string format;             // tex->achFormatの文字列，"jpg"や"png"など
+    bool isSRGB = false;            // sRGBとして扱うかどうか
 
-    bool IsValid() const { return !imageData.empty(); }
+    bool IsValid() const
+    {
+        return !imageData.empty();
+    }
 };
 
 /// @brief グローバルに有効なテクスチャのハンドル
-struct TextureHandle {
+struct TextureHandle
+{
     // assimpのインデックスはscene内でしか意味がないので使わない
     // TextureManagerが内部配列に追加した際に設定する
     // 全テクスチャに与えられるID，UINT32_MAXなら無効
     uint32_t index = UINT32_MAX;
-    bool IsValid() const { return index != UINT32_MAX; }
+    bool IsValid() const
+    {
+        return index != UINT32_MAX;
+    }
 };
 
 /// @brief CPUのメモリ上に保持されるマテリアルデータ
-struct MaterialAsset {
+struct MaterialAsset
+{
     std::wstring name;
 
     // パラメータ
@@ -44,11 +54,11 @@ struct MaterialAsset {
     float occlusionFactor             = 1.0f;
 
     // テクスチャへの参照（TextureManager内配列のインデックス）
-    TextureHandle baseColorTexture;          // base color
-    TextureHandle metallicRoughnessTexture;  // metallic-roughness
-    TextureHandle occlusionTexture;          // occlusion
-    TextureHandle normalTexture;             // normal
-    TextureHandle emissiveTexture;           // emissive
+    TextureHandle baseColorTexture;         // base color
+    TextureHandle metallicRoughnessTexture; // metallic-roughness
+    TextureHandle occlusionTexture;         // occlusion
+    TextureHandle normalTexture;            // normal
+    TextureHandle emissiveTexture;          // emissive
 
     // モデルロード時の一時的なインデックス
     int baseColorLocalTextureIndex         = -1;
@@ -59,12 +69,16 @@ struct MaterialAsset {
 };
 
 /// @brief モデル全体のデータ
-struct ModelAsset {
+struct ModelAsset
+{
     std::string name;
 
     std::vector<MeshAsset> meshes;
     std::vector<MaterialAsset> materials;
     std::vector<ImageAsset> images;
 
-    bool IsValid() const { return !meshes.empty(); }
+    bool IsValid() const
+    {
+        return !meshes.empty();
+    }
 };

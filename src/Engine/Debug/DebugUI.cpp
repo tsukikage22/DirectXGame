@@ -15,14 +15,15 @@
 #include "backends/imgui_impl_win32.h"
 #include "imgui.h"
 
-namespace /* anonymous */ {
+namespace /* anonymous */
+{
 
 /// @brief ライトの色を編集するUIの描画
 /// @param light
-void DrawLightColorEditor(Light& light) {
+void DrawLightColorEditor(Light& light)
+{
     // ライトの色の調整
-    float color[3] = { light.GetColor().x, light.GetColor().y,
-        light.GetColor().z };
+    float color[3] = { light.GetColor().x, light.GetColor().y, light.GetColor().z };
     float h, s, v;
     // HSVに変換．
     ImGui::ColorConvertRGBtoHSV(color[0], color[1], color[2], h, s, v);
@@ -30,7 +31,8 @@ void DrawLightColorEditor(Light& light) {
     bool changedColor = false;
     changedColor |= ImGui::SliderFloat("Hue", &h, 0.0f, 1.0f);
     changedColor |= ImGui::SliderFloat("Saturation", &s, 0.0f, 1.0f);
-    if (changedColor) {
+    if (changedColor)
+    {
         float r, g, b;
         ImGui::ColorConvertHSVtoRGB(h, s, 1.0f, r, g, b);
         light.SetColor({ r, g, b });
@@ -39,35 +41,42 @@ void DrawLightColorEditor(Light& light) {
     // 色温度の調整
     float temp       = 5500.0f;
     bool changedTemp = false;
-    if (ImGui::SmallButton("Daylight (5500K)")) {
+    if (ImGui::SmallButton("Daylight (5500K)"))
+    {
         temp        = 5500.0f;
         changedTemp = true;
     }
     ImGui::SameLine();
-    if (ImGui::SmallButton("Blue Sky (10000K)")) {
+    if (ImGui::SmallButton("Blue Sky (10000K)"))
+    {
         temp        = 10000.0f;
         changedTemp = true;
     }
-    if (changedTemp) {
+    if (changedTemp)
+    {
         light.SetColorFromTemperature(temp);
     }
 }
 
 /// @brief ライトの明るさを編集するUIの描画
 /// @param light
-void DrawLightIntensityEditor(Light& light) {
-    if (light.GetType() == LightType::Directional) {
+void DrawLightIntensityEditor(Light& light)
+{
+    if (light.GetType() == LightType::Directional)
+    {
         // 平行光源の場合は照度[lx]を設定する
         float illuminance = light.GetIntensity();
-        if (ImGui::SliderFloat("Illuminance", &illuminance, 100.0f, 150000.0f,
-                "%.3f", ImGuiSliderFlags_Logarithmic)) {
+        if (ImGui::SliderFloat("Illuminance", &illuminance, 100.0f, 150000.0f, "%.3f", ImGuiSliderFlags_Logarithmic))
+        {
             light.SetIlluminance(illuminance);
         }
-    } else {
+    }
+    else
+    {
         // 平行光源以外の場合は光度[cd]を設定する
         float intensity = light.GetIntensity();
-        if (ImGui::SliderFloat("Intensity", &intensity, 1.0f, 1000000.0f,
-                "%.3f", ImGuiSliderFlags_Logarithmic)) {
+        if (ImGui::SliderFloat("Intensity", &intensity, 1.0f, 1000000.0f, "%.3f", ImGuiSliderFlags_Logarithmic))
+        {
             light.SetIntensity(intensity);
         }
     }
@@ -75,25 +84,24 @@ void DrawLightIntensityEditor(Light& light) {
 
 /// @brief ライトの向きを編集するUIの描画
 /// @param light
-void DrawLightDirectionEditor(Light& light) {
+void DrawLightDirectionEditor(Light& light)
+{
     // ライトの方向の調整，方位角と仰角で操作する
     // 方位角と仰角の計算
-    if (light.GetType() != LightType::Point) {
+    if (light.GetType() != LightType::Point)
+    {
         float azimuth, elevation, horizontal;
         Transform& transform = light.GetTransform();
-        float forward[3] = { transform.GetForward().x, transform.GetForward().y,
-            transform.GetForward().z };
-        azimuth          = std::atan2(forward[0], forward[2]);
-        horizontal =
-            std::sqrt(forward[0] * forward[0] + forward[2] * forward[2]);
-        elevation = std::atan2(forward[1], horizontal);
+        float forward[3]     = { transform.GetForward().x, transform.GetForward().y, transform.GetForward().z };
+        azimuth              = std::atan2(forward[0], forward[2]);
+        horizontal           = std::sqrt(forward[0] * forward[0] + forward[2] * forward[2]);
+        elevation            = std::atan2(forward[1], horizontal);
 
         bool changedDirection = false;
-        changedDirection |=
-            ImGui::SliderAngle("Azimuth", &azimuth, -180.0f, 180.0f);
-        changedDirection |=
-            ImGui::SliderAngle("Elevation", &elevation, -89.0f, 89.0f);
-        if (changedDirection) {
+        changedDirection |= ImGui::SliderAngle("Azimuth", &azimuth, -180.0f, 180.0f);
+        changedDirection |= ImGui::SliderAngle("Elevation", &elevation, -89.0f, 89.0f);
+        if (changedDirection)
+        {
             // 方位角と仰角から方向ベクトルを計算
             float x = std::sin(azimuth) * std::cos(elevation);
             float y = std::sin(elevation);
@@ -105,22 +113,25 @@ void DrawLightDirectionEditor(Light& light) {
 
 /// @brief ライトの位置と範囲を編集するUIの描画
 /// @param light
-void DrawLightPlacementEditor(Light& light) {
+void DrawLightPlacementEditor(Light& light)
+{
     // 平行光源は省く
-    if (light.GetType() != LightType::Directional) {
+    if (light.GetType() != LightType::Directional)
+    {
         // 位置
         float pos[3];
         pos[0] = light.GetTransform().GetPosition().x;
         pos[1] = light.GetTransform().GetPosition().y;
         pos[2] = light.GetTransform().GetPosition().z;
-        if (ImGui::DragFloat3("Position", pos, 0.1f)) {
+        if (ImGui::DragFloat3("Position", pos, 0.1f))
+        {
             light.GetTransform().SetPosition({ pos[0], pos[1], pos[2] });
         }
 
         // 範囲
         float range = light.GetRange();
-        if (ImGui::SliderFloat("Range", &range, 0.1f, 100.0f, "%.2f",
-                ImGuiSliderFlags_Logarithmic)) {
+        if (ImGui::SliderFloat("Range", &range, 0.1f, 100.0f, "%.2f", ImGuiSliderFlags_Logarithmic))
+        {
             light.SetRange(range);
         }
     }
@@ -128,50 +139,51 @@ void DrawLightPlacementEditor(Light& light) {
 
 /// @brief スポットライトのスポット角度を編集するUIの描画
 /// @param light
-void DrawLightSpotAngleEditor(Light& light) {
-    if (light.GetType() == LightType::Spot) {
+void DrawLightSpotAngleEditor(Light& light)
+{
+    if (light.GetType() == LightType::Spot)
+    {
         float innerAngle = light.GetInnerAngle();
         float outerAngle = light.GetOuterAngle();
-        if (ImGui::SliderFloat("Inner Angle", &innerAngle, 0.0f, 90.0f)) {
+        if (ImGui::SliderFloat("Inner Angle", &innerAngle, 0.0f, 90.0f))
+        {
             light.SetSpotAngles(innerAngle, outerAngle);
         }
-        if (ImGui::SliderFloat("Outer Angle", &outerAngle, 0.0f, 90.0f)) {
+        if (ImGui::SliderFloat("Outer Angle", &outerAngle, 0.0f, 90.0f))
+        {
             light.SetSpotAngles(innerAngle, outerAngle);
         }
     }
 }
 
-}  // namespace
+} // namespace
 
 // ImGuiの初期化
-bool DebugUI::Init(
-    GraphicsDevice& graphicsDevice, DXGI_FORMAT format, HWND hWnd) {
+bool DebugUI::Init(GraphicsDevice& graphicsDevice, DXGI_FORMAT format, HWND hWnd)
+{
     // ImGuiのコンテキストを作成
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |=
-        ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
 
     // ImGuiのバックエンドを初期化
     ImGui_ImplDX12_InitInfo info = {};
     info.Device                  = graphicsDevice.GetDevice();
-    info.CommandQueue      = graphicsDevice.GetCommandQueue().GetD3DQueue();
-    info.NumFramesInFlight = config::kFrameCount;
-    info.RTVFormat         = format;
+    info.CommandQueue            = graphicsDevice.GetCommandQueue().GetD3DQueue();
+    info.NumFramesInFlight       = config::kFrameCount;
+    info.RTVFormat               = format;
 
     // SRVディスクリプタプールの割り当てと解放
     DescriptorPool* pPool     = graphicsDevice.CbvSrvUavPool();
     info.SrvDescriptorHeap    = pPool->GetHeap();
     m_ImGuiSrvAllocator.pPool = pPool;
-    info.UserData = &m_ImGuiSrvAllocator;  // UserDataにpoolとallocationsを渡す
+    info.UserData             = &m_ImGuiSrvAllocator; // UserDataにpoolとallocationsを渡す
 
-    info.SrvDescriptorAllocFn =  // ディスクリプタの割り当て関数
-        [](ImGui_ImplDX12_InitInfo* im_info,
-            D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu,
+    info.SrvDescriptorAllocFn = // ディスクリプタの割り当て関数
+        [](ImGui_ImplDX12_InitInfo* im_info, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu,
             D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu) {
-            ImGuiSrvAllocator* pAllocator =
-                static_cast<ImGuiSrvAllocator*>(im_info->UserData);
+            ImGuiSrvAllocator* pAllocator = static_cast<ImGuiSrvAllocator*>(im_info->UserData);
 
             DescriptorAllocation alloc = pAllocator->pPool->Allocate();
             *out_cpu                   = alloc.GetCPUHandle();
@@ -181,22 +193,23 @@ bool DebugUI::Init(
             pAllocator->allocations.emplace(out_cpu->ptr, std::move(alloc));
         };
 
-    info.SrvDescriptorFreeFn =  // ディスクリプタの解放関数
-        [](ImGui_ImplDX12_InitInfo* im_info, D3D12_CPU_DESCRIPTOR_HANDLE cpu,
-            D3D12_GPU_DESCRIPTOR_HANDLE gpu) {
-            ImGuiSrvAllocator* pAllocator =
-                static_cast<ImGuiSrvAllocator*>(im_info->UserData);
+    info.SrvDescriptorFreeFn = // ディスクリプタの解放関数
+        [](ImGui_ImplDX12_InitInfo* im_info, D3D12_CPU_DESCRIPTOR_HANDLE cpu, D3D12_GPU_DESCRIPTOR_HANDLE gpu) {
+            ImGuiSrvAllocator* pAllocator = static_cast<ImGuiSrvAllocator*>(im_info->UserData);
             // CPUハンドルをキーにしてallocationを解放
             pAllocator->allocations.erase(cpu.ptr);
         };
 
-    if (!ImGui_ImplDX12_Init(&info)) return false;
-    if (!ImGui_ImplWin32_Init(hWnd)) return false;
+    if (!ImGui_ImplDX12_Init(&info))
+        return false;
+    if (!ImGui_ImplWin32_Init(hWnd))
+        return false;
     return true;
 }
 
 // ImGuiの終了処理
-void DebugUI::Term() {
+void DebugUI::Term()
+{
     ImGui_ImplDX12_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
@@ -205,8 +218,8 @@ void DebugUI::Term() {
 }
 
 // デバッグUIのフレーム開始時の処理
-void DebugUI::BeginFrame(InputSystem& input, Camera& camera, Scene& scene,
-    D3D12_GPU_DESCRIPTOR_HANDLE shadowMapSRV) {
+void DebugUI::BeginFrame(InputSystem& input, Camera& camera, Scene& scene, D3D12_GPU_DESCRIPTOR_HANDLE shadowMapSRV)
+{
     // ImGui描画開始
     ImGui_ImplDX12_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -237,8 +250,8 @@ void DebugUI::BeginFrame(InputSystem& input, Camera& camera, Scene& scene,
 }
 
 // デバッグUIのレンダリング
-void DebugUI::Render(
-    ColorTarget& uiTarget, ID3D12GraphicsCommandList* pCmdList) {
+void DebugUI::Render(ColorTarget& uiTarget, ID3D12GraphicsCommandList* pCmdList)
+{
     // UI用レンダーターゲットのリソースバリアの設定
     D3D12_RESOURCE_BARRIER barrier = {};
     barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -267,61 +280,72 @@ void DebugUI::Render(
 }
 
 // FPS表示UIの描画
-void DebugUI::DrawFPSPanel() {
+void DebugUI::DrawFPSPanel()
+{
     ImGuiIO& io = ImGui::GetIO();
-    if (ImGui::Begin("Stats", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::Text(
-            "%.1f FPS (%.3f ms/frame)", io.Framerate, 1000.0f / io.Framerate);
+    if (ImGui::Begin("Stats", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::Text("%.1f FPS (%.3f ms/frame)", io.Framerate, 1000.0f / io.Framerate);
     }
     ImGui::End();
 }
 
 // 露出調整UIの描画
-void DebugUI::DrawExposurePanel(Camera& camera) {
+void DebugUI::DrawExposurePanel(Camera& camera)
+{
     // 露出調整パネル
-    if (ImGui::Begin("Exposure", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        float ev100 = camera.ComputeEV100();  // 現在のEV100を取得
+    if (ImGui::Begin("Exposure", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        float ev100 = camera.ComputeEV100(); // 現在のEV100を取得
 
         // EV100のスライダー
-        bool changed =
-            ImGui::SliderFloat("EV100", &ev100, -6.0f, 17.0f, "%.2f");
+        bool changed = ImGui::SliderFloat("EV100", &ev100, -6.0f, 17.0f, "%.2f");
 
         // EV100を固定値に設定するボタン
-        if (ImGui::SmallButton("Sunny 16")) {  // 晴天の昼間
+        if (ImGui::SmallButton("Sunny 16"))
+        { // 晴天の昼間
             ev100   = 15.0f;
             changed = true;
         }
         ImGui::SameLine();
-        if (ImGui::SmallButton("Indoor")) {  // 室内
+        if (ImGui::SmallButton("Indoor"))
+        { // 室内
             ev100   = 8.0f;
             changed = true;
         }
         ImGui::SameLine();
-        if (ImGui::SmallButton("Night")) {  // 夜景
+        if (ImGui::SmallButton("Night"))
+        { // 夜景
             ev100   = -2.0f;
             changed = true;
         }
 
         // シャッタースピードを固定するか絞り値を固定するかの選択
-        if (ImGui::RadioButton("Fix Shutter Speed", m_fixShutterSpeed)) {
+        if (ImGui::RadioButton("Fix Shutter Speed", m_fixShutterSpeed))
+        {
             m_fixShutterSpeed = true;
         }
         ImGui::SameLine();
-        if (ImGui::RadioButton("Fix Aperture", !m_fixShutterSpeed)) {
+        if (ImGui::RadioButton("Fix Aperture", !m_fixShutterSpeed))
+        {
             m_fixShutterSpeed = false;
         }
 
         // EV100が変更された場合はシャッタースピードを更新
-        if (changed) {
+        if (changed)
+        {
             camera.ApplyEV100(ev100, m_fixShutterSpeed);
         }
 
         // 露出パラメータの表示
         ImGui::Text("Aperture: f/%.1f", camera.GetAperture());
         float ss = camera.GetShutterSpeed();
-        if (ss >= 1.0f) {
+        if (ss >= 1.0f)
+        {
             ImGui::Text("Shutter Speed: %.1f s", ss);
-        } else {
+        }
+        else
+        {
             ImGui::Text("Shutter Speed: 1/%.0f s", 1.0f / ss);
         }
         ImGui::Text("Exposure: %.3e", camera.ComputeExposure());
@@ -329,32 +353,33 @@ void DebugUI::DrawExposurePanel(Camera& camera) {
     ImGui::End();
 }
 
-void DebugUI::DrawLightPanel(Scene& scene) {
+void DebugUI::DrawLightPanel(Scene& scene)
+{
     const ImGuiViewport* vp = ImGui::GetMainViewport();
-    ImGui::SetNextWindowSizeConstraints(
-        ImVec2(320.0f, 0.0f), ImVec2(FLT_MAX, vp->WorkSize.y * 0.8f));
-    if (ImGui::Begin("Light")) {
+    ImGui::SetNextWindowSizeConstraints(ImVec2(320.0f, 0.0f), ImVec2(FLT_MAX, vp->WorkSize.y * 0.8f));
+    if (ImGui::Begin("Light"))
+    {
         // 環境マップの輝度スケール係数の調整
         float envIntensity = scene.GetEnvIntensity();
-        if (ImGui::SliderFloat("Env Intensity", &envIntensity, 0.1f, 1000000.0f,
-                "%.2f", ImGuiSliderFlags_Logarithmic)) {
+        if (ImGui::SliderFloat("Env Intensity", &envIntensity, 0.1f, 1000000.0f, "%.2f", ImGuiSliderFlags_Logarithmic))
+        {
             scene.SetEnvIntensity(envIntensity);
         }
 
         // すべてのライトに対してUIを描画する
         scene.ForEachLight([&](Light& light) {
-            LightType type = light.GetType();  // ライトの種類を取得
-            const char* typeName =
-                light.GetTypeName();  // ライトの種類の名前を取得
+            LightType type       = light.GetType();     // ライトの種類を取得
+            const char* typeName = light.GetTypeName(); // ライトの種類の名前を取得
 
-            ImGui::PushID(&light);  // ライトごとにIDをプッシュ
-            if (ImGui::CollapsingHeader(
-                    typeName, ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::PushID(&light); // ライトごとにIDをプッシュ
+            if (ImGui::CollapsingHeader(typeName, ImGuiTreeNodeFlags_DefaultOpen))
+            {
                 ImGui::Text("Light ID: %p", &light);
 
                 // 有効・無効の切り替え
                 bool enabled = light.IsEnabled();
-                if (ImGui::Checkbox("Enable Light", &enabled)) {
+                if (ImGui::Checkbox("Enable Light", &enabled))
+                {
                     light.ToggleLight();
                 }
 
@@ -373,25 +398,29 @@ void DebugUI::DrawLightPanel(Scene& scene) {
                 // inner Angle, outer Angleの調整（Spotのみ）
                 DrawLightSpotAngleEditor(light);
             }
-            ImGui::PopID();  // ライトごとのIDをポップ
+            ImGui::PopID(); // ライトごとのIDをポップ
         });
     }
     ImGui::End();
 }
 
-void DebugUI::DrawDebugViewPanel() {
-    if (ImGui::Begin("DebugView", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+void DebugUI::DrawDebugViewPanel()
+{
+    if (ImGui::Begin("DebugView", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
         // デバッグビュー選択用ラジオボタンの表示
-        for (int i = 0; i < IM_ARRAYSIZE(shader::kDebugViewNames); ++i) {
+        for (int i = 0; i < IM_ARRAYSIZE(shader::kDebugViewNames); ++i)
+        {
             ImGui::RadioButton(shader::kDebugViewNames[i], &m_debugView, i);
         }
     }
     ImGui::End();
 }
 
-void DebugUI::DrawShadowMapPanel(D3D12_GPU_DESCRIPTOR_HANDLE shadowMapSRV) {
-    if (ImGui::Begin(
-            "Shadow Map", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+void DebugUI::DrawShadowMapPanel(D3D12_GPU_DESCRIPTOR_HANDLE shadowMapSRV)
+{
+    if (ImGui::Begin("Shadow Map", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
         // シャドウマップの表示
         ImVec2 imageSize(256, 256);
         ImGui::Image(static_cast<ImTextureID>(shadowMapSRV.ptr), imageSize);

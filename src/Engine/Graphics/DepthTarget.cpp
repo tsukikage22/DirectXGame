@@ -4,10 +4,12 @@
 
 #include "Engine/Core/DescriptorPool.h"
 
-namespace /*anonymous*/ {
+namespace /*anonymous*/
+{
 
-void BuildDSV(ID3D12Device* pDevice, ID3D12Resource* pResource,
-    DXGI_FORMAT format, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle) {
+void BuildDSV(
+    ID3D12Device* pDevice, ID3D12Resource* pResource, DXGI_FORMAT format, D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle)
+{
     D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
     dsvDesc.ViewDimension                 = D3D12_DSV_DIMENSION_TEXTURE2D;
     dsvDesc.Format                        = format;
@@ -16,38 +18,44 @@ void BuildDSV(ID3D12Device* pDevice, ID3D12Resource* pResource,
     pDevice->CreateDepthStencilView(pResource, &dsvDesc, dsvHandle);
 }
 
-void BuildSRV(ID3D12Device* pDevice, ID3D12Resource* pResource,
-    DXGI_FORMAT format, D3D12_CPU_DESCRIPTOR_HANDLE srvHandle) {
+void BuildSRV(
+    ID3D12Device* pDevice, ID3D12Resource* pResource, DXGI_FORMAT format, D3D12_CPU_DESCRIPTOR_HANDLE srvHandle)
+{
     D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.Format                          = format;
     srvDesc.ViewDimension                   = D3D12_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    srvDesc.Texture2D.MostDetailedMip = 0;
-    srvDesc.Texture2D.MipLevels       = 1;
+    srvDesc.Shader4ComponentMapping         = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Texture2D.MostDetailedMip       = 0;
+    srvDesc.Texture2D.MipLevels             = 1;
     pDevice->CreateShaderResourceView(pResource, &srvDesc, srvHandle);
 }
 
-}  // namespace
+} // namespace
 
-DepthTarget::DepthTarget()
-    : m_Target(), m_pPoolDSV(nullptr), m_pPoolSRV(nullptr) {}
+DepthTarget::DepthTarget() : m_Target(), m_pPoolDSV(nullptr), m_pPoolSRV(nullptr)
+{
+}
 
-DepthTarget::~DepthTarget() { Term(); }
+DepthTarget::~DepthTarget()
+{
+    Term();
+}
 
-bool DepthTarget::Init(ID3D12Device* pDevice, DescriptorPool* pPoolDSV,
-    DescriptorPool* pPoolSRV, uint32_t width, uint32_t height,
-    DXGI_FORMAT format) {
+bool DepthTarget::Init(ID3D12Device* pDevice, DescriptorPool* pPoolDSV, DescriptorPool* pPoolSRV, uint32_t width,
+    uint32_t height, DXGI_FORMAT format)
+{
     // 引数チェック
-    if (!pDevice || !pPoolDSV || width == 0 || height == 0) {
+    if (!pDevice || !pPoolDSV || width == 0 || height == 0)
+    {
         return false;
     }
 
     // リソースのR32_TYPELESSとSRVのR32_FLOATはハードコードしているので，
     // DSVのフォーマットはD32_FLOATのみ対応する
     // TODO:将来的に他のフォーマットに対応する場合は，ハードコーティングをやめて分岐を作る
-    if (format != DXGI_FORMAT_D32_FLOAT) {
-        OutputDebugStringW(
-            L"DepthTarget only supports DXGI_FORMAT_D32_FLOAT format.\n");
+    if (format != DXGI_FORMAT_D32_FLOAT)
+    {
+        OutputDebugStringW(L"DepthTarget only supports DXGI_FORMAT_D32_FLOAT format.\n");
         return false;
     }
 
@@ -58,25 +66,24 @@ bool DepthTarget::Init(ID3D12Device* pDevice, DescriptorPool* pPoolDSV,
 
     // リソースの生成
     if (!m_Target.InitAsTexture2D(pDevice, width, height,
-            DXGI_FORMAT_R32_TYPELESS,  // TYPELESSで作らないとSRVでアクセスできない
-            1, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL,
-            D3D12_RESOURCE_STATE_DEPTH_WRITE, &clearValue)) {
+            DXGI_FORMAT_R32_TYPELESS, // TYPELESSで作らないとSRVでアクセスできない
+            1, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, D3D12_RESOURCE_STATE_DEPTH_WRITE, &clearValue))
+    {
         return false;
     }
 
     // DSVの作成
     m_pPoolDSV      = pPoolDSV;
     m_DSVAllocation = m_pPoolDSV->Allocate();
-    BuildDSV(pDevice, m_Target.GetResource(), format,
-        m_DSVAllocation.GetCPUHandle());
+    BuildDSV(pDevice, m_Target.GetResource(), format, m_DSVAllocation.GetCPUHandle());
 
     // SRVの作成
-    if (pPoolSRV) {
+    if (pPoolSRV)
+    {
         m_pPoolSRV      = pPoolSRV;
         m_SRVAllocation = m_pPoolSRV->Allocate();
         // 深度バッファのSRVはR32_FLOATでアクセスする
-        BuildSRV(pDevice, m_Target.GetResource(), DXGI_FORMAT_R32_FLOAT,
-            m_SRVAllocation.GetCPUHandle());
+        BuildSRV(pDevice, m_Target.GetResource(), DXGI_FORMAT_R32_FLOAT, m_SRVAllocation.GetCPUHandle());
     }
 
     // 幅と高さの保持
@@ -86,7 +93,8 @@ bool DepthTarget::Init(ID3D12Device* pDevice, DescriptorPool* pPoolDSV,
     return true;
 }
 
-void DepthTarget::Term() {
+void DepthTarget::Term()
+{
     m_width  = 0;
     m_height = 0;
     m_Target.Term();
@@ -96,7 +104,8 @@ void DepthTarget::Term() {
     m_pPoolSRV      = nullptr;
 }
 
-D3D12_VIEWPORT DepthTarget::MakeViewport() const {
+D3D12_VIEWPORT DepthTarget::MakeViewport() const
+{
     D3D12_VIEWPORT viewport = {};
     viewport.TopLeftX       = 0.0f;
     viewport.TopLeftY       = 0.0f;
@@ -107,7 +116,8 @@ D3D12_VIEWPORT DepthTarget::MakeViewport() const {
     return viewport;
 }
 
-D3D12_RECT DepthTarget::MakeScissorRect() const {
+D3D12_RECT DepthTarget::MakeScissorRect() const
+{
     D3D12_RECT rect = {};
     rect.left       = 0;
     rect.top        = 0;
@@ -116,22 +126,28 @@ D3D12_RECT DepthTarget::MakeScissorRect() const {
     return rect;
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE DepthTarget::GetDSVCPUHandle() const {
-    if (!m_DSVAllocation.IsValid()) {
+D3D12_CPU_DESCRIPTOR_HANDLE DepthTarget::GetDSVCPUHandle() const
+{
+    if (!m_DSVAllocation.IsValid())
+    {
         return {};
     }
     return m_DSVAllocation.GetCPUHandle();
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE DepthTarget::GetSRVCPUHandle() const {
-    if (!m_SRVAllocation.IsValid()) {
+D3D12_CPU_DESCRIPTOR_HANDLE DepthTarget::GetSRVCPUHandle() const
+{
+    if (!m_SRVAllocation.IsValid())
+    {
         return {};
     }
     return m_SRVAllocation.GetCPUHandle();
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE DepthTarget::GetSRVGPUHandle() const {
-    if (!m_SRVAllocation.IsValid()) {
+D3D12_GPU_DESCRIPTOR_HANDLE DepthTarget::GetSRVGPUHandle() const
+{
+    if (!m_SRVAllocation.IsValid())
+    {
         return {};
     }
     return m_SRVAllocation.GetGPUHandle();

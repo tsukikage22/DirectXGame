@@ -13,7 +13,8 @@
 class TextureManager;
 class GraphicsDevice;
 
-class ModelLoader {
+class ModelLoader
+{
 public:
     /// @brief 初期化，必要なポインタの受け取り
     bool Init(GraphicsDevice& graphicsDevice, TextureManager& textureManager);
@@ -22,8 +23,7 @@ public:
     void Term();
 
     /// @brief モデルのロード
-    std::unique_ptr<Model> LoadModel(
-        const std::filesystem::path& path, DirectX::ResourceUploadBatch& batch);
+    std::unique_ptr<Model> LoadModel(const std::filesystem::path& path, DirectX::ResourceUploadBatch& batch);
 
 private:
     GraphicsDevice* m_pGraphicsDevice = nullptr;

@@ -8,29 +8,34 @@
 #include "Engine/Resource/AssetLoadScope.h"
 #include "Engine/Resource/EnvironmentMap.h"
 
-bool AssetSystem::Init(GraphicsDevice& graphicsDevice) {
+bool AssetSystem::Init(GraphicsDevice& graphicsDevice)
+{
     m_pGraphicsDevice = &graphicsDevice;
 
     // TextureManagerの初期化
-    if (!m_textureManager.Init(graphicsDevice.GetDevice())) {
+    if (!m_textureManager.Init(graphicsDevice.GetDevice()))
+    {
         OutputDebugStringW(L"Failed to initialize TextureManager.\n");
         return false;
     }
 
     // ModelLoaderの初期化
-    if (!m_modelLoader.Init(graphicsDevice, m_textureManager)) {
+    if (!m_modelLoader.Init(graphicsDevice, m_textureManager))
+    {
         OutputDebugStringW(L"Failed to initialize ModelLoader.\n");
         return false;
     }
 
     // IESProfileの初期化
-    if (!m_iesProfile.Init(graphicsDevice)) {
+    if (!m_iesProfile.Init(graphicsDevice))
+    {
         OutputDebugStringW(L"Failed to initialize IESProfile.\n");
         return false;
     }
 
     // IBLBakerの初期化
-    if (!m_iblBaker.Init(&graphicsDevice)) {
+    if (!m_iblBaker.Init(&graphicsDevice))
+    {
         OutputDebugStringW(L"Failed to initialize IBLBaker.\n");
         return false;
     }
@@ -40,19 +45,22 @@ bool AssetSystem::Init(GraphicsDevice& graphicsDevice) {
     batch.Begin();
 
     // デフォルトテクスチャの生成
-    if (!m_textureManager.CreateDefaultTextures(batch)) {
+    if (!m_textureManager.CreateDefaultTextures(batch))
+    {
         OutputDebugStringW(L"Failed to create default textures.\n");
         return false;
     }
 
     // EnvironmentMapの初期化（デフォルトキューブマップの作成を含むのでbatchが必要）
-    if (!m_environmentMap.Init(&graphicsDevice, batch)) {
+    if (!m_environmentMap.Init(&graphicsDevice, batch))
+    {
         OutputDebugStringW(L"Failed to initialize EnvironmentMap.\n");
         return false;
     }
 
     // BRDF LUT構築
-    if (!m_iblBaker.BakeBrdfLut(m_environmentMap)) {
+    if (!m_iblBaker.BakeBrdfLut(m_environmentMap))
+    {
         OutputDebugStringW(L"Failed to bake BRDF LUT.\n");
         return false;
     }
@@ -64,7 +72,8 @@ bool AssetSystem::Init(GraphicsDevice& graphicsDevice) {
     return true;
 }
 
-void AssetSystem::Term() {
+void AssetSystem::Term()
+{
     // TextureManagerの終了処理
     m_textureManager.Term();
 
@@ -81,8 +90,10 @@ void AssetSystem::Term() {
     m_modelLoader.Term();
 }
 
-bool AssetSystem::BuildEnvironmentMap(const std::filesystem::path& path) {
-    if (m_pGraphicsDevice == nullptr) {
+bool AssetSystem::BuildEnvironmentMap(const std::filesystem::path& path)
+{
+    if (m_pGraphicsDevice == nullptr)
+    {
         OutputDebugStringW(L"GraphicsDevice is not initialized.\n");
         return false;
     }
@@ -92,10 +103,10 @@ bool AssetSystem::BuildEnvironmentMap(const std::filesystem::path& path) {
     batch.Begin();
 
     // HDRI読み込み
-    if (!m_environmentMap.LoadHDRI(path, batch)) {
+    if (!m_environmentMap.LoadHDRI(path, batch))
+    {
         OutputDebugStringW(L"Failed to load HDRI for EnvironmentMap.\n");
-        auto future =
-            batch.End(m_pGraphicsDevice->GetCommandQueue().GetD3DQueue());
+        auto future = batch.End(m_pGraphicsDevice->GetCommandQueue().GetD3DQueue());
         future.wait();
         return false;
     }
@@ -104,26 +115,29 @@ bool AssetSystem::BuildEnvironmentMap(const std::filesystem::path& path) {
     future.wait();
 
     // 環境キューブマップ構築
-    if (!m_iblBaker.EquirectToCubemap(m_environmentMap)) {
+    if (!m_iblBaker.EquirectToCubemap(m_environmentMap))
+    {
         OutputDebugStringW(L"Failed to build cubemap for EnvironmentMap.\n");
         return false;
     }
 
     // 環境キューブマップのミップマップ生成
-    if (!m_iblBaker.GenerateEnvCubemapMips(m_environmentMap)) {
-        OutputDebugStringW(
-            L"Failed to generate mipmaps for EnvironmentMap cubemap.\n");
+    if (!m_iblBaker.GenerateEnvCubemapMips(m_environmentMap))
+    {
+        OutputDebugStringW(L"Failed to generate mipmaps for EnvironmentMap cubemap.\n");
         return false;
     }
 
     // 照度マップ構築
-    if (!m_iblBaker.BakeIrradianceMap(m_environmentMap)) {
+    if (!m_iblBaker.BakeIrradianceMap(m_environmentMap))
+    {
         OutputDebugStringW(L"Failed to bake irradiance map.\n");
         return false;
     }
 
     // prefiltered env map構築
-    if (!m_iblBaker.BakePrefilteredEnvMap(m_environmentMap)) {
+    if (!m_iblBaker.BakePrefilteredEnvMap(m_environmentMap))
+    {
         OutputDebugStringW(L"Failed to bake prefiltered env map.\n");
         return false;
     }
@@ -132,13 +146,11 @@ bool AssetSystem::BuildEnvironmentMap(const std::filesystem::path& path) {
 }
 
 // AssetLoadScopeの作成
-AssetLoadScope AssetSystem::CreateAssetLoadScope(Scene& scene) {
+AssetLoadScope AssetSystem::CreateAssetLoadScope(Scene& scene)
+{
     // batchのBegin
-    auto batch = std::make_unique<DirectX::ResourceUploadBatch>(
-        m_pGraphicsDevice->GetDevice());
+    auto batch = std::make_unique<DirectX::ResourceUploadBatch>(m_pGraphicsDevice->GetDevice());
     batch->Begin();
 
-    return AssetLoadScope(std::move(batch),
-        m_pGraphicsDevice->GetCommandQueue(), m_modelLoader, scene,
-        m_iesProfile);
+    return AssetLoadScope(std::move(batch), m_pGraphicsDevice->GetCommandQueue(), m_modelLoader, scene, m_iesProfile);
 }

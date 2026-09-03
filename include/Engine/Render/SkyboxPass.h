@@ -10,7 +10,8 @@
 class GraphicsDevice;
 struct SkyboxPassBindings;
 
-class SkyboxPass {
+class SkyboxPass
+{
 public:
     SkyboxPass()  = default;
     ~SkyboxPass() = default;
@@ -27,14 +28,15 @@ public:
     void Draw(const SkyboxPassBindings& passBindings);
 
 private:
-    enum RootParam {
-        CBV_Scene = 0,  // b0
-        CBV_Display,    // b3
-        SRV_Skybox,     // t0, space0
+    enum RootParam
+    {
+        CBV_Scene = 0, // b0
+        CBV_Display,   // b3
+        SRV_Skybox,    // t0, space0
     };
 
     GraphicsDevice* m_pDevice = nullptr;
 
-    engine::ComPtr<ID3D12RootSignature> m_pRootSignature;  // ルートシグネチャ
-    engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
+    engine::ComPtr<ID3D12RootSignature> m_pRootSignature; // ルートシグネチャ
+    engine::ComPtr<ID3D12PipelineState> m_pPSO;           // パイプラインステート
 };

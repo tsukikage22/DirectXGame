@@ -4,7 +4,8 @@
 
 #include "Engine/Core/ComPtr.h"
 
-class CommandQueue {
+class CommandQueue
+{
 public:
     CommandQueue();
     ~CommandQueue();

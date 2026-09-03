@@ -3,8 +3,8 @@
 #include "Engine/Core/DxDebug.h"
 #include "Engine/Core/GraphicsDevice.h"
 
-bool SwapChain::Init(GraphicsDevice& graphicsDevice, uint32_t width,
-    uint32_t height, HWND hWnd) {
+bool SwapChain::Init(GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height, HWND hWnd)
+{
     // スワップチェインの設定
     DXGI_SWAP_CHAIN_DESC1 desc = {};
     desc.Width                 = width;
@@ -18,14 +18,13 @@ bool SwapChain::Init(GraphicsDevice& graphicsDevice, uint32_t width,
     desc.Scaling               = DXGI_SCALING_STRETCH;
     desc.SwapEffect            = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     desc.AlphaMode             = DXGI_ALPHA_MODE_IGNORE;
-    desc.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+    desc.Flags                 = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
     // スワップチェインの生成
     engine::ComPtr<IDXGISwapChain1> pSwapChain;
     CHECK_HR(graphicsDevice.GetDevice(),
         graphicsDevice.GetFactory()->CreateSwapChainForHwnd(
-            graphicsDevice.GetCommandQueue().GetD3DQueue(), hWnd, &desc,
-            nullptr, nullptr, pSwapChain.GetAddressOf()));
+            graphicsDevice.GetCommandQueue().GetD3DQueue(), hWnd, &desc, nullptr, nullptr, pSwapChain.GetAddressOf()));
 
     // IDXGISwapChain3を取得
     CHECK_HR(graphicsDevice.GetDevice(), pSwapChain.As(&m_pSwapChain));
@@ -38,15 +37,15 @@ bool SwapChain::Init(GraphicsDevice& graphicsDevice, uint32_t width,
 
     // フレームレイテンシ待機オブジェクトの取得
     m_pSwapChain->SetMaximumFrameLatency(config::kFrameCount - 1);
-    m_frameLatencyWaitableObject =
-        m_pSwapChain->GetFrameLatencyWaitableObject();
+    m_frameLatencyWaitableObject = m_pSwapChain->GetFrameLatencyWaitableObject();
 
     pSwapChain.Reset();
 
     // バックバッファの生成
-    for (auto i = 0u; i < config::kFrameCount; i++) {
-        if (!m_colorTarget[i].Init(graphicsDevice.GetDevice(),
-                graphicsDevice.RtvPool(), i, m_pSwapChain.Get())) {
+    for (auto i = 0u; i < config::kFrameCount; i++)
+    {
+        if (!m_colorTarget[i].Init(graphicsDevice.GetDevice(), graphicsDevice.RtvPool(), i, m_pSwapChain.Get()))
+        {
             return false;
         }
     }
@@ -54,15 +53,18 @@ bool SwapChain::Init(GraphicsDevice& graphicsDevice, uint32_t width,
     return true;
 }
 
-void SwapChain::Term() {
+void SwapChain::Term()
+{
     // フレームレイテンシ待機オブジェクト
-    if (m_frameLatencyWaitableObject) {
+    if (m_frameLatencyWaitableObject)
+    {
         CloseHandle(m_frameLatencyWaitableObject);
         m_frameLatencyWaitableObject = nullptr;
     }
 
     // バックバッファの解放
-    for (auto i = 0u; i < config::kFrameCount; i++) {
+    for (auto i = 0u; i < config::kFrameCount; i++)
+    {
         m_colorTarget[i].Term();
     }
 
@@ -70,7 +72,8 @@ void SwapChain::Term() {
     m_pSwapChain.Reset();
 }
 
-void SwapChain::Present() {
+void SwapChain::Present()
+{
     // スワップチェインのPresent
     m_pSwapChain->Present(1, 0);
 
@@ -78,26 +81,28 @@ void SwapChain::Present() {
     m_frameIndex = m_pSwapChain->GetCurrentBackBufferIndex();
 }
 
-bool SwapChain::Resize(
-    GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height) {
+bool SwapChain::Resize(GraphicsDevice& graphicsDevice, uint32_t width, uint32_t height)
+{
     // バックバッファの解放
-    for (auto i = 0u; i < config::kFrameCount; i++) {
+    for (auto i = 0u; i < config::kFrameCount; i++)
+    {
         m_colorTarget[i].Term();
     }
 
     // スワップチェインのリサイズ
-    auto hr = m_pSwapChain.Get()->ResizeBuffers(config::kFrameCount, width,
-        height, config::kBackBufferFormat,
+    auto hr = m_pSwapChain.Get()->ResizeBuffers(config::kFrameCount, width, height, config::kBackBufferFormat,
         DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT);
-    if (FAILED(hr)) {
+    if (FAILED(hr))
+    {
         OutputDebugStringW(L"Failed to resize swap chain buffers.\n");
         return false;
     }
 
     // バックバッファの再生成
-    for (auto i = 0u; i < config::kFrameCount; i++) {
-        if (!m_colorTarget[i].Init(graphicsDevice.GetDevice(),
-                graphicsDevice.RtvPool(), i, m_pSwapChain.Get())) {
+    for (auto i = 0u; i < config::kFrameCount; i++)
+    {
+        if (!m_colorTarget[i].Init(graphicsDevice.GetDevice(), graphicsDevice.RtvPool(), i, m_pSwapChain.Get()))
+        {
             return false;
         }
     }

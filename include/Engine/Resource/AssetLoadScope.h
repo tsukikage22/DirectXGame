@@ -18,11 +18,11 @@ class ModelLoader;
 class Scene;
 class IESProfile;
 
-class AssetLoadScope {
+class AssetLoadScope
+{
 public:
-    AssetLoadScope(std::unique_ptr<DirectX::ResourceUploadBatch> pbatch,
-        CommandQueue& queue, ModelLoader& loader, Scene& scene,
-        IESProfile& iesProfile);
+    AssetLoadScope(std::unique_ptr<DirectX::ResourceUploadBatch> pbatch, CommandQueue& queue, ModelLoader& loader,
+        Scene& scene, IESProfile& iesProfile);
 
     ~AssetLoadScope();
 

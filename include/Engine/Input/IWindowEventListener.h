@@ -2,7 +2,8 @@
 
 #include <cstdint>
 
-struct IWindowEventListener {
+struct IWindowEventListener
+{
 public:
     virtual ~IWindowEventListener() = default;
 

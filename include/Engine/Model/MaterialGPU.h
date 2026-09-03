@@ -14,23 +14,24 @@
 
 class GraphicsDevice;
 
-enum class TextureUsage : uint32_t {
+enum class TextureUsage : uint32_t
+{
     BaseColor = 0,
     MetallicRoughness,
     Normal,
     Emissive,
     Occlusion,
-    Count  // = 5
+    Count // = 5
 };
 
-class MaterialGPU {
+class MaterialGPU
+{
 public:
     MaterialGPU();
     ~MaterialGPU();
 
     /// @brief 初期化処理，MaterialAssetからGPUリソースを作成
-    bool Init(GraphicsDevice& graphicsDevice, TextureManager* pTextureManager,
-        const MaterialAsset& materialAsset);
+    bool Init(GraphicsDevice& graphicsDevice, TextureManager* pTextureManager, const MaterialAsset& materialAsset);
 
     /// @brief 終了処理，リソースの解放
     void Term();
@@ -39,12 +40,14 @@ public:
     // アクセサ
     //========================================
     /// @brief GPUディスクリプタハンドルの取得
-    D3D12_GPU_DESCRIPTOR_HANDLE GetConstantBufferHandle() const {
+    D3D12_GPU_DESCRIPTOR_HANDLE GetConstantBufferHandle() const
+    {
         return m_constantBuffer.GetGPUHandle();
     }
 
     /// @brief GPU仮想アドレスの取得
-    D3D12_GPU_VIRTUAL_ADDRESS GetConstantBufferGPUAddress() const {
+    D3D12_GPU_VIRTUAL_ADDRESS GetConstantBufferGPUAddress() const
+    {
         return m_constantBuffer.GetGPUVirtualAddress();
     }
 
@@ -60,21 +63,17 @@ public:
     D3D12_GPU_DESCRIPTOR_HANDLE GetSrvTableBaseGPUHandle() const;
 
 private:
-    ConstantBuffer m_constantBuffer;        // マテリアル定数
-    shader::MaterialConstants m_constants;  // 定数バッファ用データ
-    MaterialSrvTable m_srvTable;            // マテリアル用SRVテーブル
+    ConstantBuffer m_constantBuffer;       // マテリアル定数
+    shader::MaterialConstants m_constants; // 定数バッファ用データ
+    MaterialSrvTable m_srvTable;           // マテリアル用SRVテーブル
 
     // テクスチャ
-    TextureManager* m_pTextureManager;  // テクスチャマネージャ
-    std::optional<uint32_t>
-        m_baseColorIndex;  // ベースカラーテクスチャのインデックス
-    std::optional<uint32_t>
-        m_metallicRoughnessIndex;  // メタリックテクスチャのインデックス
-    std::optional<uint32_t>
-        m_occlusionIndex;  // オクルージョンテクスチャのインデックス
-    std::optional<uint32_t> m_normalIndex;  // 法線テクスチャのインデックス
-    std::optional<uint32_t>
-        m_emissiveIndex;  // エミッシブテクスチャのインデックス
+    TextureManager* m_pTextureManager;                // テクスチャマネージャ
+    std::optional<uint32_t> m_baseColorIndex;         // ベースカラーテクスチャのインデックス
+    std::optional<uint32_t> m_metallicRoughnessIndex; // メタリックテクスチャのインデックス
+    std::optional<uint32_t> m_occlusionIndex;         // オクルージョンテクスチャのインデックス
+    std::optional<uint32_t> m_normalIndex;            // 法線テクスチャのインデックス
+    std::optional<uint32_t> m_emissiveIndex;          // エミッシブテクスチャのインデックス
 
     // コピー禁止
     MaterialGPU(const MaterialGPU&)            = delete;

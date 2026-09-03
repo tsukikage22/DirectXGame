@@ -13,27 +13,28 @@
 // Desc Structure
 //==============================================
 /// @brief 静的サンプラーの設定
-struct StaticSamplerDesc {
-    UINT shaderRegister                  = 0;
-    UINT registerSpace                   = 0;
-    D3D12_FILTER filter                  = D3D12_FILTER_ANISOTROPIC;
-    D3D12_TEXTURE_ADDRESS_MODE addressU  = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    D3D12_TEXTURE_ADDRESS_MODE addressV  = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    D3D12_TEXTURE_ADDRESS_MODE addressW  = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-    D3D12_COMPARISON_FUNC comparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
-    D3D12_STATIC_BORDER_COLOR borderColor =
-        D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
-    D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL;
-    float mipLODBias                   = 0.0f;
-    UINT maxAnisotropy                 = 16;
-    float minLOD                       = 0.0f;
-    float maxLOD                       = D3D12_FLOAT32_MAX;
+struct StaticSamplerDesc
+{
+    UINT shaderRegister                   = 0;
+    UINT registerSpace                    = 0;
+    D3D12_FILTER filter                   = D3D12_FILTER_ANISOTROPIC;
+    D3D12_TEXTURE_ADDRESS_MODE addressU   = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    D3D12_TEXTURE_ADDRESS_MODE addressV   = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    D3D12_TEXTURE_ADDRESS_MODE addressW   = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+    D3D12_COMPARISON_FUNC comparisonFunc  = D3D12_COMPARISON_FUNC_ALWAYS;
+    D3D12_STATIC_BORDER_COLOR borderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
+    D3D12_SHADER_VISIBILITY visibility    = D3D12_SHADER_VISIBILITY_ALL;
+    float mipLODBias                      = 0.0f;
+    UINT maxAnisotropy                    = 16;
+    float minLOD                          = 0.0f;
+    float maxLOD                          = D3D12_FLOAT32_MAX;
 };
 
 //==============================================
 // RootSignatureBuilder class
 //==============================================
-class RootSignatureBuilder {
+class RootSignatureBuilder
+{
 public:
     RootSignatureBuilder()  = default;
     ~RootSignatureBuilder() = default;
@@ -74,8 +75,7 @@ public:
     /// @param registerSpace
     /// @param visibility
     /// @return
-    RootSignatureBuilder& AddConstants(UINT num32BitValues, UINT shaderRegister,
-        UINT registerSpace                 = 0,
+    RootSignatureBuilder& AddConstants(UINT num32BitValues, UINT shaderRegister, UINT registerSpace = 0,
         D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
 
     /// @brief ディスクリプタレンジの定義
@@ -86,17 +86,15 @@ public:
     /// @param flags
     /// @param offset
     /// @return
-    static D3D12_DESCRIPTOR_RANGE1 CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE type,
-        UINT numDescriptors, UINT baseRegister, UINT registerSpace = 0,
-        D3D12_DESCRIPTOR_RANGE_FLAGS flags = D3D12_DESCRIPTOR_RANGE_FLAG_NONE,
+    static D3D12_DESCRIPTOR_RANGE1 CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE type, UINT numDescriptors, UINT baseRegister,
+        UINT registerSpace = 0, D3D12_DESCRIPTOR_RANGE_FLAGS flags = D3D12_DESCRIPTOR_RANGE_FLAG_NONE,
         UINT offset = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND);
 
     /// @brief ディスクリプタテーブルのルートパラメータ定義
     /// @param ranges
     /// @param visibility
     /// @return
-    RootSignatureBuilder& AddDescriptorTable(
-        const std::vector<D3D12_DESCRIPTOR_RANGE1>& ranges,
+    RootSignatureBuilder& AddDescriptorTable(const std::vector<D3D12_DESCRIPTOR_RANGE1>& ranges,
         D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL);
 
     /// @brief スタティックサンプラーのルートパラメータ定義
@@ -107,7 +105,8 @@ public:
     /// @brief ルートシグネチャのフラグ設定
     /// @param flags
     /// @return
-    RootSignatureBuilder& SetFlags(D3D12_ROOT_SIGNATURE_FLAGS flags) {
+    RootSignatureBuilder& SetFlags(D3D12_ROOT_SIGNATURE_FLAGS flags)
+    {
         m_flags = flags;
         return *this;
     }
@@ -120,7 +119,8 @@ public:
 
 private:
     /// @brief ディスクリプタテーブル用のrangeデータ
-    struct DescriptorTableData {
+    struct DescriptorTableData
+    {
         std::vector<D3D12_DESCRIPTOR_RANGE1> ranges;
     };
 

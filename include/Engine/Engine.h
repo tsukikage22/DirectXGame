@@ -34,7 +34,8 @@ class AssetLoadScope;
 ////////////////////////////////////////////
 // Engine class
 ////////////////////////////////////////////
-class Engine {
+class Engine
+{
 public:
     //==================================================================
     // ライフサイクル管理
@@ -77,22 +78,32 @@ public:
     //==================================================================
     // アクセサ
     //==================================================================
-    InputSystem& GetInputSystem() { return m_InputSystem; }
+    InputSystem& GetInputSystem()
+    {
+        return m_InputSystem;
+    }
 
-    IWindowEventListener& GetWindowEventListener() {
+    IWindowEventListener& GetWindowEventListener()
+    {
         return m_WindowEventAdapter;
     }
 
-    Scene& GetScene() { return m_Scene; }
+    Scene& GetScene()
+    {
+        return m_Scene;
+    }
 
 private:
     //==============================================================
     // Inner Class
     //==============================================================
     /// @brief ウィンドウイベント用の内部クラス
-    class WindowEventAdapter : public IWindowEventListener {
+    class WindowEventAdapter : public IWindowEventListener
+    {
     public:
-        explicit WindowEventAdapter(Engine* pEngine) : m_pEngine(pEngine) {}
+        explicit WindowEventAdapter(Engine* pEngine) : m_pEngine(pEngine)
+        {
+        }
 
         /// @brief ウィンドウ移動時の処理
         void OnWindowMoved() override;
@@ -107,23 +118,23 @@ private:
     //==============================================================
     // private variables
     //==============================================================
-    GraphicsDevice m_Device;        // D3D12デバイスの管理クラス
-    Renderer m_Renderer;            // レンダラーの管理クラス
-    ScenePass m_ScenePass;          // シーン描画パスの管理クラス
-    ShadowPass m_ShadowPass;        // シャドウマップ描画パスの管理クラス
-    CompositePass m_CompositePass;  // UI合成パスの管理クラス
-    SkyboxPass m_SkyboxPass;        // スカイボックス描画パスの管理クラス
+    GraphicsDevice m_Device;       // D3D12デバイスの管理クラス
+    Renderer m_Renderer;           // レンダラーの管理クラス
+    ScenePass m_ScenePass;         // シーン描画パスの管理クラス
+    ShadowPass m_ShadowPass;       // シャドウマップ描画パスの管理クラス
+    CompositePass m_CompositePass; // UI合成パスの管理クラス
+    SkyboxPass m_SkyboxPass;       // スカイボックス描画パスの管理クラス
 
-    AssetSystem m_AssetSystem;  // モデル読み込みなどのアセット管理クラス
-    Scene m_Scene;              // シーン
+    AssetSystem m_AssetSystem; // モデル読み込みなどのアセット管理クラス
+    Scene m_Scene;             // シーン
 
-    InputSystem m_InputSystem;  // 入力システム
+    InputSystem m_InputSystem; // 入力システム
 
-    HWND m_hWnd;  // ウィンドウハンドル
+    HWND m_hWnd; // ウィンドウハンドル
 
     WindowEventAdapter m_WindowEventAdapter{ this };
 
-    DebugUI m_DebugUI;  // デバッグUI
+    DebugUI m_DebugUI; // デバッグUI
 
     /////////////////////////////////////////////////////////////////////////
     // private methods

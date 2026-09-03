@@ -18,7 +18,8 @@
 // 前方宣言
 class DescriptorAllocation;
 
-class DescriptorPool {
+class DescriptorPool
+{
     // FreeをDescriptorAllocationから呼び出すため
     friend class DescriptorAllocation;
 
@@ -41,9 +42,8 @@ public:
     /// @param capacity プールのサイズ
     /// @return ディスクリプタプールのインスタンス（失敗時はnullptr）
     /////////////////////////////////////////////////////////////////////////////
-    static std::unique_ptr<DescriptorPool> Create(ID3D12Device* pDevice,
-        D3D12_DESCRIPTOR_HEAP_TYPE type, D3D12_DESCRIPTOR_HEAP_FLAGS flags,
-        uint32_t capacity);
+    static std::unique_ptr<DescriptorPool> Create(
+        ID3D12Device* pDevice, D3D12_DESCRIPTOR_HEAP_TYPE type, D3D12_DESCRIPTOR_HEAP_FLAGS flags, uint32_t capacity);
 
     /////////////////////////////////////////////////////////////////////////////
     /// @brief ディスクリプタプールへの割り当て
@@ -60,7 +60,10 @@ public:
     // アクセサ
     //========================================================================
     // ヒープの取得
-    ID3D12DescriptorHeap* GetHeap() const { return m_pHeap->Heap(); }
+    ID3D12DescriptorHeap* GetHeap() const
+    {
+        return m_pHeap->Heap();
+    }
 
 private:
     //========================================================================
@@ -79,11 +82,11 @@ private:
     //========================================================================
     // private variables
     //========================================================================
-    std::unique_ptr<DirectX::DescriptorHeap> m_pHeap;  // ディスクリプタヒープ
-    D3D12_DESCRIPTOR_HEAP_TYPE m_type{};  // ディスクリプタヒープの種類
-    uint32_t m_capacity;                  // プールのサイズ
+    std::unique_ptr<DirectX::DescriptorHeap> m_pHeap; // ディスクリプタヒープ
+    D3D12_DESCRIPTOR_HEAP_TYPE m_type{};              // ディスクリプタヒープの種類
+    uint32_t m_capacity;                              // プールのサイズ
     bool m_shaderVisible;
-    std::vector<uint32_t> m_free;  // 空きスロット
+    std::vector<uint32_t> m_free; // 空きスロット
 
     // 排他制御のためのmutex
     mutable std::mutex m_mutex;

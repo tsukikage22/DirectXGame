@@ -11,7 +11,8 @@
 
 class DescriptorPool;
 
-class LightBuffer {
+class LightBuffer
+{
 public:
     LightBuffer();
     ~LightBuffer();
@@ -30,10 +31,10 @@ public:
     D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const;
 
 private:
-    GPUBuffer m_buffer;                 // ライトバッファ
-    DescriptorPool* m_pPool;            // ディスクリプタプール
-    DescriptorAllocation m_allocation;  // ディスクリプタの割り当て
-    void* m_pMappedData;                // マップ済みデータ
+    GPUBuffer m_buffer;                // ライトバッファ
+    DescriptorPool* m_pPool;           // ディスクリプタプール
+    DescriptorAllocation m_allocation; // ディスクリプタの割り当て
+    void* m_pMappedData;               // マップ済みデータ
 
     // コピー禁止
     LightBuffer(const LightBuffer&)            = delete;

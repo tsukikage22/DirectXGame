@@ -1,11 +1,11 @@
 #include "Engine/Graphics/GPUBuffer.h"
 
-bool GPUBuffer::CreateStatic(ID3D12Device* pDevice,
-    ID3D12GraphicsCommandList* pCmdList, size_t size, const void* pInitData,
-    D3D12_RESOURCE_STATES finalState) {
+bool GPUBuffer::CreateStatic(ID3D12Device* pDevice, ID3D12GraphicsCommandList* pCmdList, size_t size,
+    const void* pInitData, D3D12_RESOURCE_STATES finalState)
+{
     // 引数チェック
-    if (pDevice == nullptr || pCmdList == nullptr || size == 0 ||
-        pInitData == nullptr) {
+    if (pDevice == nullptr || pCmdList == nullptr || size == 0 || pInitData == nullptr)
+    {
         return false;
     }
 
@@ -33,10 +33,10 @@ bool GPUBuffer::CreateStatic(ID3D12Device* pDevice,
     desc.Flags               = D3D12_RESOURCE_FLAG_NONE;
 
     // DEFAULTヒープの作成
-    auto hr = pDevice->CreateCommittedResource(&prop, D3D12_HEAP_FLAG_NONE,
-        &desc, D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
-        IID_PPV_ARGS(m_pRes.GetAddressOf()));
-    if (FAILED(hr)) {
+    auto hr = pDevice->CreateCommittedResource(&prop, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COPY_DEST,
+        nullptr, IID_PPV_ARGS(m_pRes.GetAddressOf()));
+    if (FAILED(hr))
+    {
         Term();
         return false;
     }
@@ -44,10 +44,10 @@ bool GPUBuffer::CreateStatic(ID3D12Device* pDevice,
 
     // UPLOADヒープの作成
     prop.Type = D3D12_HEAP_TYPE_UPLOAD;
-    hr = pDevice->CreateCommittedResource(&prop, D3D12_HEAP_FLAG_NONE, &desc,
-        D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-        IID_PPV_ARGS(m_pUpload.GetAddressOf()));
-    if (FAILED(hr)) {
+    hr        = pDevice->CreateCommittedResource(&prop, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr, IID_PPV_ARGS(m_pUpload.GetAddressOf()));
+    if (FAILED(hr))
+    {
         Term();
         return false;
     }
@@ -55,7 +55,8 @@ bool GPUBuffer::CreateStatic(ID3D12Device* pDevice,
     // 初期データの書き込み
     void* ptr = nullptr;
     hr        = m_pUpload->Map(0, nullptr, &ptr);
-    if (FAILED(hr) || ptr == nullptr) {
+    if (FAILED(hr) || ptr == nullptr)
+    {
         Term();
         return false;
     }
@@ -66,14 +67,14 @@ bool GPUBuffer::CreateStatic(ID3D12Device* pDevice,
     pCmdList->CopyBufferRegion(m_pRes.Get(), 0, m_pUpload.Get(), 0, size);
 
     // ステートの遷移
-    if (m_State != finalState) {
+    if (m_State != finalState)
+    {
         D3D12_RESOURCE_BARRIER barrier = {};
         barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
         barrier.Transition.pResource   = m_pRes.Get();
         barrier.Transition.StateBefore = m_State;
         barrier.Transition.StateAfter  = finalState;
-        barrier.Transition.Subresource =
-            D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
         pCmdList->ResourceBarrier(1, &barrier);
         m_State = finalState;
     }
@@ -82,21 +83,21 @@ bool GPUBuffer::CreateStatic(ID3D12Device* pDevice,
 }
 
 // ResourceUploadBatchを使った静的バッファの作成
-bool GPUBuffer::CreateStatic(ID3D12Device* pDevice,
-    DirectX::ResourceUploadBatch& batch, size_t count, size_t stride,
-    const void* pInitData, D3D12_RESOURCE_STATES finalState) {
+bool GPUBuffer::CreateStatic(ID3D12Device* pDevice, DirectX::ResourceUploadBatch& batch, size_t count, size_t stride,
+    const void* pInitData, D3D12_RESOURCE_STATES finalState)
+{
     // 引数チェック
-    if (pDevice == nullptr || count == 0 || stride == 0 ||
-        pInitData == nullptr) {
+    if (pDevice == nullptr || count == 0 || stride == 0 || pInitData == nullptr)
+    {
         return false;
     }
 
     m_Size = count * stride;
 
-    auto hr = DirectX::CreateStaticBuffer(pDevice, batch, pInitData, count,
-        stride, finalState, m_pRes.GetAddressOf());
+    auto hr = DirectX::CreateStaticBuffer(pDevice, batch, pInitData, count, stride, finalState, m_pRes.GetAddressOf());
 
-    if (FAILED(hr)) {
+    if (FAILED(hr))
+    {
         Term();
         return false;
     }
@@ -106,9 +107,11 @@ bool GPUBuffer::CreateStatic(ID3D12Device* pDevice,
 }
 
 // 動的バッファの作成
-bool GPUBuffer::CreateDynamic(ID3D12Device* pDevice, size_t size) {
+bool GPUBuffer::CreateDynamic(ID3D12Device* pDevice, size_t size)
+{
     // 引数チェック
-    if (pDevice == nullptr || size == 0) {
+    if (pDevice == nullptr || size == 0)
+    {
         return false;
     }
 
@@ -136,10 +139,10 @@ bool GPUBuffer::CreateDynamic(ID3D12Device* pDevice, size_t size) {
     desc.Flags               = D3D12_RESOURCE_FLAG_NONE;
 
     // UPLOADヒープの作成
-    auto hr = pDevice->CreateCommittedResource(&prop, D3D12_HEAP_FLAG_NONE,
-        &desc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-        IID_PPV_ARGS(m_pRes.GetAddressOf()));
-    if (FAILED(hr)) {
+    auto hr = pDevice->CreateCommittedResource(&prop, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr, IID_PPV_ARGS(m_pRes.GetAddressOf()));
+    if (FAILED(hr))
+    {
         Term();
         return false;
     }
@@ -147,10 +150,13 @@ bool GPUBuffer::CreateDynamic(ID3D12Device* pDevice, size_t size) {
 
     // メモリマッピング
     hr = m_pRes->Map(0, nullptr, &m_pMappedData);
-    if (FAILED(hr)) {
+    if (FAILED(hr))
+    {
         Term();
         return false;
-    } else {
+    }
+    else
+    {
         m_IsMapped = true;
     }
 
@@ -158,12 +164,17 @@ bool GPUBuffer::CreateDynamic(ID3D12Device* pDevice, size_t size) {
 }
 
 // アップロードバッファの破棄,フェンス完了後に呼び出す
-void GPUBuffer::DiscardUpload() { m_pUpload.Reset(); }
+void GPUBuffer::DiscardUpload()
+{
+    m_pUpload.Reset();
+}
 
 // 終了処理
-void GPUBuffer::Term() {
+void GPUBuffer::Term()
+{
     // メモリのアンマップ
-    if (m_IsMapped && m_pRes != nullptr) {
+    if (m_IsMapped && m_pRes != nullptr)
+    {
         m_pRes->Unmap(0, nullptr);
         m_IsMapped = false;
     }
@@ -175,8 +186,10 @@ void GPUBuffer::Term() {
     m_State = D3D12_RESOURCE_STATE_COMMON;
 }
 
-D3D12_GPU_VIRTUAL_ADDRESS GPUBuffer::GetGPUVirtualAddress() const {
-    if (m_pRes == nullptr) {
+D3D12_GPU_VIRTUAL_ADDRESS GPUBuffer::GetGPUVirtualAddress() const
+{
+    if (m_pRes == nullptr)
+    {
         return 0;
     }
     return m_pRes->GetGPUVirtualAddress();

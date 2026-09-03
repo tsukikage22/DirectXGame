@@ -12,18 +12,20 @@
 #include "Engine/Graphics/VertexBuffer.h"
 #include "Engine/Model/ModelAsset.h"
 
-class MeshGPU {
+class MeshGPU
+{
 public:
     MeshGPU();
-    ~MeshGPU() { Term(); }
+    ~MeshGPU()
+    {
+        Term();
+    }
 
     // 初期化処理・VB/IBの作成
-    bool Init(ID3D12Device* pDevice, ID3D12GraphicsCommandList* pCmdList,
-        const MeshAsset& mesh);
+    bool Init(ID3D12Device* pDevice, ID3D12GraphicsCommandList* pCmdList, const MeshAsset& mesh);
 
     /// @brief VB/IBの作成 batch版
-    bool Init(ID3D12Device* pDevice, DirectX::ResourceUploadBatch& batch,
-        const MeshAsset& mesh);
+    bool Init(ID3D12Device* pDevice, DirectX::ResourceUploadBatch& batch, const MeshAsset& mesh);
 
     void Term();
 
@@ -35,23 +37,31 @@ public:
     //==============================================================
     /// @brief 頂点バッファビューのgetter
     /// @return 頂点バッファビュー
-    const D3D12_VERTEX_BUFFER_VIEW GetVertexBufferView() const {
+    const D3D12_VERTEX_BUFFER_VIEW GetVertexBufferView() const
+    {
         return m_pVB->GetView();
     }
 
     /// @brief インデックスバッファビューのgetter
     /// @return インデックスバッファビュー
-    const D3D12_INDEX_BUFFER_VIEW GetIndexBufferView() const {
+    const D3D12_INDEX_BUFFER_VIEW GetIndexBufferView() const
+    {
         return m_pIB->GetView();
     }
 
     /// @brief インデックスデータの数のgetter
     /// @return インデックスデータの数
-    uint32_t GetIndexCount() const { return m_IndexCount; }
+    uint32_t GetIndexCount() const
+    {
+        return m_IndexCount;
+    }
 
     /// @brief マテリアルIDのgetter
     /// @return マテリアルID
-    uint32_t GetMaterialID() const { return m_MaterialID; }
+    uint32_t GetMaterialID() const
+    {
+        return m_MaterialID;
+    }
 
 private:
     std::unique_ptr<VertexBuffer> m_pVB;

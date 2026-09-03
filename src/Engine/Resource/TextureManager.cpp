@@ -2,23 +2,26 @@
 
 #include "Engine/Core/EngineConfig.h"
 
-TextureManager::TextureManager()
-    : m_pDevice(nullptr), m_pPoolAssetSRV(nullptr) {}
+TextureManager::TextureManager() : m_pDevice(nullptr), m_pPoolAssetSRV(nullptr)
+{
+}
 
 // 初期化
-bool TextureManager::Init(ID3D12Device* pDevice) {
+bool TextureManager::Init(ID3D12Device* pDevice)
+{
     // 引数チェック
-    if (!pDevice) {
+    if (!pDevice)
+    {
         return false;
     }
 
     m_pDevice = pDevice;
 
     // アセット用SRVプールの作成
-    m_pPoolAssetSRV = DescriptorPool::Create(m_pDevice,
-        D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-        config::kAssetSrvCapacity);
-    if (!m_pPoolAssetSRV) {
+    m_pPoolAssetSRV = DescriptorPool::Create(
+        m_pDevice, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, config::kAssetSrvCapacity);
+    if (!m_pPoolAssetSRV)
+    {
         return false;
     }
 
@@ -26,13 +29,15 @@ bool TextureManager::Init(ID3D12Device* pDevice) {
 }
 
 // 終了処理
-void TextureManager::Term() {
+void TextureManager::Term()
+{
     // デフォルトテクスチャの解放
     m_pDefaultWhiteTexture.reset();
     m_pDefaultNormalFlatTexture.reset();
 
     // テクスチャリソースの解放
-    for (auto& t : m_textures) {
+    for (auto& t : m_textures)
+    {
         t.Term();
     }
     m_textures.clear();
@@ -43,72 +48,79 @@ void TextureManager::Term() {
     m_pDevice = nullptr;
 }
 
-void TextureManager::BuildTexturesFromModelAsset(
-    ModelAsset& modelAsset, DirectX::ResourceUploadBatch& batch) {
+void TextureManager::BuildTexturesFromModelAsset(ModelAsset& modelAsset, DirectX::ResourceUploadBatch& batch)
+{
     // 引数チェック
-    if (!modelAsset.IsValid()) {
+    if (!modelAsset.IsValid())
+    {
         return;
     }
 
     // マテリアルを操作してsRGBフラグを設定
-    for (const auto& material : modelAsset.materials) {
+    for (const auto& material : modelAsset.materials)
+    {
         // baseColorとemissiveはsRGBフラグを有効化する
-        if (material.baseColorLocalTextureIndex >= 0) {
-            modelAsset.images[material.baseColorLocalTextureIndex].isSRGB =
-                true;
+        if (material.baseColorLocalTextureIndex >= 0)
+        {
+            modelAsset.images[material.baseColorLocalTextureIndex].isSRGB = true;
         }
-        if (material.emissiveLocalTextureIndex >= 0) {
+        if (material.emissiveLocalTextureIndex >= 0)
+        {
             modelAsset.images[material.emissiveLocalTextureIndex].isSRGB = true;
         }
     }
 
     // ImageAsset配列からテクスチャを生成
     std::vector<TextureHandle> textureHandles;
-    for (const auto& image : modelAsset.images) {
+    for (const auto& image : modelAsset.images)
+    {
         uint32_t index = CreateFromImageAsset(image, batch);
         TextureHandle textureHandle{ index };
         textureHandles.push_back(textureHandle);
     }
 
     // マテリアルのテクスチャハンドルを解決
-    for (auto& material : modelAsset.materials) {
+    for (auto& material : modelAsset.materials)
+    {
         auto Resolve = [&](int localIndex, TextureHandle& outHandle) {
-            if (localIndex >= 0 &&
-                static_cast<size_t>(localIndex) < textureHandles.size()) {
+            if (localIndex >= 0 && static_cast<size_t>(localIndex) < textureHandles.size())
+            {
                 outHandle = textureHandles[localIndex];
-            } else {
+            }
+            else
+            {
                 // 無効の場合は初期値（無効ハンドル）のまま
             }
         };
         Resolve(material.baseColorLocalTextureIndex, material.baseColorTexture);
         Resolve(material.normalLocalTextureIndex, material.normalTexture);
-        Resolve(material.metallicRoughnessLocalTextureIndex,
-            material.metallicRoughnessTexture);
+        Resolve(material.metallicRoughnessLocalTextureIndex, material.metallicRoughnessTexture);
         Resolve(material.occlusionLocalTextureIndex, material.occlusionTexture);
         Resolve(material.emissiveLocalTextureIndex, material.emissiveTexture);
     }
 }
 
 // ImageAsset配列からテクスチャを生成
-uint32_t TextureManager::CreateFromImageAsset(
-    const ImageAsset& image, DirectX::ResourceUploadBatch& batch) {
+uint32_t TextureManager::CreateFromImageAsset(const ImageAsset& image, DirectX::ResourceUploadBatch& batch)
+{
     // 引数チェック
-    if (!image.IsValid()) {
+    if (!image.IsValid())
+    {
         return UINT32_MAX;
     }
 
     // TextureResourceを生成
     // フォーマットチェック
     // GLBの埋め込み画像想定で，png, jpgを対象にする
-    if (image.format != "png" && image.format != "jpg" &&
-        image.format != "jpeg") {
+    if (image.format != "png" && image.format != "jpg" && image.format != "jpeg")
+    {
         OutputDebugStringW(L"Error: texture format invalid");
         return UINT32_MAX;
     }
 
     ShaderResourceTexture shaderResourceTexture;
-    if (!shaderResourceTexture.InitFromImage(
-            m_pDevice, m_pPoolAssetSRV.get(), image, batch)) {
+    if (!shaderResourceTexture.InitFromImage(m_pDevice, m_pPoolAssetSRV.get(), image, batch))
+    {
         return UINT32_MAX;
     }
 
@@ -120,46 +132,52 @@ uint32_t TextureManager::CreateFromImageAsset(
 }
 
 // 単色テクスチャの生成
-bool TextureManager::CreateSolidColorTexture(
-    DirectX::ResourceUploadBatch& batch, uint8_t r, uint8_t g, uint8_t b,
-    uint8_t a, DescriptorPool* poolSRV, ShaderResourceTexture& outTexture) {
-    return outTexture.InitSolidColorRGBA8(
-        m_pDevice, poolSRV, r, g, b, a, batch);
+bool TextureManager::CreateSolidColorTexture(DirectX::ResourceUploadBatch& batch, uint8_t r, uint8_t g, uint8_t b,
+    uint8_t a, DescriptorPool* poolSRV, ShaderResourceTexture& outTexture)
+{
+    return outTexture.InitSolidColorRGBA8(m_pDevice, poolSRV, r, g, b, a, batch);
 }
 
 // 指定したインデックスのテクスチャを取得
-ShaderResourceTexture* TextureManager::GetTexture(uint32_t index) {
+ShaderResourceTexture* TextureManager::GetTexture(uint32_t index)
+{
     TextureHandle handle{ index };
-    if (!handle.IsValid() ||
-        handle.index >= static_cast<uint32_t>(m_textures.size())) {
+    if (!handle.IsValid() || handle.index >= static_cast<uint32_t>(m_textures.size()))
+    {
         return nullptr;
-    } else {
+    }
+    else
+    {
         return &m_textures[handle.index];
     }
 }
 
-D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetSrvGPUHandle(
-    TextureHandle handle) const {
-    if (!handle.IsValid() ||
-        handle.index >= static_cast<uint32_t>(m_textures.size())) {
+D3D12_GPU_DESCRIPTOR_HANDLE TextureManager::GetSrvGPUHandle(TextureHandle handle) const
+{
+    if (!handle.IsValid() || handle.index >= static_cast<uint32_t>(m_textures.size()))
+    {
         return {};
-    } else {
+    }
+    else
+    {
         return m_textures[handle.index].GetDefaultSrvGpu();
     }
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE TextureManager::GetSrvCpuHandle(
-    TextureHandle handle) const {
-    if (!handle.IsValid() ||
-        handle.index >= static_cast<uint32_t>(m_textures.size())) {
+D3D12_CPU_DESCRIPTOR_HANDLE TextureManager::GetSrvCpuHandle(TextureHandle handle) const
+{
+    if (!handle.IsValid() || handle.index >= static_cast<uint32_t>(m_textures.size()))
+    {
         return {};
-    } else {
+    }
+    else
+    {
         return m_textures[handle.index].GetDefaultSrvCpu();
     }
 }
 
-bool TextureManager::CreateDefaultTextures(
-    DirectX::ResourceUploadBatch& batch) {
+bool TextureManager::CreateDefaultTextures(DirectX::ResourceUploadBatch& batch)
+{
     // デフォルトテクスチャの生成
     m_pDefaultWhiteTexture      = std::make_unique<ShaderResourceTexture>();
     m_pDefaultNormalFlatTexture = std::make_unique<ShaderResourceTexture>();
@@ -169,9 +187,9 @@ bool TextureManager::CreateDefaultTextures(
     uint8_t g   = 0xFF;
     uint8_t b   = 0xFF;
     uint8_t a   = 0xFF;
-    bool result = CreateSolidColorTexture(
-        batch, r, g, b, a, m_pPoolAssetSRV.get(), *m_pDefaultWhiteTexture);
-    if (!result) {
+    bool result = CreateSolidColorTexture(batch, r, g, b, a, m_pPoolAssetSRV.get(), *m_pDefaultWhiteTexture);
+    if (!result)
+    {
         return false;
     }
 
@@ -180,19 +198,21 @@ bool TextureManager::CreateDefaultTextures(
     g      = 0x80;
     b      = 0xFF;
     a      = 0xFF;
-    result = CreateSolidColorTexture(
-        batch, r, g, b, a, m_pPoolAssetSRV.get(), *m_pDefaultNormalFlatTexture);
-    if (!result) {
+    result = CreateSolidColorTexture(batch, r, g, b, a, m_pPoolAssetSRV.get(), *m_pDefaultNormalFlatTexture);
+    if (!result)
+    {
         return false;
     }
 
     return true;
 }
 
-ShaderResourceTexture* TextureManager::GetWhiteDefault() const {
+ShaderResourceTexture* TextureManager::GetWhiteDefault() const
+{
     return m_pDefaultWhiteTexture.get();
 }
 
-ShaderResourceTexture* TextureManager::GetNormalFlat() const {
+ShaderResourceTexture* TextureManager::GetNormalFlat() const
+{
     return m_pDefaultNormalFlatTexture.get();
 }

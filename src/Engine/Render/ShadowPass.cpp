@@ -11,7 +11,8 @@
 #include "Engine/Resource/ShaderLoader.h"
 #include "Engine/Scene/Scene.h"
 
-bool ShadowPass::Init(GraphicsDevice& device) {
+bool ShadowPass::Init(GraphicsDevice& device)
+{
     m_pDevice = &device;
 
     // ルートシグネチャの構築
@@ -19,14 +20,12 @@ bool ShadowPass::Init(GraphicsDevice& device) {
     // ルートシグネチャ構成
     // [b0] SceneConstants (Root CBV)
     // [b1] TransformConstants (Root CBV)
-    rsBuilder
-        .SetFlags(D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)
-        .AddCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL,
-            D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
-        .AddCBV(1, 0, D3D12_SHADER_VISIBILITY_VERTEX,
-            D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE);
+    rsBuilder.SetFlags(D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT)
+        .AddCBV(0, 0, D3D12_SHADER_VISIBILITY_ALL, D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE)
+        .AddCBV(1, 0, D3D12_SHADER_VISIBILITY_VERTEX, D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE);
 
-    if (!rsBuilder.Build(m_pDevice->GetDevice())) {
+    if (!rsBuilder.Build(m_pDevice->GetDevice()))
+    {
         OutputDebugStringW(L"Failed to build root signature.\n");
         return false;
     }
@@ -36,21 +35,23 @@ bool ShadowPass::Init(GraphicsDevice& device) {
     GraphicsPipelineBuilder psoBuilder;
     // シェーダーの読み込み（VSのみ）
     std::vector<std::byte> vsData;
-    if (!LoadShader(L"shader/ShadowMapVS.cso", vsData)) {
+    if (!LoadShader(L"shader/ShadowMapVS.cso", vsData))
+    {
         OutputDebugStringW(L"Failed to load shaders.\n");
         return false;
     }
     psoBuilder.SetRootSignature(m_pRootSignature.Get())
         .SetVertexShader(vsData.data(), vsData.size())
-        .SetDepthClipEnable(false)  // シャドウマップは深度クリップを無効化
+        .SetDepthClipEnable(false) // シャドウマップは深度クリップを無効化
         .SetDepthMode(DepthMode::Default)
         .SetDSVFormat(config::kShadowMapFormat)
         .SetRenderTargetLayout(kShadowLayout)
         .SetInputLayout(StandardVertex::GetInputLayout())
         .SetDepthBias(config::kShadowDepthBias, config::kShadowDepthBiasClamp,
-            config::kShadowSlopeScaledBias);  // シャドウマップ用の深度バイアス
+            config::kShadowSlopeScaledBias); // シャドウマップ用の深度バイアス
 
-    if (!psoBuilder.Build(m_pDevice->GetDevice())) {
+    if (!psoBuilder.Build(m_pDevice->GetDevice()))
+    {
         OutputDebugStringW(L"Failed to build graphics pipeline state.\n");
         return false;
     }
@@ -59,7 +60,8 @@ bool ShadowPass::Init(GraphicsDevice& device) {
     return true;
 }
 
-void ShadowPass::Term() {
+void ShadowPass::Term()
+{
     m_pDevice = nullptr;
 
     m_pPSO.Reset();
@@ -67,7 +69,8 @@ void ShadowPass::Term() {
 }
 
 // 描画コマンドの記録
-void ShadowPass::Draw(const ShadowPassBindings& passBindings, Scene& scene) {
+void ShadowPass::Draw(const ShadowPassBindings& passBindings, Scene& scene)
+{
     auto pCmdList = passBindings.pCmdList;
 
     // パイプライン設定
@@ -75,20 +78,21 @@ void ShadowPass::Draw(const ShadowPassBindings& passBindings, Scene& scene) {
     pCmdList->SetPipelineState(m_pPSO.Get());
 
     // [b0] SceneConstants (共通)
-    pCmdList->SetGraphicsRootConstantBufferView(
-        RootParam::CBV_Scene, passBindings.sceneCB);
+    pCmdList->SetGraphicsRootConstantBufferView(RootParam::CBV_Scene, passBindings.sceneCB);
 
     // PrimitiveTopologyの指定
     pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     scene.ForEachObject([&](GameObject& obj) {
         // [b1] TransformConstants (モデル単位)
-        pCmdList->SetGraphicsRootConstantBufferView(RootParam::CBV_Transform,
-            obj.GetTransformGPU(passBindings.frameIndex).GetGPUAddress());
+        pCmdList->SetGraphicsRootConstantBufferView(
+            RootParam::CBV_Transform, obj.GetTransformGPU(passBindings.frameIndex).GetGPUAddress());
         const auto model = scene.GetModel(obj.GetModelHandle());
-        if (model == nullptr) return;
+        if (model == nullptr)
+            return;
         const auto& meshes = model->GetMeshes();
-        for (const auto& mesh : meshes) {
+        for (const auto& mesh : meshes)
+        {
             // 頂点バッファ・インデックスバッファの設定
             auto vbv = mesh->GetVertexBufferView();
             auto ibv = mesh->GetIndexBufferView();

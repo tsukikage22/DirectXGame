@@ -19,7 +19,8 @@
 // 前方宣言
 class GraphicsDevice;
 
-class Scene {
+class Scene
+{
 public:
     Scene();
     ~Scene();
@@ -54,16 +55,16 @@ public:
     void BeginFrame(uint32_t frameIndex);
 
     /// @brief 全ゲームオブジェクトに対してfnを呼び出す
-    template <typename Fn>
-    void ForEachObject(Fn&& fn) {
+    template <typename Fn> void ForEachObject(Fn&& fn)
+    {
         m_gameObjectMap.ForEach(
             // 全てのGameObjectをfnに渡すラムダ式
             [&](std::unique_ptr<GameObject>& pObj) { fn(*pObj); });
     }
 
     /// @brief 全ライトに対してfnを呼び出す
-    template <typename Fn>
-    void ForEachLight(Fn&& fn) {
+    template <typename Fn> void ForEachLight(Fn&& fn)
+    {
         m_lightMap.ForEach(
             // 全てのLightをfnに渡すラムダ式
             [&](std::unique_ptr<Light>& pLight) { fn(*pLight); });
@@ -79,36 +80,42 @@ public:
     Light* GetLight(engine::LightHandle handle);
 
     /// @brief シーンのカメラを取得する
-    Camera& GetCamera() { return m_camera; }
+    Camera& GetCamera()
+    {
+        return m_camera;
+    }
 
     /// @brief 環境マップの輝度スケール係数を設定する
-    void SetEnvIntensity(float intensity) { m_envIntensity = intensity; }
+    void SetEnvIntensity(float intensity)
+    {
+        m_envIntensity = intensity;
+    }
 
     /// @brief 環境マップの輝度スケール係数を取得する
-    float GetEnvIntensity() const { return m_envIntensity; }
+    float GetEnvIntensity() const
+    {
+        return m_envIntensity;
+    }
 
 private:
     //==============================================================
     // メンバ変数
     //==============================================================
     // D3D12
-    ID3D12Device* m_pDevice    = nullptr;  // デバイス
-    DescriptorPool* m_pPoolCBV = nullptr;  // CBV用ディスクリプタプール
+    ID3D12Device* m_pDevice    = nullptr; // デバイス
+    DescriptorPool* m_pPoolCBV = nullptr; // CBV用ディスクリプタプール
 
     // スロットマップ
-    SlotMap<std::unique_ptr<GameObject>, engine::GameObjectTag>
-        m_gameObjectMap;  // ゲームオブジェクトのスロットマップ
-    SlotMap<std::unique_ptr<Model>, engine::ModelTag>
-        m_modelMap;  // モデルのスロットマップ
-    SlotMap<std::unique_ptr<Light>, engine::LightTag>
-        m_lightMap;  // ライトのスロットマップ
+    SlotMap<std::unique_ptr<GameObject>, engine::GameObjectTag> m_gameObjectMap; // ゲームオブジェクトのスロットマップ
+    SlotMap<std::unique_ptr<Model>, engine::ModelTag> m_modelMap;                // モデルのスロットマップ
+    SlotMap<std::unique_ptr<Light>, engine::LightTag> m_lightMap;                // ライトのスロットマップ
 
     // カメラ
-    Camera m_camera;  // シーンのカメラ
+    Camera m_camera; // シーンのカメラ
 
-    float m_envIntensity = 1.0f;  // 環境マップの輝度スケール係数
+    float m_envIntensity = 1.0f; // 環境マップの輝度スケール係数
 
     // 遅延解放キュー
     RetireQueue<std::unique_ptr<GameObject>> m_retireQueue;
-    uint32_t m_currentFrameIndex = 0;  // 現在のフレームインデックス
+    uint32_t m_currentFrameIndex = 0; // 現在のフレームインデックス
 };

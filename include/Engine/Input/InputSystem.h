@@ -7,7 +7,8 @@
 
 #include "Engine/Input/IInputReceiver.h"
 
-class InputSystem : public IInputReceiver {
+class InputSystem : public IInputReceiver
+{
 public:
     InputSystem();
     ~InputSystem();
@@ -19,9 +20,9 @@ public:
     // 入力取得API
     //==================================
     // キーボード
-    bool IsKeyDown(int vk) const;       // キーが現在押されているか
-    bool WasKeyPressed(int vk) const;   // キーが押された瞬間
-    bool WasKeyReleased(int vk) const;  // キーが離された瞬間
+    bool IsKeyDown(int vk) const;      // キーが現在押されているか
+    bool WasKeyPressed(int vk) const;  // キーが押された瞬間
+    bool WasKeyReleased(int vk) const; // キーが離された瞬間
 
     // マウス
     int MouseDX() const;
@@ -42,18 +43,20 @@ public:
     //==================================
     // アクセサ
     //==================================
-    void SetUICaptureState(bool wantCaptureMouse, bool wantCaptureKeyboard) {
+    void SetUICaptureState(bool wantCaptureMouse, bool wantCaptureKeyboard)
+    {
         m_ImGuiWantCaptureMouse    = wantCaptureMouse;
         m_ImGuiWantCaptureKeyboard = wantCaptureKeyboard;
     };
 
 private:
     // キーボード状態
-    std::array<bool, 256> m_KeyCur{};   // 現在のキー状態
-    std::array<bool, 256> m_KeyPrev{};  // 前フレームのキー状態
+    std::array<bool, 256> m_KeyCur{};  // 現在のキー状態
+    std::array<bool, 256> m_KeyPrev{}; // 前フレームのキー状態
 
     // マウス状態
-    struct MouseState {
+    struct MouseState
+    {
         int x     = 0;
         int y     = 0;
         int prevX = 0;
@@ -61,10 +64,8 @@ private:
         int dx    = 0;
         int dy    = 0;
         int wheel = 0;
-        std::array<bool, static_cast<size_t>(Button::Count)>
-            buttonCur{};  // 現在のボタン状態
-        std::array<bool, static_cast<size_t>(Button::Count)>
-            buttonPrev{};  // 前フレームのボタン状態
+        std::array<bool, static_cast<size_t>(Button::Count)> buttonCur{};  // 現在のボタン状態
+        std::array<bool, static_cast<size_t>(Button::Count)> buttonPrev{}; // 前フレームのボタン状態
     } m_Mouse;
 
     // ImGuiの入力状態

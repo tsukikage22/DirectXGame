@@ -11,7 +11,8 @@ class GraphicsDevice;
 class Scene;
 struct ShadowPassBindings;
 
-class ShadowPass {
+class ShadowPass
+{
 public:
     ShadowPass()  = default;
     ~ShadowPass() = default;
@@ -28,13 +29,14 @@ public:
     void Draw(const ShadowPassBindings& passBindings, Scene& scene);
 
 private:
-    enum RootParam {
-        CBV_Scene     = 0,  // b0
-        CBV_Transform = 1,  // b1
+    enum RootParam
+    {
+        CBV_Scene     = 0, // b0
+        CBV_Transform = 1, // b1
     };
 
     GraphicsDevice* m_pDevice = nullptr;
 
-    engine::ComPtr<ID3D12RootSignature> m_pRootSignature;  // ルートシグネチャ
-    engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
+    engine::ComPtr<ID3D12RootSignature> m_pRootSignature; // ルートシグネチャ
+    engine::ComPtr<ID3D12PipelineState> m_pPSO;           // パイプラインステート
 };

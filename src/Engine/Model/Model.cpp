@@ -2,11 +2,12 @@
 
 #include "Engine/Core/GraphicsDevice.h"
 
-bool Model::Init(GraphicsDevice& graphicsDevice,
-    TextureManager* pTextureManager, DirectX::ResourceUploadBatch& batch,
-    const ModelAsset& modelAsset) {
+bool Model::Init(GraphicsDevice& graphicsDevice, TextureManager* pTextureManager, DirectX::ResourceUploadBatch& batch,
+    const ModelAsset& modelAsset)
+{
     // 引数チェック
-    if (!pTextureManager || !modelAsset.IsValid()) {
+    if (!pTextureManager || !modelAsset.IsValid())
+    {
         return false;
     }
 
@@ -14,9 +15,11 @@ bool Model::Init(GraphicsDevice& graphicsDevice,
 
     // メッシュをGPUに転送
     m_meshes.reserve(modelAsset.meshes.size());
-    for (size_t i = 0; i < modelAsset.meshes.size(); i++) {
+    for (size_t i = 0; i < modelAsset.meshes.size(); i++)
+    {
         auto mesh = std::make_unique<MeshGPU>();
-        if (!mesh->Init(pDevice, batch, modelAsset.meshes[i])) {
+        if (!mesh->Init(pDevice, batch, modelAsset.meshes[i]))
+        {
             Term();
             return false;
         }
@@ -25,10 +28,11 @@ bool Model::Init(GraphicsDevice& graphicsDevice,
 
     // マテリアルをGPUに転送
     m_materials.reserve(modelAsset.materials.size());
-    for (size_t i = 0; i < modelAsset.materials.size(); i++) {
+    for (size_t i = 0; i < modelAsset.materials.size(); i++)
+    {
         auto material = std::make_unique<MaterialGPU>();
-        if (!material->Init(
-                graphicsDevice, pTextureManager, modelAsset.materials[i])) {
+        if (!material->Init(graphicsDevice, pTextureManager, modelAsset.materials[i]))
+        {
             Term();
             return false;
         }
@@ -38,7 +42,8 @@ bool Model::Init(GraphicsDevice& graphicsDevice,
     return true;
 }
 
-void Model::Term() {
+void Model::Term()
+{
     // メッシュの破棄
     m_meshes.clear();
 
@@ -46,8 +51,10 @@ void Model::Term() {
     m_materials.clear();
 }
 
-void Model::DiscardUpload() {
-    for (auto& mesh : m_meshes) {
+void Model::DiscardUpload()
+{
+    for (auto& mesh : m_meshes)
+    {
         mesh->DiscardUpload();
     }
 }

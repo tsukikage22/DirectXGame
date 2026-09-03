@@ -7,7 +7,8 @@
 
 #include "Engine/Scene/Transform.h"
 
-class Camera {
+class Camera
+{
 public:
     Camera();
 
@@ -16,21 +17,31 @@ public:
     //================================
     /// @brief 垂直視野角の設定
     /// @param fovYDeg 垂直視野角（度）
-    void SetFovYDeg(float fovYDeg) {
+    void SetFovYDeg(float fovYDeg)
+    {
         m_fovYRad = DirectX::XMConvertToRadians(fovYDeg);
     };
 
     /// @brief アスペクト比の設定
     /// @param aspect
-    void SetAspect(float aspect) { m_aspect = aspect; };
+    void SetAspect(float aspect)
+    {
+        m_aspect = aspect;
+    };
 
     /// @brief 最も近い描画距離の設定
     /// @param nearZ
-    void SetNearZ(float nearZ) { m_nearZ = nearZ; };
+    void SetNearZ(float nearZ)
+    {
+        m_nearZ = nearZ;
+    };
 
     /// @brief 最も遠い描画距離の設定
     /// @param farZ
-    void SetFarZ(float farZ) { m_farZ = farZ; };
+    void SetFarZ(float farZ)
+    {
+        m_farZ = farZ;
+    };
 
     /// @brief 露出パラメータの設定
     /// @param aperture
@@ -52,8 +63,7 @@ public:
     /// @brief カメラの視錐台に基づく境界球の計算
     /// @param nearZ 影の描画範囲の最小距離
     /// @param farZ 影の描画範囲の最大距離
-    DirectX::BoundingSphere ComputeBoundingSphere(
-        float nearZ, float farZ) const;
+    DirectX::BoundingSphere ComputeBoundingSphere(float nearZ, float farZ) const;
 
     //================================
     // 行列の計算
@@ -65,12 +75,27 @@ public:
     //================================
     // アクセサ
     //================================
-    Transform& GetTransform() { return m_transform; }
-    const Transform& GetTransform() const { return m_transform; }
+    Transform& GetTransform()
+    {
+        return m_transform;
+    }
+    const Transform& GetTransform() const
+    {
+        return m_transform;
+    }
 
-    float GetNearZ() const { return m_nearZ; }
-    float GetAperture() const { return m_aperture; }
-    float GetShutterSpeed() const { return m_shutterSpeed; }
+    float GetNearZ() const
+    {
+        return m_nearZ;
+    }
+    float GetAperture() const
+    {
+        return m_aperture;
+    }
+    float GetShutterSpeed() const
+    {
+        return m_shutterSpeed;
+    }
 
 private:
     /// @brief シャッタースピードを固定し，EV100を指定して絞り値を計算する
@@ -79,18 +104,18 @@ private:
     /// @brief 絞り値を固定し，EV100を指定してシャッタースピードを計算する
     float ComputeShutterSpeed(float ev100) const;
 
-    Transform m_transform;    // 位置や姿勢
-    float m_fovYRad;          // 垂直視野角（ラジアン）
-    float m_aspect;           // アスペクト比
-    float m_nearZ = 1.0f;     // 描画範囲（最小）
-    float m_farZ  = 1000.0f;  // 描画範囲（最大）
+    Transform m_transform;   // 位置や姿勢
+    float m_fovYRad;         // 垂直視野角（ラジアン）
+    float m_aspect;          // アスペクト比
+    float m_nearZ = 1.0f;    // 描画範囲（最小）
+    float m_farZ  = 1000.0f; // 描画範囲（最大）
 
     // 露出パラメータ
-    float m_aperture     = 2.8f;          // 絞り値
-    float m_shutterSpeed = 1.0f / 30.0f;  // シャッタースピード
-    float m_iso          = 100.0f;        // ISO感度
+    float m_aperture     = 2.8f;         // 絞り値
+    float m_shutterSpeed = 1.0f / 30.0f; // シャッタースピード
+    float m_iso          = 100.0f;       // ISO感度
 
     // 行列
-    DirectX::XMFLOAT4X4 m_viewMatrix;  // ビュー行列
-    DirectX::XMFLOAT4X4 m_projMatrix;  // 射影行列
+    DirectX::XMFLOAT4X4 m_viewMatrix; // ビュー行列
+    DirectX::XMFLOAT4X4 m_projMatrix; // 射影行列
 };

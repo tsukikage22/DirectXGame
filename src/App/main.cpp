@@ -5,7 +5,8 @@
 #include "App/Window.h"
 
 // エントリーポイント
-int wmain(int argc, wchar_t** argv, wchar_t** envp) {
+int wmain(int argc, wchar_t** argv, wchar_t** envp)
+{
     // アプリケーションの実行
     Application app;
     return app.Run();

@@ -3,36 +3,44 @@
 #include "Engine/Core/DxDebug.h"
 #include "Engine/Core/GraphicsDevice.h"
 
-FrameResource::FrameResource()
-    : m_pCmdAllocator(nullptr), m_sceneConstants(), m_fenceValue(0) {}
+FrameResource::FrameResource() : m_pCmdAllocator(nullptr), m_sceneConstants(), m_fenceValue(0)
+{
+}
 
-FrameResource::~FrameResource() { Term(); }
+FrameResource::~FrameResource()
+{
+    Term();
+}
 
-bool FrameResource::Init(GraphicsDevice& graphicsDevice) {
+bool FrameResource::Init(GraphicsDevice& graphicsDevice)
+{
     ID3D12Device* pDevice    = graphicsDevice.GetDevice();
     DescriptorPool* pPoolCBV = graphicsDevice.CbvSrvUavPool();
 
     // コマンドアロケータ作成
-    CHECK_HR(
-        pDevice, pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
-                     IID_PPV_ARGS(m_pCmdAllocator.GetAddressOf())));
+    CHECK_HR(pDevice,
+        pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(m_pCmdAllocator.GetAddressOf())));
 
     // SceneConstants初期化
-    if (!m_sceneConstants.Init(pDevice, pPoolCBV)) {
+    if (!m_sceneConstants.Init(pDevice, pPoolCBV))
+    {
         return false;
     }
 
     // LightBuffer初期化
-    if (!m_lightBuffer.Init(pDevice, pPoolCBV)) {
+    if (!m_lightBuffer.Init(pDevice, pPoolCBV))
+    {
         return false;
     }
 
     return true;
 }
 
-void FrameResource::Term() {
+void FrameResource::Term()
+{
     // 初期化前に呼ばれても安全
-    if (!m_pCmdAllocator) {
+    if (!m_pCmdAllocator)
+    {
         return;
     }
 
@@ -42,7 +50,8 @@ void FrameResource::Term() {
     m_pCmdAllocator.Reset();
 }
 
-void FrameResource::BeginFrame(ID3D12GraphicsCommandList* pCmdList) {
+void FrameResource::BeginFrame(ID3D12GraphicsCommandList* pCmdList)
+{
     // コマンドアロケータのリセット
     m_pCmdAllocator->Reset();
 
@@ -51,7 +60,8 @@ void FrameResource::BeginFrame(ID3D12GraphicsCommandList* pCmdList) {
     m_isActive = true;
 }
 
-void FrameResource::EndFrame(UINT64 fenceValue) {
+void FrameResource::EndFrame(UINT64 fenceValue)
+{
     m_fenceValue = fenceValue;
     m_isActive   = false;
 }

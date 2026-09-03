@@ -3,16 +3,22 @@
 #include "Engine/Core/DescriptorPool.h"
 
 // コンストラクタ
-ConstantBuffer::ConstantBuffer() : m_pPool(nullptr), m_pMappedData(nullptr) {}
+ConstantBuffer::ConstantBuffer() : m_pPool(nullptr), m_pMappedData(nullptr)
+{
+}
 
 // デストラクタ
-ConstantBuffer::~ConstantBuffer() { Term(); }
+ConstantBuffer::~ConstantBuffer()
+{
+    Term();
+}
 
 // 初期化処理
-bool ConstantBuffer::Init(
-    ID3D12Device* pDevice, DescriptorPool* pPool, size_t size) {
+bool ConstantBuffer::Init(ID3D12Device* pDevice, DescriptorPool* pPool, size_t size)
+{
     // 引数チェック
-    if (pDevice == nullptr || pPool == nullptr || size == 0) {
+    if (pDevice == nullptr || pPool == nullptr || size == 0)
+    {
         return false;
     }
 
@@ -27,12 +33,14 @@ bool ConstantBuffer::Init(
     UINT64 sizeAligned = (size + align - 1) & ~(align - 1);
 
     // バッファの作成とメモリマッピング
-    if (!m_buffer.CreateDynamic(pDevice, sizeAligned)) {
+    if (!m_buffer.CreateDynamic(pDevice, sizeAligned))
+    {
         return false;
     }
 
     m_pMappedData = m_buffer.GetMappedPtr();
-    if (m_pMappedData == nullptr) {
+    if (m_pMappedData == nullptr)
+    {
         m_buffer.Term();
         return false;
     }
@@ -50,7 +58,8 @@ bool ConstantBuffer::Init(
 }
 
 // 終了処理
-void ConstantBuffer::Term() {
+void ConstantBuffer::Term()
+{
     // メモリマッピングの解除
     m_buffer.Term();
 
@@ -60,11 +69,14 @@ void ConstantBuffer::Term() {
 }
 
 // 定数バッファの更新
-void ConstantBuffer::Update(const void* pData, size_t size) {
-    if (m_pMappedData == nullptr || pData == nullptr || size == 0) {
+void ConstantBuffer::Update(const void* pData, size_t size)
+{
+    if (m_pMappedData == nullptr || pData == nullptr || size == 0)
+    {
         return;
     }
-    if (size > m_size) {
+    if (size > m_size)
+    {
         assert(false && "buffer overflow");
         return;
     }

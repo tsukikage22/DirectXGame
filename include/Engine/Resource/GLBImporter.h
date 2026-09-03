@@ -14,7 +14,8 @@
 
 #include "Engine/Model/ModelAsset.h"
 
-class GLBImporter {
+class GLBImporter
+{
 public:
     GLBImporter()  = delete;
     ~GLBImporter() = delete;
@@ -23,11 +24,9 @@ public:
     /// @param path ファイルパス
     /// @param[out] outModel 出力先
     /// @return 成功時true
-    static bool LoadFromFile(
-        const std::filesystem::path& path, ModelAsset& outModel);
+    static bool LoadFromFile(const std::filesystem::path& path, ModelAsset& outModel);
 
 private:
     static bool ParseMesh(const aiMesh* mesh, MeshAsset& outMesh);
-    static bool ParseMaterial(
-        const aiMaterial* material, int imageCount, MaterialAsset& outMaterial);
+    static bool ParseMaterial(const aiMaterial* material, int imageCount, MaterialAsset& outMaterial);
 };

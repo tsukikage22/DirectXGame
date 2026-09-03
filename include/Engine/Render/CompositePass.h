@@ -11,7 +11,8 @@
 struct CompositePassBindings;
 class GraphicsDevice;
 
-class CompositePass {
+class CompositePass
+{
 public:
     CompositePass()  = default;
     ~CompositePass() = default;
@@ -30,13 +31,14 @@ public:
 private:
     // ルートシグネチャ内でのルートパラメータ番号
     // Addxxxの呼び出し順と一致させる
-    enum RootParam {
-        CBV_Display = 0,  // b3
-        SRV_UI      = 1,  // t0
+    enum RootParam
+    {
+        CBV_Display = 0, // b3
+        SRV_UI      = 1, // t0
     };
 
     GraphicsDevice* m_pDevice = nullptr;
 
-    engine::ComPtr<ID3D12RootSignature> m_pRootSignature;  // ルートシグネチャ
-    engine::ComPtr<ID3D12PipelineState> m_pPSO;  // パイプラインステート
+    engine::ComPtr<ID3D12RootSignature> m_pRootSignature; // ルートシグネチャ
+    engine::ComPtr<ID3D12PipelineState> m_pPSO;           // パイプラインステート
 };

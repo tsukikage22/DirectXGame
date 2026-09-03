@@ -3,9 +3,9 @@
 #include "Engine/Core/DxDebug.h"
 
 // CBVのルートパラメータ定義
-RootSignatureBuilder& RootSignatureBuilder::AddCBV(UINT shaderRegister,
-    UINT registerSpace, D3D12_SHADER_VISIBILITY visibility,
-    D3D12_ROOT_DESCRIPTOR_FLAGS flags) {
+RootSignatureBuilder& RootSignatureBuilder::AddCBV(
+    UINT shaderRegister, UINT registerSpace, D3D12_SHADER_VISIBILITY visibility, D3D12_ROOT_DESCRIPTOR_FLAGS flags)
+{
     D3D12_ROOT_PARAMETER1 param     = {};
     param.ParameterType             = D3D12_ROOT_PARAMETER_TYPE_CBV;
     param.Descriptor.ShaderRegister = shaderRegister;
@@ -18,9 +18,9 @@ RootSignatureBuilder& RootSignatureBuilder::AddCBV(UINT shaderRegister,
 }
 
 // SRVのルートパラメータ定義
-RootSignatureBuilder& RootSignatureBuilder::AddSRV(UINT shaderRegister,
-    UINT registerSpace, D3D12_SHADER_VISIBILITY visibility,
-    D3D12_ROOT_DESCRIPTOR_FLAGS flags) {
+RootSignatureBuilder& RootSignatureBuilder::AddSRV(
+    UINT shaderRegister, UINT registerSpace, D3D12_SHADER_VISIBILITY visibility, D3D12_ROOT_DESCRIPTOR_FLAGS flags)
+{
     D3D12_ROOT_PARAMETER1 param     = {};
     param.ParameterType             = D3D12_ROOT_PARAMETER_TYPE_SRV;
     param.Descriptor.ShaderRegister = shaderRegister;
@@ -33,9 +33,9 @@ RootSignatureBuilder& RootSignatureBuilder::AddSRV(UINT shaderRegister,
 }
 
 // UAVのルートパラメータ定義
-RootSignatureBuilder& RootSignatureBuilder::AddUAV(UINT shaderRegister,
-    UINT registerSpace, D3D12_SHADER_VISIBILITY visibility,
-    D3D12_ROOT_DESCRIPTOR_FLAGS flags) {
+RootSignatureBuilder& RootSignatureBuilder::AddUAV(
+    UINT shaderRegister, UINT registerSpace, D3D12_SHADER_VISIBILITY visibility, D3D12_ROOT_DESCRIPTOR_FLAGS flags)
+{
     D3D12_ROOT_PARAMETER1 param     = {};
     param.ParameterType             = D3D12_ROOT_PARAMETER_TYPE_UAV;
     param.Descriptor.ShaderRegister = shaderRegister;
@@ -48,9 +48,9 @@ RootSignatureBuilder& RootSignatureBuilder::AddUAV(UINT shaderRegister,
 }
 
 // ルート定数のルートパラメータ定義
-RootSignatureBuilder& RootSignatureBuilder::AddConstants(UINT num32BitValues,
-    UINT shaderRegister, UINT registerSpace,
-    D3D12_SHADER_VISIBILITY visibility) {
+RootSignatureBuilder& RootSignatureBuilder::AddConstants(
+    UINT num32BitValues, UINT shaderRegister, UINT registerSpace, D3D12_SHADER_VISIBILITY visibility)
+{
     D3D12_ROOT_PARAMETER1 param    = {};
     param.ParameterType            = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
     param.Constants.Num32BitValues = num32BitValues;
@@ -63,9 +63,9 @@ RootSignatureBuilder& RootSignatureBuilder::AddConstants(UINT num32BitValues,
 }
 
 // ディスクリプタレンジの初期化
-D3D12_DESCRIPTOR_RANGE1 RootSignatureBuilder::CreateRange(
-    D3D12_DESCRIPTOR_RANGE_TYPE type, UINT numDescriptors, UINT baseRegister,
-    UINT registerSpace, D3D12_DESCRIPTOR_RANGE_FLAGS flags, UINT offset) {
+D3D12_DESCRIPTOR_RANGE1 RootSignatureBuilder::CreateRange(D3D12_DESCRIPTOR_RANGE_TYPE type, UINT numDescriptors,
+    UINT baseRegister, UINT registerSpace, D3D12_DESCRIPTOR_RANGE_FLAGS flags, UINT offset)
+{
     D3D12_DESCRIPTOR_RANGE1 range           = {};
     range.RangeType                         = type;
     range.NumDescriptors                    = numDescriptors;
@@ -79,10 +79,11 @@ D3D12_DESCRIPTOR_RANGE1 RootSignatureBuilder::CreateRange(
 
 // ディスクリプタテーブルのルートパラメータ定義
 RootSignatureBuilder& RootSignatureBuilder::AddDescriptorTable(
-    const std::vector<D3D12_DESCRIPTOR_RANGE1>& ranges,
-    D3D12_SHADER_VISIBILITY visibility) {
+    const std::vector<D3D12_DESCRIPTOR_RANGE1>& ranges, D3D12_SHADER_VISIBILITY visibility)
+{
     // rangesの確認
-    if (ranges.empty()) {
+    if (ranges.empty())
+    {
         return *this;
     }
 
@@ -91,12 +92,11 @@ RootSignatureBuilder& RootSignatureBuilder::AddDescriptorTable(
     tableData->ranges = ranges;
 
     // ルートパラメータ設定
-    D3D12_ROOT_PARAMETER1 param = {};
-    param.ParameterType         = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-    param.DescriptorTable.NumDescriptorRanges =
-        static_cast<UINT>(tableData->ranges.size());
-    param.DescriptorTable.pDescriptorRanges = tableData->ranges.data();
-    param.ShaderVisibility                  = visibility;
+    D3D12_ROOT_PARAMETER1 param               = {};
+    param.ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+    param.DescriptorTable.NumDescriptorRanges = static_cast<UINT>(tableData->ranges.size());
+    param.DescriptorTable.pDescriptorRanges   = tableData->ranges.data();
+    param.ShaderVisibility                    = visibility;
 
     m_tableData.push_back(std::move(tableData));
     m_params.push_back(param);
@@ -104,8 +104,8 @@ RootSignatureBuilder& RootSignatureBuilder::AddDescriptorTable(
 }
 
 // スタティックサンプラのルートパラメータ定義
-RootSignatureBuilder& RootSignatureBuilder::AddStaticSampler(
-    const StaticSamplerDesc& desc) {
+RootSignatureBuilder& RootSignatureBuilder::AddStaticSampler(const StaticSamplerDesc& desc)
+{
     D3D12_STATIC_SAMPLER_DESC sampler = {};
     sampler.Filter                    = desc.filter;
     sampler.AddressU                  = desc.addressU;
@@ -125,33 +125,33 @@ RootSignatureBuilder& RootSignatureBuilder::AddStaticSampler(
     return *this;
 }
 
-bool RootSignatureBuilder::Build(ID3D12Device* pDevice) {
+bool RootSignatureBuilder::Build(ID3D12Device* pDevice)
+{
     // ディスクリプタの作成
     D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc = {};
     desc.Version                             = D3D_ROOT_SIGNATURE_VERSION_1_1;
-    desc.Desc_1_1.NumParameters = static_cast<UINT>(m_params.size());
-    desc.Desc_1_1.pParameters   = m_params.empty() ? nullptr : m_params.data();
-    desc.Desc_1_1.NumStaticSamplers = static_cast<UINT>(m_samplers.size());
-    desc.Desc_1_1.pStaticSamplers   = m_samplers.data();
-    desc.Desc_1_1.Flags             = m_flags;
+    desc.Desc_1_1.NumParameters              = static_cast<UINT>(m_params.size());
+    desc.Desc_1_1.pParameters                = m_params.empty() ? nullptr : m_params.data();
+    desc.Desc_1_1.NumStaticSamplers          = static_cast<UINT>(m_samplers.size());
+    desc.Desc_1_1.pStaticSamplers            = m_samplers.data();
+    desc.Desc_1_1.Flags                      = m_flags;
 
     // シリアライズ
     engine::ComPtr<ID3DBlob> pBlob = nullptr;
     engine::ComPtr<ID3DBlob> pErr  = nullptr;
 
-    CHECK_HR(pDevice, D3D12SerializeVersionedRootSignature(
-                          &desc, pBlob.GetAddressOf(), pErr.GetAddressOf()));
+    CHECK_HR(pDevice, D3D12SerializeVersionedRootSignature(&desc, pBlob.GetAddressOf(), pErr.GetAddressOf()));
 
     // ルートシグニチャの生成
-    CHECK_HR(pDevice, pDevice->CreateRootSignature(0, pBlob->GetBufferPointer(),
-                          pBlob->GetBufferSize(),
+    CHECK_HR(pDevice, pDevice->CreateRootSignature(0, pBlob->GetBufferPointer(), pBlob->GetBufferSize(),
                           IID_PPV_ARGS(m_pRootSignature.GetAddressOf())));
 
     return true;
 }
 
 // リセット
-void RootSignatureBuilder::Reset() {
+void RootSignatureBuilder::Reset()
+{
     m_params.clear();
     m_samplers.clear();
     m_tableData.clear();
@@ -159,6 +159,7 @@ void RootSignatureBuilder::Reset() {
 }
 
 // 取得
-ID3D12RootSignature* RootSignatureBuilder::Get() const {
+ID3D12RootSignature* RootSignatureBuilder::Get() const
+{
     return m_pRootSignature.Get();
 }

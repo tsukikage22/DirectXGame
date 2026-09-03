@@ -10,7 +10,8 @@ class Engine;
 class CameraController;
 class GameObject;
 
-class Game {
+class Game
+{
 public:
     Game();
     ~Game();
@@ -29,15 +30,14 @@ private:
     InputSystem* m_pInputSystem;
     std::unique_ptr<CameraController> m_pCameraController;
 
-    engine::ModelHandle m_earthModel;  // シーン内の球体モデルのハンドル
+    engine::ModelHandle m_earthModel; // シーン内の球体モデルのハンドル
     engine::ModelHandle m_appleModel;
     engine::ModelHandle m_katanaModel;
     engine::ModelHandle m_planeModel;
     engine::ModelHandle m_normalTestModel;
     engine::ModelHandle m_testSphereModel;
 
-    engine::ObjectHandle
-        m_earthObject;  // シーン内のゲームオブジェクトのハンドル
+    engine::ObjectHandle m_earthObject; // シーン内のゲームオブジェクトのハンドル
     engine::ObjectHandle m_appleObject;
     engine::ObjectHandle m_katanaObject;
     engine::ObjectHandle m_planeObject;

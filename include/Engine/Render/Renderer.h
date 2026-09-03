@@ -12,6 +12,7 @@
 #include "Engine/Render/PassBindings.h"
 #include "Engine/Render/SwapChain.h"
 #include "Engine/Shader/DisplayConstantsGPU.h"
+#include "Engine/Shader/ShaderConstants.h"
 
 // 前方宣言
 class GraphicsDevice;
@@ -19,7 +20,8 @@ class Scene;
 class AssetSystem;
 
 /// @brief ディスプレイ情報
-struct DisplayInfo {
+struct DisplayInfo
+{
     HMONITOR hMonitor;
     bool isHDRSupported;
     float maxLuminance;
@@ -27,7 +29,8 @@ struct DisplayInfo {
     float maxFullFrameLuminance;
 };
 
-class Renderer {
+class Renderer
+{
 public:
     Renderer()  = default;
     ~Renderer() = default;
@@ -37,8 +40,7 @@ public:
     /// @param width 幅
     /// @param height 高さ
     /// @param hWnd ウィンドウハンドル
-    bool Init(
-        GraphicsDevice& device, uint32_t width, uint32_t height, HWND hWnd);
+    bool Init(GraphicsDevice& device, uint32_t width, uint32_t height, HWND hWnd);
     void Term();
 
     /// @brief
@@ -66,11 +68,15 @@ public:
     void EndFrame();
 
     /// @brief 画面表示
-    void Present() { m_swapChain.Present(); }
+    void Present()
+    {
+        m_swapChain.Present();
+    }
 
     /// @brief フレームレイテンシの待機
     /// @param timeout 待機時間（ミリ秒）
-    void WaitFrameLatency(DWORD timeout = 1000) {
+    void WaitFrameLatency(DWORD timeout = 1000)
+    {
         m_swapChain.WaitForFrameLatency(timeout);
     }
 
@@ -110,29 +116,39 @@ public:
     // アクセサ
     //==========================================================
     /// @brief UI用レンダーターゲット
-    ColorTarget& GetUITarget() { return m_uiTarget; }
+    ColorTarget& GetUITarget()
+    {
+        return m_uiTarget;
+    }
 
     /// @brief 現在のフレーム番号
-    uint32_t GetFrameIndex() const { return m_swapChain.GetFrameIndex(); }
+    uint32_t GetFrameIndex() const
+    {
+        return m_swapChain.GetFrameIndex();
+    }
 
     /// @brief コマンドリスト
-    ID3D12GraphicsCommandList* GetCommandList() { return m_pCmdList.Get(); }
+    ID3D12GraphicsCommandList* GetCommandList()
+    {
+        return m_pCmdList.Get();
+    }
 
     /// @brief シャドウマップのSRVのGPUハンドル
-    D3D12_GPU_DESCRIPTOR_HANDLE GetShadowMapSRVGPUHandle() const {
+    D3D12_GPU_DESCRIPTOR_HANDLE GetShadowMapSRVGPUHandle() const
+    {
         return m_shadowMap.GetSRVGPUHandle();
     }
 
 private:
-    engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList;  // コマンドリスト
+    engine::ComPtr<ID3D12GraphicsCommandList> m_pCmdList; // コマンドリスト
 
-    GraphicsDevice* m_pDevice = nullptr;  // グラフィックスデバイス
-    SwapChain m_swapChain;                // スワップチェイン
-    DepthTarget m_depthTarget;            // 深度バッファ
-    DepthTarget m_shadowMap;              // シャドウマップ
-    ColorTarget m_uiTarget;               // UI用レンダーターゲット
+    GraphicsDevice* m_pDevice = nullptr; // グラフィックスデバイス
+    SwapChain m_swapChain;               // スワップチェイン
+    DepthTarget m_depthTarget;           // 深度バッファ
+    DepthTarget m_shadowMap;             // シャドウマップ
+    ColorTarget m_uiTarget;              // UI用レンダーターゲット
 
-    FrameResource m_frameResources[config::kFrameCount];  // フレームリソース
+    FrameResource m_frameResources[config::kFrameCount]; // フレームリソース
 
     DisplayInfo m_displayInfo = {};            // ディスプレイ情報
     DisplayConstantsGPU m_displayConstantsGPU; // ディスプレイCB

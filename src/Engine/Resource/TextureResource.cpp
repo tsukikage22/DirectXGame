@@ -2,15 +2,20 @@
 
 #include "Engine/Core/DxDebug.h"
 
-TextureResource::TextureResource()
-    : m_pResource(nullptr), m_width(0), m_height(0), m_mipLevels(0) {}
+TextureResource::TextureResource() : m_pResource(nullptr), m_width(0), m_height(0), m_mipLevels(0)
+{
+}
 
-TextureResource::~TextureResource() { Term(); }
+TextureResource::~TextureResource()
+{
+    Term();
+}
 
-bool TextureResource::InitFromSwapChain(
-    IDXGISwapChain* pSwapChain, UINT bufferIndex) {
+bool TextureResource::InitFromSwapChain(IDXGISwapChain* pSwapChain, UINT bufferIndex)
+{
     // 引数チェック
-    if (pSwapChain == nullptr) {
+    if (pSwapChain == nullptr)
+    {
         return false;
     }
 
@@ -18,20 +23,21 @@ bool TextureResource::InitFromSwapChain(
     Term();
 
     // スワップチェーンからバッファを取得
-    auto hr = pSwapChain->GetBuffer(
-        bufferIndex, IID_PPV_ARGS(m_pResource.GetAddressOf()));
-    if (FAILED(hr)) {
+    auto hr = pSwapChain->GetBuffer(bufferIndex, IID_PPV_ARGS(m_pResource.GetAddressOf()));
+    if (FAILED(hr))
+    {
         return false;
     }
 
     return true;
 }
 
-bool TextureResource::InitAsTexture2D(ID3D12Device* pDevice, UINT width,
-    UINT height, DXGI_FORMAT format, UINT mipLevels, D3D12_RESOURCE_FLAGS flags,
-    D3D12_RESOURCE_STATES initState, const D3D12_CLEAR_VALUE* pClearValue) {
+bool TextureResource::InitAsTexture2D(ID3D12Device* pDevice, UINT width, UINT height, DXGI_FORMAT format,
+    UINT mipLevels, D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES initState, const D3D12_CLEAR_VALUE* pClearValue)
+{
     // 引数チェック
-    if (pDevice == nullptr || width == 0 || height == 0) {
+    if (pDevice == nullptr || width == 0 || height == 0)
+    {
         return false;
     }
     Term();
@@ -59,25 +65,25 @@ bool TextureResource::InitAsTexture2D(ID3D12Device* pDevice, UINT width,
     desc.Flags               = flags;
 
     // リソースの生成
-    CHECK_HR(pDevice,
-        pDevice->CreateCommittedResource(&prop, D3D12_HEAP_FLAG_NONE, &desc,
-            initState, pClearValue, IID_PPV_ARGS(m_pResource.GetAddressOf())));
+    CHECK_HR(pDevice, pDevice->CreateCommittedResource(&prop, D3D12_HEAP_FLAG_NONE, &desc, initState, pClearValue,
+                          IID_PPV_ARGS(m_pResource.GetAddressOf())));
 
     m_width     = width;
     m_height    = height;
     m_mipLevels = mipLevels;
-    m_arraySize = 1;  // Texture2Dの場合は配列サイズは1
+    m_arraySize = 1; // Texture2Dの場合は配列サイズは1
 
     return true;
 }
 
 /// @brief 新規テクスチャ配列をDEFAULTヒープ上に作成
-bool TextureResource::InitAsTexture2DArray(ID3D12Device* pDevice, UINT width,
-    UINT height, DXGI_FORMAT format, UINT16 arraySize, UINT mipLevels,
-    D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES initState,
-    const D3D12_CLEAR_VALUE* pClearValue) {
+bool TextureResource::InitAsTexture2DArray(ID3D12Device* pDevice, UINT width, UINT height, DXGI_FORMAT format,
+    UINT16 arraySize, UINT mipLevels, D3D12_RESOURCE_FLAGS flags, D3D12_RESOURCE_STATES initState,
+    const D3D12_CLEAR_VALUE* pClearValue)
+{
     // 引数チェック
-    if (pDevice == nullptr || width == 0 || height == 0 || arraySize == 0) {
+    if (pDevice == nullptr || width == 0 || height == 0 || arraySize == 0)
+    {
         return false;
     }
     Term();
@@ -105,9 +111,8 @@ bool TextureResource::InitAsTexture2DArray(ID3D12Device* pDevice, UINT width,
     desc.Flags               = flags;
 
     // リソースの生成
-    CHECK_HR(pDevice,
-        pDevice->CreateCommittedResource(&prop, D3D12_HEAP_FLAG_NONE, &desc,
-            initState, pClearValue, IID_PPV_ARGS(m_pResource.GetAddressOf())));
+    CHECK_HR(pDevice, pDevice->CreateCommittedResource(&prop, D3D12_HEAP_FLAG_NONE, &desc, initState, pClearValue,
+                          IID_PPV_ARGS(m_pResource.GetAddressOf())));
 
     m_width     = width;
     m_height    = height;
@@ -117,4 +122,7 @@ bool TextureResource::InitAsTexture2DArray(ID3D12Device* pDevice, UINT width,
     return true;
 }
 
-void TextureResource::Term() { m_pResource.Reset(); }
+void TextureResource::Term()
+{
+    m_pResource.Reset();
+}
