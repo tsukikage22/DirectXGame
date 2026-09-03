@@ -64,6 +64,9 @@ public:
     /// @param depthMode 深度モード
     GraphicsPipelineBuilder& SetDepthMode(DepthMode depthMode);
 
+    /// @brief 深度クリップの有効/無効を設定する
+    GraphicsPipelineBuilder& SetDepthClipEnable(bool enable);
+
     /// @brief RTLayout定数からPSOの設定を行う
     /// @param layout レンダーターゲットのレイアウト
     GraphicsPipelineBuilder& SetRenderTargetLayout(

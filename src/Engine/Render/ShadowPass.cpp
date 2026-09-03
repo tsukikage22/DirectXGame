@@ -42,6 +42,7 @@ bool ShadowPass::Init(GraphicsDevice& device) {
     }
     psoBuilder.SetRootSignature(m_pRootSignature.Get())
         .SetVertexShader(vsData.data(), vsData.size())
+        .SetDepthClipEnable(false)  // シャドウマップは深度クリップを無効化
         .SetDepthMode(DepthMode::Default)
         .SetRenderTargetLayout(kShadowLayout)
         .SetInputLayout(StandardVertex::GetInputLayout())

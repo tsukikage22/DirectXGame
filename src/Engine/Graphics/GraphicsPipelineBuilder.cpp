@@ -137,6 +137,12 @@ GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDepthMode(
     return *this;
 }
 
+GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetDepthClipEnable(
+    bool enable) {
+    m_PSOdesc.RasterizerState.DepthClipEnable = enable;
+    return *this;
+}
+
 // RTLayout定数からPSOの設定を行う
 GraphicsPipelineBuilder& GraphicsPipelineBuilder::SetRenderTargetLayout(
     const RenderTargetLayout& layout) {
