@@ -56,8 +56,6 @@ void Game::Init(Engine* pEngine)
     m_katanaModel = loader.LoadModel(path);
     AssetPath().GetAssetPath(L"model/Plane.glb", path);
     m_planeModel = loader.LoadModel(path);
-    AssetPath().GetAssetPath(L"model/NormalTangentTest.glb", path);
-    m_normalTestModel = loader.LoadModel(path);
     AssetPath().GetAssetPath(L"model/white_furnace_sphere.glb", path);
     m_testSphereModel = loader.LoadModel(path);
 
@@ -202,19 +200,6 @@ void Game::Tick(float deltaTime)
         {
             m_pEngine->GetScene().DespawnObject(m_planeObject);
             m_planeObject = {};
-        }
-    }
-
-    if (m_pInputSystem->WasKeyPressed('5'))
-    {
-        if (!m_normalTestObject.IsValid())
-        {
-            m_normalTestObject = m_pEngine->GetScene().SpawnObject(m_normalTestModel);
-        }
-        else
-        {
-            m_pEngine->GetScene().DespawnObject(m_normalTestObject);
-            m_normalTestObject = {};
         }
     }
 }
