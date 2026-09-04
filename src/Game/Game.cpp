@@ -60,7 +60,6 @@ void Game::Init(Engine* pEngine)
     m_testSphereModel = loader.LoadModel(path);
 
     // ライトの作成
-
     // Directional
     {
         m_pEngine->GetScene().SpawnDirectionalLight({
@@ -70,73 +69,63 @@ void Game::Init(Engine* pEngine)
         });
     }
 
-    // 2 Spot lights
-    /*
+    // Spot light
     {
+        engine::LightHandle lightHandle;
         lightHandle  = m_pEngine->GetScene().SpawnSpotLight({
             .position = { 3.0f, 3.0f, 0.0f },
         });
         auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
         pLight->GetTransform().LookAt({ 0.0f, 0.0f, 0.0f });
-
-        lightHandle = m_pEngine->GetScene().SpawnSpotLight({
-            .position = { -3.0f, 3.0f, 0.0f },
-        });
-        pLight      = m_pEngine->GetScene().GetLight(lightHandle);
-        pLight->GetTransform().LookAt({ 0.0f, 0.0f, 0.0f });
+        pLight->ToggleLight();
     }
-    */
 
-    // 2 point lights
-    /*
+    // point light
     {
-        m_pEngine->GetScene().SpawnPointLight({
+        engine::LightHandle lightHandle;
+        lightHandle = m_pEngine->GetScene().SpawnPointLight({
             .position     = { 3.0f, 3.0f, 0.0f },
             .color        = { 1.0f, 0.0f, 0.0f },
             .luminousFlux = 100000.0f,
             .range        = 20.0f,
         });
-
-        m_pEngine->GetScene().SpawnPointLight({
-            .position     = { -3.0f, 3.0f, 0.0f },
-            .color        = { 0.0f, 0.0f, 1.0f },
-            .luminousFlux = 100000.0f,
-            .range        = 20.0f,
-        });
+        m_pEngine->GetScene().GetLight(lightHandle)->ToggleLight();
     }
-    */
 
-    // 2 photometric lights
-    /*
+// 2 photometric lights
+#if 0
     {
         // IESプロファイルのロード
         std::optional<uint32_t> iesIndex;
-        AssetPath().GetAssetPath(L"ies/TopPost.IES", path);
+        AssetPath().GetAssetPath(L"ies/03_flood_wide_60deg.ies", path);
         iesIndex = loader.LoadIESProfile(path);
         assert(iesIndex.has_value() && "Failed to load IES profile.");
 
-        m_pEngine->GetScene().SpawnPhotometricLight({
+        engine::LightHandle lightHandle;
+        lightHandle = m_pEngine->GetScene().SpawnPhotometricLight({
             .position     = { 3.0f, 3.0f, 0.0f },
             .direction    = { 0.0f, -1.0f, 0.0f },
             .luminousFlux = 9000.0f,
             .range        = 20.0f,
             .iesIndex     = iesIndex.value(),
         });
+        m_pEngine->GetScene().GetLight(lightHandle)->ToggleLight();
 
         std::optional<uint32_t> iesIndex2;
-        AssetPath().GetAssetPath(L"ies/Bollard.IES", path);
+        AssetPath().GetAssetPath(L"ies/06_pendant_updown.ies", path);
         iesIndex2 = loader.LoadIESProfile(path);
         assert(iesIndex2.has_value() && "Failed to load IES profile.");
 
-        m_pEngine->GetScene().SpawnPhotometricLight({
+        lightHandle = m_pEngine->GetScene().SpawnPhotometricLight({
             .position     = { -3.0f, 3.0f, 0.0f },
             .direction    = { 0.0f, -1.0f, 0.0f },
             .luminousFlux = 9000.0f,
             .range        = 20.0f,
             .iesIndex     = iesIndex2.value(),
         });
+        m_pEngine->GetScene().GetLight(lightHandle)->ToggleLight();
     }
-        */
+#endif
 }
 
 void Game::Tick(float deltaTime)
