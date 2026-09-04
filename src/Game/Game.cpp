@@ -76,20 +76,27 @@ void Game::Init(Engine* pEngine)
             .position = { 3.0f, 3.0f, 0.0f },
         });
         auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
-        pLight->GetTransform().LookAt({ 0.0f, 0.0f, 0.0f });
-        pLight->ToggleLight();
+        if (pLight)
+        {
+            pLight->GetTransform().LookAt({ 0.0f, 0.0f, 0.0f });
+            pLight->ToggleLight();
+        }
     }
 
     // point light
     {
         engine::LightHandle lightHandle;
-        lightHandle = m_pEngine->GetScene().SpawnPointLight({
+        lightHandle  = m_pEngine->GetScene().SpawnPointLight({
             .position     = { 3.0f, 3.0f, 0.0f },
             .color        = { 1.0f, 0.0f, 0.0f },
             .luminousFlux = 100000.0f,
             .range        = 20.0f,
         });
-        m_pEngine->GetScene().GetLight(lightHandle)->ToggleLight();
+        auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
+        if (pLight)
+        {
+            pLight->ToggleLight();
+        }
     }
 
 // 2 photometric lights
@@ -109,7 +116,11 @@ void Game::Init(Engine* pEngine)
             .range        = 20.0f,
             .iesIndex     = iesIndex.value(),
         });
-        m_pEngine->GetScene().GetLight(lightHandle)->ToggleLight();
+        auto* pLight = m_pEngine->GetScene().GetLight(lightHandle);
+        if (pLight)
+        {
+            pLight->ToggleLight();
+        }
 
         std::optional<uint32_t> iesIndex2;
         AssetPath().GetAssetPath(L"ies/06_pendant_updown.ies", path);
@@ -123,7 +134,11 @@ void Game::Init(Engine* pEngine)
             .range        = 20.0f,
             .iesIndex     = iesIndex2.value(),
         });
-        m_pEngine->GetScene().GetLight(lightHandle)->ToggleLight();
+        auto* pLight2 = m_pEngine->GetScene().GetLight(lightHandle);
+        if (pLight2)
+        {
+            pLight2->ToggleLight();
+        }
     }
 #endif
 }
