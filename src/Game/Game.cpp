@@ -16,9 +16,9 @@ namespace /* anonymous */
 /// @brief アセットのフルパスを取得する．見つからなければデバッグ出力する．
 /// @param filename アセットの相対パス
 /// @return アセットのフルパス，見つからなかった場合は空文字列
-std::filesystem::path GetPath(const std::filesystem::path& filename)
+std::filesystem::path GetPath(const std::filesystem::path& filename, AssetPath assetPath)
 {
-    auto path = AssetPath().GetAssetPath(filename);
+    auto path = assetPath.GetAssetPath(filename);
     if (!path.has_value())
     {
         OutputDebugStringW(L"Failed to find asset path: ");
@@ -52,7 +52,8 @@ void Game::Init(Engine* pEngine)
     m_pEngine->GetScene().GetCamera().SetExposure(4.0f, 1.0f / 80.0f, 100.0f);
 
     // HDRIの読み込みとキューブマップの構築
-    auto path = GetPath(L"HDRI/venice_sunset_4k.hdr");
+    AssetPath assetPath;
+    auto path = GetPath(L"HDRI/venice_sunset_4k.hdr", assetPath);
     if (!m_pEngine->BuildEnvironmentMap(path))
     {
         OutputDebugStringW(L"Failed to build environment map.\n");
@@ -65,15 +66,15 @@ void Game::Init(Engine* pEngine)
 
     // モデルのロード
     auto loader       = m_pEngine->CreateAssetLoadScope();
-    path              = GetPath(L"model/TextureSphere.glb");
+    path              = GetPath(L"model/TextureSphere.glb", assetPath);
     m_earthModel      = loader.LoadModel(path);
-    path              = GetPath(L"model/lowpoly_apple.glb");
+    path              = GetPath(L"model/lowpoly_apple.glb", assetPath);
     m_appleModel      = loader.LoadModel(path);
-    path              = GetPath(L"model/Katana.glb");
+    path              = GetPath(L"model/Katana.glb", assetPath);
     m_katanaModel     = loader.LoadModel(path);
-    path              = GetPath(L"model/Plane.glb");
+    path              = GetPath(L"model/Plane.glb", assetPath);
     m_planeModel      = loader.LoadModel(path);
-    path              = GetPath(L"model/white_furnace_sphere.glb");
+    path              = GetPath(L"model/white_furnace_sphere.glb", assetPath);
     m_testSphereModel = loader.LoadModel(path);
 
     // ライトの作成
@@ -121,7 +122,7 @@ void Game::Init(Engine* pEngine)
     {
         // IESプロファイルのロード
         std::optional<uint32_t> iesIndex;
-        path     = GetPath(L"ies/Light_161_200525.ies");
+        path     = GetPath(L"ies/Light_161_200525.ies", assetPath);
         iesIndex = loader.LoadIESProfile(path);
         assert(iesIndex.has_value() && "Failed to load IES profile.");
 
@@ -140,7 +141,7 @@ void Game::Init(Engine* pEngine)
         }
 
         std::optional<uint32_t> iesIndex2;
-        path      = GetPath(L"ies/Light_115_200525.ies");
+        path      = GetPath(L"ies/Light_115_200525.ies", assetPath);
         iesIndex2 = loader.LoadIESProfile(path);
         assert(iesIndex2.has_value() && "Failed to load IES profile.");
 
