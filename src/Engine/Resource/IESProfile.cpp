@@ -32,7 +32,7 @@ bool LoadIESProfile(const std::filesystem::path& path, IESProfileData& outProfil
     stream >> token;
 
     // フォーマット確認
-    if (token != "IESNA:LM-63-2002" && token != "IESNA:LM-63-1995")
+    if (token != "IESNA:LM-63-2002" && token != "IESNA:LM-63-1995" && token != "IESNA91")
     {
         OutputDebugStringW(L"Unsupported IES format.\n");
         return false;
