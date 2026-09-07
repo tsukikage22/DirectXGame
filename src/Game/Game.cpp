@@ -100,16 +100,16 @@ void Game::Init(Engine* pEngine)
     }
 
 // 2 photometric lights
-#if 0
+#if 1
     {
         // IESプロファイルのロード
         std::optional<uint32_t> iesIndex;
-        AssetPath().GetAssetPath(L"ies/03_flood_wide_60deg.ies", path);
+        AssetPath().GetAssetPath(L"ies/Light_161_200525.ies", path);
         iesIndex = loader.LoadIESProfile(path);
         assert(iesIndex.has_value() && "Failed to load IES profile.");
 
         engine::LightHandle lightHandle;
-        lightHandle = m_pEngine->GetScene().SpawnPhotometricLight({
+        lightHandle  = m_pEngine->GetScene().SpawnPhotometricLight({
             .position     = { 3.0f, 3.0f, 0.0f },
             .direction    = { 0.0f, -1.0f, 0.0f },
             .luminousFlux = 9000.0f,
@@ -123,11 +123,11 @@ void Game::Init(Engine* pEngine)
         }
 
         std::optional<uint32_t> iesIndex2;
-        AssetPath().GetAssetPath(L"ies/06_pendant_updown.ies", path);
+        AssetPath().GetAssetPath(L"ies/Light_115_200525.ies", path);
         iesIndex2 = loader.LoadIESProfile(path);
         assert(iesIndex2.has_value() && "Failed to load IES profile.");
 
-        lightHandle = m_pEngine->GetScene().SpawnPhotometricLight({
+        lightHandle   = m_pEngine->GetScene().SpawnPhotometricLight({
             .position     = { -3.0f, 3.0f, 0.0f },
             .direction    = { 0.0f, -1.0f, 0.0f },
             .luminousFlux = 9000.0f,
