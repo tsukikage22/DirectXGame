@@ -65,9 +65,11 @@ bool LoadIESProfile(const std::filesystem::path& path, IESProfileData& outProfil
         return false;
     }
 
-    int angleCountV = 0;
-    int angleCountH = 0;
-    int futureUse   = 0;
+    int angleCountV       = 0;
+    int angleCountH       = 0;
+    float futureUse       = 0;
+    float photometricType = 0;
+    float unitType        = 0;
 
     // 光源情報の読み込み
     stream >> outProfileData.lampCount;         // ランプ数
@@ -75,14 +77,18 @@ bool LoadIESProfile(const std::filesystem::path& path, IESProfileData& outProfil
     stream >> outProfileData.candelaMultiplier; // 乗算係数
     stream >> angleCountV;                      // 垂直角数
     stream >> angleCountH;                      // 水平角数
-    stream >> outProfileData.photometricType;   // 測定座標系
-    stream >> outProfileData.unitType;          // 単位
+    stream >> photometricType;                  // 測定座標系
+    stream >> unitType;                         // 単位
     stream >> outProfileData.shapeWidth;        // 形状横幅
     stream >> outProfileData.shapeLength;       // 形状奥行
     stream >> outProfileData.shapeHeight;       // 形状高さ
     stream >> outProfileData.ballastFactor;     // 安定器光出力係数
     stream >> futureUse;                        // 予約領域
     stream >> outProfileData.inputWattage;      // 入力ワット数
+
+    // 1.0のような書き方がされる場合があるため，floatで受けてintに変換する
+    outProfileData.photometricType = static_cast<int>(photometricType);
+    outProfileData.unitType        = static_cast<int>(unitType);
 
     // 複数光源は未対応
     if (outProfileData.lampCount > 1)
