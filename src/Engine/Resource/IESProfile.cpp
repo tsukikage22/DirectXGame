@@ -413,10 +413,12 @@ std::optional<uint32_t> IESProfile::CreateIESTexture(
     }
 
     // 角度サンプル数がテクスチャサイズを超えた場合
+    // BuildPixelsは角度からの補間でテクセルを埋めるため，
+    // 角度サンプル数がテクスチャサイズを超えても配光テクスチャを作成することができる
+    // しかし，急激な変化が生じる配光パターンでは，テクスチャサイズを超えると精度が低下する
     if (profileData.anglesV.size() > kWidth || profileData.anglesH.size() > kHeight)
     {
         OutputDebugStringW(L"IES profile data exceeds texture size.\n");
-        return std::nullopt;
     }
 
     // テクセルを格納する配列の作成
