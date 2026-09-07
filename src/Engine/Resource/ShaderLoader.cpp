@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
+#include <optional>
 #include <vector>
 
 #include "Engine/Resource/AssetPath.h"
@@ -47,16 +48,16 @@ std::vector<std::byte> LoadBinary(const std::filesystem::path& path)
 bool LoadShader(const wchar_t* filename, std::vector<std::byte>& out)
 {
     // パスの取得
-    std::filesystem::path shaderPath;
     AssetPath assetPath;
-    if (!assetPath.GetAssetPath(filename, shaderPath))
+    auto shaderPath = assetPath.GetAssetPath(filename);
+    if (!shaderPath.has_value())
     {
         OutputDebugStringA("Failed to find shader file.\n");
         return false;
     }
 
     // シェーダの読み込み
-    out = LoadBinary(shaderPath);
+    out = LoadBinary(shaderPath.value());
     if (out.empty())
     {
         return false;

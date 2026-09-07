@@ -26,16 +26,15 @@ void AssetPath::AddSearchPath(const std::filesystem::path& path)
 }
 
 // アセットのパスを取得
-bool AssetPath::GetAssetPath(const std::filesystem::path& filename, std::filesystem::path& result) const
+std::optional<std::filesystem::path> AssetPath::GetAssetPath(const std::filesystem::path& filename) const
 {
     for (const auto& base : m_searchPaths)
     {
         auto fullPath = base / filename;
         if (std::filesystem::exists(fullPath))
         {
-            result = fullPath;
-            return true;
+            return fullPath;
         }
     }
-    return false;
+    return std::nullopt;
 }
