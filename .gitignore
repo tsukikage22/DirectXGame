@@ -390,3 +390,5 @@ imgui.ini
 
 # Codacy configuration file
 .codacy
+
+*.draft.md
