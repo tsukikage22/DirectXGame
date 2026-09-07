@@ -3,6 +3,7 @@
 #include <Windows.h>
 
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -24,9 +25,8 @@ public:
 
     /// @brief アセットのパスを取得
     /// @param filename 探すアセットのファイル名
-    /// @param[out] result 見つかったアセットのフルパス
-    /// @return 見つかったらtrue，見つからなかったらfalse
-    bool GetAssetPath(const std::filesystem::path& filename, std::filesystem::path& result) const;
+    /// @return 見つかった場合はアセットのフルパス，見つからなかった場合はstd::nullopt
+    [[nodiscard]] std::optional<std::filesystem::path> GetAssetPath(const std::filesystem::path& filename) const;
 
 private:
     std::vector<std::filesystem::path> m_searchPaths;

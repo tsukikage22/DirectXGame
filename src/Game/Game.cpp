@@ -1,6 +1,8 @@
 #include "Game/Game.h"
 
 #include <DirectXMath.h>
+#include <filesystem>
+#include <optional>
 
 #include "Engine/Engine.h"
 #include "Engine/Resource/AssetLoadScope.h"
@@ -8,6 +10,25 @@
 #include "Engine/Scene/GameObject.h"
 #include "Engine/Scene/Scene.h"
 #include "Game/CameraController.h"
+
+namespace /* anonymous */
+{
+/// @brief アセットのフルパスを取得する．見つからなければデバッグ出力する．
+/// @param filename アセットの相対パス
+/// @return アセットのフルパス，見つからなかった場合は空文字列
+std::filesystem::path GetPath(const std::filesystem::path& filename)
+{
+    auto path = AssetPath().GetAssetPath(filename);
+    if (!path.has_value())
+    {
+        OutputDebugStringW(L"Failed to find asset path: ");
+        OutputDebugStringW(filename.c_str());
+        OutputDebugStringW(L"\n");
+    }
+    return path.value_or(std::filesystem::path{});
+}
+
+} // namespace
 
 Game::Game() : m_pEngine(nullptr), m_pCameraController(std::make_unique<CameraController>())
 {
@@ -31,12 +52,8 @@ void Game::Init(Engine* pEngine)
     m_pEngine->GetScene().GetCamera().SetExposure(4.0f, 1.0f / 80.0f, 100.0f);
 
     // HDRIの読み込みとキューブマップの構築
-    std::filesystem::path path;
-    if (!AssetPath().GetAssetPath(L"HDRI/venice_sunset_4k.hdr", path))
-    {
-        OutputDebugStringW(L"Failed to find HDRI file.\n");
-    }
-    else if (!m_pEngine->BuildEnvironmentMap(path))
+    auto path = GetPath(L"HDRI/venice_sunset_4k.hdr");
+    if (!m_pEngine->BuildEnvironmentMap(path))
     {
         OutputDebugStringW(L"Failed to build environment map.\n");
     }
@@ -47,16 +64,16 @@ void Game::Init(Engine* pEngine)
     m_pEngine->GetScene().SetEnvIntensity(1357.5f);
 
     // モデルのロード
-    auto loader = m_pEngine->CreateAssetLoadScope();
-    AssetPath().GetAssetPath(L"model/TextureSphere.glb", path);
-    m_earthModel = loader.LoadModel(path);
-    AssetPath().GetAssetPath(L"model/lowpoly_apple.glb", path);
-    m_appleModel = loader.LoadModel(path);
-    AssetPath().GetAssetPath(L"model/Katana.glb", path);
-    m_katanaModel = loader.LoadModel(path);
-    AssetPath().GetAssetPath(L"model/Plane.glb", path);
-    m_planeModel = loader.LoadModel(path);
-    AssetPath().GetAssetPath(L"model/white_furnace_sphere.glb", path);
+    auto loader       = m_pEngine->CreateAssetLoadScope();
+    path              = GetPath(L"model/TextureSphere.glb");
+    m_earthModel      = loader.LoadModel(path);
+    path              = GetPath(L"model/lowpoly_apple.glb");
+    m_appleModel      = loader.LoadModel(path);
+    path              = GetPath(L"model/Katana.glb");
+    m_katanaModel     = loader.LoadModel(path);
+    path              = GetPath(L"model/Plane.glb");
+    m_planeModel      = loader.LoadModel(path);
+    path              = GetPath(L"model/white_furnace_sphere.glb");
     m_testSphereModel = loader.LoadModel(path);
 
     // ライトの作成
@@ -104,7 +121,7 @@ void Game::Init(Engine* pEngine)
     {
         // IESプロファイルのロード
         std::optional<uint32_t> iesIndex;
-        AssetPath().GetAssetPath(L"ies/Light_161_200525.ies", path);
+        path     = GetPath(L"ies/Light_161_200525.ies");
         iesIndex = loader.LoadIESProfile(path);
         assert(iesIndex.has_value() && "Failed to load IES profile.");
 
@@ -123,7 +140,7 @@ void Game::Init(Engine* pEngine)
         }
 
         std::optional<uint32_t> iesIndex2;
-        AssetPath().GetAssetPath(L"ies/Light_115_200525.ies", path);
+        path      = GetPath(L"ies/Light_115_200525.ies");
         iesIndex2 = loader.LoadIESProfile(path);
         assert(iesIndex2.has_value() && "Failed to load IES profile.");
 
