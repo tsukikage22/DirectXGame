@@ -353,10 +353,10 @@ void DebugUI::DrawCameraPanel(Camera& camera)
 
         // カメラの位置と回転の表示
         Transform cameraTransform = camera.GetTransform();
-        ImGui::Text("Camera Position: (%.3f, %.3f, %.3f)", cameraTransform.GetPosition().x,
-            cameraTransform.GetPosition().y, cameraTransform.GetPosition().z);
-        ImGui::Text("Camera Rotation: (%.3f, %.3f, %.3f)", cameraTransform.CalcEulerAngle().x,
-            cameraTransform.CalcEulerAngle().y, cameraTransform.CalcEulerAngle().z);
+        DirectX::XMFLOAT3 pos     = cameraTransform.GetPosition();
+        DirectX::XMFLOAT3 rot     = cameraTransform.CalcEulerAngle();
+        ImGui::Text("Camera Position: (%.3f, %.3f, %.3f)", pos.x, pos.y, pos.z);
+        ImGui::Text("Camera Rotation: (%.3f, %.3f, %.3f)", rot.x, rot.y, rot.z);
     }
     ImGui::End();
 }
