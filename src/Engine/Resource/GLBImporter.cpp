@@ -287,7 +287,7 @@ bool GLBImporter::ParseMaterial(const aiMaterial* srcMaterial, int imageCount, M
 
     // occlusion
     aiString occlusionPath;
-    if (srcMaterial->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &occlusionPath) == AI_SUCCESS)
+    if (srcMaterial->GetTexture(aiTextureType_LIGHTMAP, 0, &occlusionPath) == AI_SUCCESS)
     {
         std::string pathStr = occlusionPath.C_Str();
         if (pathStr[0] == '*')
