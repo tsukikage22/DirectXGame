@@ -98,11 +98,14 @@ void Engine::Render()
     m_SkyboxPass.Draw(m_Renderer.MakeSkyboxPassBindings(m_AssetSystem));
 
     // デバッグUIの描画
-    m_DebugUI.Render(m_Renderer.GetUITarget(), m_Renderer.GetCommandList());
+    if (m_DebugUI.IsVisible())
+    {
+        m_DebugUI.Render(m_Renderer.GetUITarget(), m_Renderer.GetCommandList());
 
-    // シーン描画とUI描画の合成
-    m_Renderer.BeginCompositePass();
-    m_CompositePass.Draw(m_Renderer.MakeCompositePassBindings());
+        // シーン描画とUI描画の合成
+        m_Renderer.BeginCompositePass();
+        m_CompositePass.Draw(m_Renderer.MakeCompositePassBindings());
+    }
 }
 
 // コマンドリスト実行，フェンス発行

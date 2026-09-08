@@ -51,6 +51,18 @@ public:
         return m_debugView;
     }
 
+    /// @brief デバッグUIの表示/非表示を切り替える
+    void ToggleVisibility()
+    {
+        m_showDebugUI = !m_showDebugUI;
+    }
+
+    /// @brief デバッグUIを表示するかどうかを取得する
+    bool IsVisible() const
+    {
+        return m_showDebugUI;
+    }
+
 private:
     //=========================================
     // Inner Class
@@ -96,6 +108,9 @@ private:
 
     // デバッグビューの種類
     int m_debugView = 0;
+
+    // デバッグUIの表示/非表示フラグ
+    bool m_showDebugUI = true;
 
     // コピー禁止
     DebugUI(const DebugUI&)            = delete;

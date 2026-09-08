@@ -263,4 +263,10 @@ void Game::Tick(float deltaTime)
             m_demoSceneObject = {};
         }
     }
+
+    // デバッグUIの表示/非表示を切り替える
+    if (m_pInputSystem->WasKeyPressed(VK_F1))
+    {
+        m_pEngine->ToggleDebugUI();
+    }
 }
