@@ -23,6 +23,7 @@ bool GLBImporter::LoadFromFile(const std::filesystem::path& path, ModelAsset& ou
              aiProcess_GenSmoothNormals |         // スムース法線ベクトル生成
              aiProcess_CalcTangentSpace |         // 接線ベクトル計算
              aiProcess_RemoveRedundantMaterials | // 冗長なマテリアルの削除
+             aiProcess_PreTransformVertices |     // 全頂点にtransformを適用（アニメーションが消える）
              aiProcess_ConvertToLeftHanded;       // 左手座標系への変換 (MakeLeftHanded +
                                                   // FlipUVs + FlipWindingOrder)
 
