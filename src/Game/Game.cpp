@@ -82,7 +82,7 @@ void Game::Init(Engine* pEngine)
     // ライトの作成
     // Directional
     {
-        m_pEngine->GetScene().SpawnDirectionalLight({
+        m_directionalLight = m_pEngine->GetScene().SpawnDirectionalLight({
             .direction   = { 0.0f, -1.0f, 0.0f },
             .color       = { 1.0f, 1.0f, 1.0f },
             .illuminance = 2000.0f,
@@ -231,7 +231,31 @@ void Game::Tick(float deltaTime)
     {
         if (!m_demoSceneObject.IsValid())
         {
+            // モデルの表示
             m_demoSceneObject = m_pEngine->GetScene().SpawnObject(m_demoSceneModel);
+
+            // デモシーンの初期設定（位置やスケールなど）を行う
+            // カメラの初期位置、回転、露出を設定する
+            auto& camera = m_pEngine->GetScene().GetCamera();
+            camera.GetTransform().SetPosition({ 0.0f, 0.9f, 0.5f });
+            camera.GetTransform().SetRotation(5.0f, 180.0f, 0.0f);
+            camera.SetExposure(5.6f, 1.0f / 30.0f, 100.0f); // EV100 は 10
+
+            // CameraControllerの状態更新
+            m_pCameraController->SetPitch(5.0f);
+            m_pCameraController->SetYaw(180.0f);
+
+            // ディレクショナルライトの方向，強さ，色を設定する
+            auto directionalLight = m_pEngine->GetScene().GetLight(m_directionalLight);
+            // 方位角と仰角から方向ベクトルを計算してライトの向きを設定する
+            float azimuth   = DirectX::XMConvertToRadians(30.0f);
+            float elevation = DirectX::XMConvertToRadians(-40.0f);
+            float x         = std::sin(azimuth) * std::cos(elevation);
+            float y         = std::sin(elevation);
+            float z         = std::cos(azimuth) * std::cos(elevation);
+            directionalLight->GetTransform().LookTo({ x, y, z });
+            directionalLight->SetIlluminance(2000.0f);
+            directionalLight->SetColor({ 1.0f, 1.0f, 1.0f }); // 白色光
         }
         else
         {

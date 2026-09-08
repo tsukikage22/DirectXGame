@@ -41,4 +41,6 @@ private:
     engine::ObjectHandle m_planeObject;
     engine::ObjectHandle m_testSphereObject;
     engine::ObjectHandle m_demoSceneObject;
+
+    engine::LightHandle m_directionalLight;
 };
