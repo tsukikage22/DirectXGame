@@ -66,8 +66,6 @@ void Game::Init(Engine* pEngine)
 
     // モデルのロード
     auto loader       = m_pEngine->CreateAssetLoadScope();
-    path              = GetPath(L"model/TextureSphere.glb", assetPath);
-    m_earthModel      = loader.LoadModel(path);
     path              = GetPath(L"model/lowpoly_apple.glb", assetPath);
     m_appleModel      = loader.LoadModel(path);
     path              = GetPath(L"model/Katana.glb", assetPath);
@@ -76,6 +74,8 @@ void Game::Init(Engine* pEngine)
     m_planeModel      = loader.LoadModel(path);
     path              = GetPath(L"model/white_furnace_sphere.glb", assetPath);
     m_testSphereModel = loader.LoadModel(path);
+    path              = GetPath(L"model/demo_scene.glb", assetPath);
+    m_demoSceneModel  = loader.LoadModel(path);
 
     // ライトの作成
     // Directional
@@ -222,6 +222,19 @@ void Game::Tick(float deltaTime)
         {
             m_pEngine->GetScene().DespawnObject(m_planeObject);
             m_planeObject = {};
+        }
+    }
+
+    if (m_pInputSystem->WasKeyPressed('5'))
+    {
+        if (!m_demoSceneObject.IsValid())
+        {
+            m_demoSceneObject = m_pEngine->GetScene().SpawnObject(m_demoSceneModel);
+        }
+        else
+        {
+            m_pEngine->GetScene().DespawnObject(m_demoSceneObject);
+            m_demoSceneObject = {};
         }
     }
 }
