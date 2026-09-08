@@ -226,8 +226,17 @@ void DebugUI::BeginFrame(InputSystem& input, Camera& camera, Scene& scene, D3D12
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    // Input Systemの更新
     ImGuiIO& io = ImGui::GetIO();
+
+    // ImGuiは何もない場所への左クリックでしかフォーカスを解除しないため，
+    // カメラ操作の右ドラッグではフォーカスが解除されない
+    // そのため，何もない場所で右クリックされた時にここで明示的に解除する
+    if (!io.WantCaptureMouse && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+    {
+        ImGui::SetWindowFocus(nullptr);
+    }
+
+    // Input Systemの更新
     input.SetUICaptureState(io.WantCaptureMouse, io.WantCaptureKeyboard);
 
     // デバッグGUIの作成
