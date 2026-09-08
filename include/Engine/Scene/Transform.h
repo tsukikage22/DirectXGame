@@ -47,6 +47,10 @@ public:
     /// @param upHint 上方向ベクトルのヒント
     void LookTo(const DirectX::XMFLOAT3& direction, const DirectX::XMFLOAT3& upHint = engine::kUp);
 
+    /// @brief クォータニオンからオイラー角（度）を計算する
+    /// @return ピッチ(x), ヨー(y), ロール(z)の順で回転角を返す
+    DirectX::XMFLOAT3 CalcEulerAngle() const;
+
     /// @brief ローカル前方向の取得
     DirectX::XMFLOAT3 GetForward() const;
 
