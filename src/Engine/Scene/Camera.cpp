@@ -5,7 +5,7 @@
 
 using namespace DirectX;
 
-Camera::Camera() : m_fovYRad(XMConvertToRadians(45.0f)), m_aspect(16.0f / 9.0f), m_nearZ(1.0f), m_farZ(1000.0f)
+Camera::Camera() : m_fovYRad(XMConvertToRadians(45.0f)), m_aspect(16.0f / 9.0f), m_nearZ(0.1f), m_farZ(1000.0f)
 {
     // 初期位置を設定
     m_transform.SetPosition({ 0.0f, 0.0f, -5.0f });

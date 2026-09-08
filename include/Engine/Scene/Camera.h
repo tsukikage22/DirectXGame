@@ -107,7 +107,7 @@ private:
     Transform m_transform;   // 位置や姿勢
     float m_fovYRad;         // 垂直視野角（ラジアン）
     float m_aspect;          // アスペクト比
-    float m_nearZ = 1.0f;    // 描画範囲（最小）
+    float m_nearZ = 0.1f;    // 描画範囲（最小）
     float m_farZ  = 1000.0f; // 描画範囲（最大）
 
     // 露出パラメータ
