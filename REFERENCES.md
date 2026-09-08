@@ -20,7 +20,7 @@
 ### [Pocol 2021]
 
 Pocol, 『Direct3D 12 ゲームグラフィックス実践ガイド』, 技術評論社, 2021. ISBN 978-4-297-12365-9.
-https://gihyo.jp/book/2021/978-4-297-12365-9
+<https://gihyo.jp/book/2021/978-4-297-12365-9>
 
 本リポジトリのレンダラは本書の構成をベースに実装している．
 PBR パイプライン，マテリアル定義，HDR 出力の基本設計は本書に依拠する．
@@ -35,7 +35,7 @@ PBR パイプライン，マテリアル定義，HDR 出力の基本設計は本
 ### [Filament]
 
 Google, 「Physically Based Rendering in Filament」, Google.
-https://google.github.io/filament/Filament.md.html
+<https://google.github.io/filament/Filament.md.html>
 （参照日: 2026-09-07）
 
 PBR と IBL の理論を理解するために参照している．
@@ -44,7 +44,7 @@ BRDF の理論と式の導出，および IBL における distant light probe �
 ### [emadurandal 2019]
 
 emadurandal, 「物理ベースレンダリングを柔らかく説明してみる（1）〜（6）」, Qiita, 2019–2025.
-https://qiita.com/emadurandal/items/3a8db7bc61438245654d
+<https://qiita.com/emadurandal/items/3a8db7bc61438245654d>
 （参照日: 2026-09-07）
 
 PBRの全体像や，BRDFの各項の役割，IBLの概要を理解する補助として参照した．
@@ -68,7 +68,7 @@ C. Schlick, "An Inexpensive BRDF Model for Physically-Based Rendering", _Compute
 ### [Walter 2007]
 
 B. Walter, S. R. Marschner, H. Li, K. E. Torrance, "Microfacet Models for Refraction through Rough Surfaces", _Eurographics Symposium on Rendering (EGSR)_, pp. 195–206, 2007.
-https://www.graphics.cornell.edu/~bjw/microfacetbsdf.pdf
+<https://www.graphics.cornell.edu/~bjw/microfacetbsdf.pdf>
 
 GGX 法線分布関数の定義．
 分布そのものの原典は Trowbridge & Reitz, _JOSA_ 65(5), 1975 で，本論文により GGX としてグラフィックス分野に導入された．
@@ -78,7 +78,7 @@ GGX 法線分布関数の定義．
 ### [Heitz 2014]
 
 E. Heitz, "Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs", _Journal of Computer Graphics Techniques (JCGT)_, 3(2), pp. 48–107, 2014.
-https://jcgt.org/published/0003/02/03/
+<https://jcgt.org/published/0003/02/03/>
 
 Height-Correlated Smith 幾何項の導出．マスキングとシャドウイングの相関を扱う理論的基礎．
 
@@ -87,7 +87,7 @@ Height-Correlated Smith 幾何項の導出．マスキングとシャドウイ�
 ### [Burley 2012]
 
 B. Burley, "Physically-Based Shading at Disney", _SIGGRAPH 2012 Course: Practical Physically Based Shading in Film and Game Production_, 2012.
-https://blog.selfshadow.com/publications/s2012-shading-course/
+<https://blog.selfshadow.com/publications/s2012-shading-course/>
 
 perceptual roughness の導入．アーティストが操作する roughness を二乗して α とする慣習の出典．
 
@@ -96,8 +96,8 @@ perceptual roughness の導入．アーティストが操作する roughness を
 ### [Karis 2013]
 
 B. Karis, "Real Shading in Unreal Engine 4", _SIGGRAPH 2013 Course: Physically Based Shading in Theory and Practice_, 2013.
-https://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_slides.pdf
-（コース全体: https://blog.selfshadow.com/publications/s2013-shading-course/ ）
+<https://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_slides.pdf>
+（コース全体: <https://blog.selfshadow.com/publications/s2013-shading-course/> ）
 
 IBL の実装の土台となっている資料．参照した内容は以下のとおり．
 
@@ -115,7 +115,7 @@ IBL の実装の土台となっている資料．参照した内容は以下の�
 ### [Fdez-Agüera 2019]
 
 C. J. Fdez-Agüera, "A Multiple-Scattering Microfacet Model for Real-Time Image-based Lighting", _Journal of Computer Graphics Techniques (JCGT)_, 8(1), pp. 45-55, 2019.
-https://jcgt.org/published/0008/01/03/
+<https://jcgt.org/published/0008/01/03/>
 
 split-sum 近似では失われる多重散乱分のエネルギーを補償する手法．
 単散乱項 `FssEss` に対して多重散乱項 `FmsEms` を加える形で定式化されている．
@@ -125,8 +125,8 @@ split-sum 近似では失われる多重散乱分のエネルギーを補償す�
 ### [Frostbite 2014]
 
 S. Lagarde, C. de Rousiers, "Moving Frostbite to Physically Based Rendering 3.0", _SIGGRAPH 2014 Course: Physically Based Shading in Theory and Practice_, 2014.
-https://seblagarde.wordpress.com/2015/07/14/siggraph-2014-moving-frostbite-to-physically-based-rendering/
-（コース全体: https://blog.selfshadow.com/publications/s2014-shading-course/ ）
+<https://seblagarde.wordpress.com/2015/07/14/siggraph-2014-moving-frostbite-to-physically-based-rendering/>
+（コース全体: <https://blog.selfshadow.com/publications/s2014-shading-course/> ）
 
 本プロジェクトが最も広く依拠している資料．参照した内容は以下のとおり．
 
@@ -147,8 +147,8 @@ https://seblagarde.wordpress.com/2015/07/14/siggraph-2014-moving-frostbite-to-ph
 ### [Uchimura 2017]
 
 内村 創, 「HDR 理論と実践」, CEDEC 2017, ポリフォニー・デジタル, 2017.
-https://www.slideshare.net/nikuque/hdr-theory-and-practicce-jp
-（曲線の定義: https://www.desmos.com/calculator/gslcdxvipg ）
+<https://www.slideshare.net/nikuque/hdr-theory-and-practicce-jp>
+（曲線の定義: <https://www.desmos.com/calculator/gslcdxvipg> ）
 
 GT トーンマップ（Toe / Linear / Shoulder の三区間を重み合成する曲線）の定義とリファレンス実装．
 リファレンス実装には `Copyright(c) 2017 by Hajime Uchimura @ Polyphony Digital Inc.` の著作権表示が付されている．
@@ -158,7 +158,7 @@ GT トーンマップ（Toe / Linear / Shoulder の三区間を重み合成す�
 ### [Duff 2017]
 
 T. Duff, J. Burgess, P. Christensen, C. Hery, A. Kensler, M. Liani, R. Villemin, "Building an Orthonormal Basis, Revisited", _Journal of Computer Graphics Techniques (JCGT)_, 6(1), pp. 1–8, 2017.
-https://jcgt.org/published/0006/01/01/
+<https://jcgt.org/published/0006/01/01/>
 
 分岐なしで法線から正規直交基底を構成する手法．実装は本論文 Listing 3（branchless 版）に対応する．
 
@@ -167,7 +167,7 @@ https://jcgt.org/published/0006/01/01/
 ### [Dammertz 2012]
 
 H. Dammertz, 「Hammersley Points on the Hemisphere」, 2012.
-https://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
+<https://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html>
 （参照日: 2026-08-26）
 
 ビット反転（radical inverse）による Hammersley 点列の実装．

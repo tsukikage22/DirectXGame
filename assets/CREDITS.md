@@ -5,10 +5,10 @@
 
 ## HDRI
 
-| ファイル | 出典 | 作者 | ライセンス | 取得日 |
-|---|---|---|---|---|
-| `HDRI/abandoned_workshop_4k.hdr` | [Poly Haven — Abandoned workshop](https://polyhaven.com/a/abandoned_workshop) | Sergej Majboroda | CC0 | 2026-09-08 |
-| `HDRI/venice_sunset_4k.hdr` | [Poly Haven — Venice Sunset](https://polyhaven.com/a/venice_sunset) | Greg Zaal | CC0 | 2026-09-07 |
+| ファイル                         | 出典                                                                          | 作者             | ライセンス | 取得日     |
+| -------------------------------- | ----------------------------------------------------------------------------- | ---------------- | ---------- | ---------- |
+| `HDRI/abandoned_workshop_4k.hdr` | [Poly Haven — Abandoned workshop](https://polyhaven.com/a/abandoned_workshop) | Sergej Majboroda | CC0        | 2026-09-08 |
+| `HDRI/venice_sunset_4k.hdr`      | [Poly Haven — Venice Sunset](https://polyhaven.com/a/venice_sunset)           | Greg Zaal        | CC0        | 2026-09-07 |
 
 ## 3D モデル
 
@@ -16,18 +16,18 @@
 
 `model/demo_scene.glb` は，以下の4モデルと自作の床を Blender で1つにまとめたものです．
 
-| モデル | 出典 | 作者 | 取得日 |
-|---|---|---|---|
-| Camera 01 | [Poly Haven — Camera 01](https://polyhaven.com/a/Camera_01) | Rajil Jose Macatangay | 2026-09-08 |
-| Lantern 01 | [Poly Haven — Lantern 01](https://polyhaven.com/a/Lantern_01) | Rajil Jose Macatangay | 2026-09-08 |
-| Wooden Table 02 | [Poly Haven — Wooden Table 02](https://polyhaven.com/a/WoodenTable_02) | Fran Calvente | 2026-09-08 |
-| CheeseBox 01 | [Poly Haven — CheeseBox 01](https://polyhaven.com/a/CheeseBox_01) | Gabriel Radić | 2026-09-08 |
+| モデル          | 出典                                                                   | 作者                  | 取得日     |
+| --------------- | ---------------------------------------------------------------------- | --------------------- | ---------- |
+| Camera 01       | [Poly Haven — Camera 01](https://polyhaven.com/a/Camera_01)            | Rajil Jose Macatangay | 2026-09-08 |
+| Lantern 01      | [Poly Haven — Lantern 01](https://polyhaven.com/a/Lantern_01)          | Rajil Jose Macatangay | 2026-09-08 |
+| Wooden Table 02 | [Poly Haven — Wooden Table 02](https://polyhaven.com/a/WoodenTable_02) | Fran Calvente         | 2026-09-08 |
+| CheeseBox 01    | [Poly Haven — CheeseBox 01](https://polyhaven.com/a/CheeseBox_01)      | Gabriel Radić         | 2026-09-08 |
 
 ### テクスチャ（CC0）
 
-| テクスチャ | 出典 | 作者 | 用途 | 取得日 |
-|---|---|---|---|---|
-| Wooden Floor 01 | [Poly Haven — Wooden Floor 01](https://polyhaven.com/a/wooden_floor_01) | Charlotte Baglioni（スキャン）<br>Rico Cilliers（加工） | `demo_scene.glb` の床 | 2026-09-08 |
+| テクスチャ      | 出典                                                                    | 作者                                                  | 用途                  | 取得日     |
+| --------------- | ----------------------------------------------------------------------- | ----------------------------------------------------- | --------------------- | ---------- |
+| Wooden Floor 01 | [Poly Haven — Wooden Floor 01](https://polyhaven.com/a/wooden_floor_01) | Charlotte Baglioni（スキャン）／Rico Cilliers（加工） | `demo_scene.glb` の床 | 2026-09-08 |
 
 ### 自作
 
@@ -41,10 +41,10 @@
 
 ## IES プロファイル
 
-| ファイル | 出典 | 作者 | ライセンス | 取得日 |
-|---|---|---|---|---|
-| `ies/Light_161_200525.ies` | [3DTexel — Light IES 113](https://3dtexel.com/product/light-ies-113/) | Lucas Anton Gomez | CC0 | 2026-09-07 |
-| `ies/Light_115_200525.ies` | [3DTexel — Light IES 83](https://3dtexel.com/product/light-ies-83/) | Lucas Anton Gomez | CC0 | 2026-09-07 |
+| ファイル                   | 出典                                                                  | 作者              | ライセンス | 取得日     |
+| -------------------------- | --------------------------------------------------------------------- | ----------------- | ---------- | ---------- |
+| `ies/Light_161_200525.ies` | [3DTexel — Light IES 113](https://3dtexel.com/product/light-ies-113/) | Lucas Anton Gomez | CC0        | 2026-09-07 |
+| `ies/Light_115_200525.ies` | [3DTexel — Light IES 83](https://3dtexel.com/product/light-ies-83/)   | Lucas Anton Gomez | CC0        | 2026-09-07 |
 
 ### `ies/test/` について
 
