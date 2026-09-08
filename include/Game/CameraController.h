@@ -22,6 +22,24 @@ public:
     // 更新
     void Update(float deltaTime);
 
+    //----------------------------------------------
+    // アクセサ
+    //----------------------------------------------
+
+    /// @brief ピッチ角を設定する
+    /// @param pitch ピッチ角（度）
+    void SetPitch(float pitch)
+    {
+        m_pitch = pitch;
+    }
+
+    /// @brief ヨー角を設定する
+    /// @param yaw ヨー角（度）
+    void SetYaw(float yaw)
+    {
+        m_yaw = yaw;
+    }
+
 private:
     // Forwardベクトルからオイラー角への変換（roll=0のためForwardから求められる）
     static DirectX::XMFLOAT2 ForwardToEuler(const DirectX::XMFLOAT3& forward);

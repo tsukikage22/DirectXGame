@@ -53,21 +53,21 @@ void Game::Init(Engine* pEngine)
 
     // HDRIの読み込みとキューブマップの構築
     AssetPath assetPath;
-    auto path = GetPath(L"HDRI/venice_sunset_4k.hdr", assetPath);
+    auto path = GetPath(L"HDRI/abandoned_workshop_4k.hdr", assetPath);
     if (!m_pEngine->BuildEnvironmentMap(path))
     {
         OutputDebugStringW(L"Failed to build environment map.\n");
     }
 
     // venice_sunset_4k.hdr の生の水平面照度 2.21 lx を、
-    // golden hour の実測相当 3000 lx に合わせる（3000 / 2.21）
+    // golden hour の実測相当 3000 lx に合わせる（3000 / 2.21 ≒ 1357.5）
     // HDRIを差し替えたら、起動ログの Upper hemisphere illuminanceで割り直す
-    m_pEngine->GetScene().SetEnvIntensity(1357.5f);
+    // abandoned_workshop_4k.hdr の水平面照度 1.2862 lx
+    // 屋内なので500lxを目標に設定する (500 / 1.2862 ≒ 388.7)
+    m_pEngine->GetScene().SetEnvIntensity(388.7f);
 
     // モデルのロード
     auto loader       = m_pEngine->CreateAssetLoadScope();
-    path              = GetPath(L"model/TextureSphere.glb", assetPath);
-    m_earthModel      = loader.LoadModel(path);
     path              = GetPath(L"model/lowpoly_apple.glb", assetPath);
     m_appleModel      = loader.LoadModel(path);
     path              = GetPath(L"model/Katana.glb", assetPath);
@@ -76,11 +76,13 @@ void Game::Init(Engine* pEngine)
     m_planeModel      = loader.LoadModel(path);
     path              = GetPath(L"model/white_furnace_sphere.glb", assetPath);
     m_testSphereModel = loader.LoadModel(path);
+    path              = GetPath(L"model/demo_scene.glb", assetPath);
+    m_demoSceneModel  = loader.LoadModel(path);
 
     // ライトの作成
     // Directional
     {
-        m_pEngine->GetScene().SpawnDirectionalLight({
+        m_directionalLight = m_pEngine->GetScene().SpawnDirectionalLight({
             .direction   = { 0.0f, -1.0f, 0.0f },
             .color       = { 1.0f, 1.0f, 1.0f },
             .illuminance = 2000.0f,
@@ -222,6 +224,43 @@ void Game::Tick(float deltaTime)
         {
             m_pEngine->GetScene().DespawnObject(m_planeObject);
             m_planeObject = {};
+        }
+    }
+
+    if (m_pInputSystem->WasKeyPressed('5'))
+    {
+        if (!m_demoSceneObject.IsValid())
+        {
+            // モデルの表示
+            m_demoSceneObject = m_pEngine->GetScene().SpawnObject(m_demoSceneModel);
+
+            // デモシーンの初期設定（位置やスケールなど）を行う
+            // カメラの初期位置、回転、露出を設定する
+            auto& camera = m_pEngine->GetScene().GetCamera();
+            camera.GetTransform().SetPosition({ 0.0f, 0.9f, 0.5f });
+            camera.GetTransform().SetRotation(5.0f, 180.0f, 0.0f);
+            camera.SetExposure(5.6f, 1.0f / 30.0f, 100.0f); // EV100 は 10
+
+            // CameraControllerの状態更新
+            m_pCameraController->SetPitch(5.0f);
+            m_pCameraController->SetYaw(180.0f);
+
+            // ディレクショナルライトの方向，強さ，色を設定する
+            auto directionalLight = m_pEngine->GetScene().GetLight(m_directionalLight);
+            // 方位角と仰角から方向ベクトルを計算してライトの向きを設定する
+            float azimuth   = DirectX::XMConvertToRadians(30.0f);
+            float elevation = DirectX::XMConvertToRadians(-40.0f);
+            float x         = std::sin(azimuth) * std::cos(elevation);
+            float y         = std::sin(elevation);
+            float z         = std::cos(azimuth) * std::cos(elevation);
+            directionalLight->GetTransform().LookTo({ x, y, z });
+            directionalLight->SetIlluminance(2000.0f);
+            directionalLight->SetColor({ 1.0f, 1.0f, 1.0f }); // 白色光
+        }
+        else
+        {
+            m_pEngine->GetScene().DespawnObject(m_demoSceneObject);
+            m_demoSceneObject = {};
         }
     }
 }

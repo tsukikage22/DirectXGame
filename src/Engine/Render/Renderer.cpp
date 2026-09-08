@@ -16,7 +16,7 @@ namespace /* anonymous */
 {
 
 // シャドウマップの描画範囲
-constexpr float kShadowDistance = 10.0f;
+constexpr float kShadowDistance = 2.0f;
 
 /// @brief リソースバリアの作成
 D3D12_RESOURCE_BARRIER MakeTransitionBarrier(
