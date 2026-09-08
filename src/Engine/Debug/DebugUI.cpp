@@ -10,6 +10,7 @@
 #include "Engine/Input/InputSystem.h"
 #include "Engine/Scene/Camera.h"
 #include "Engine/Scene/Scene.h"
+#include "Engine/Scene/Transform.h"
 #include "Engine/Shader/ShaderConstants.h"
 #include "backends/imgui_impl_dx12.h"
 #include "backends/imgui_impl_win32.h"
@@ -234,7 +235,7 @@ void DebugUI::BeginFrame(InputSystem& input, Camera& camera, Scene& scene, D3D12
     DrawFPSPanel();
 
     // 露出調整UI
-    DrawExposurePanel(camera);
+    DrawCameraPanel(camera);
 
     // ライト調整UI
     DrawLightPanel(scene);
@@ -291,10 +292,10 @@ void DebugUI::DrawFPSPanel()
 }
 
 // 露出調整UIの描画
-void DebugUI::DrawExposurePanel(Camera& camera)
+void DebugUI::DrawCameraPanel(Camera& camera)
 {
     // 露出調整パネル
-    if (ImGui::Begin("Exposure", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    if (ImGui::Begin("Camera", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
         float ev100 = camera.ComputeEV100(); // 現在のEV100を取得
 
@@ -349,6 +350,13 @@ void DebugUI::DrawExposurePanel(Camera& camera)
             ImGui::Text("Shutter Speed: 1/%.0f s", 1.0f / ss);
         }
         ImGui::Text("Exposure: %.3e", camera.ComputeExposure());
+
+        // カメラの位置と回転の表示
+        Transform cameraTransform = camera.GetTransform();
+        DirectX::XMFLOAT3 pos     = cameraTransform.GetPosition();
+        DirectX::XMFLOAT3 rot     = cameraTransform.CalcEulerAngle();
+        ImGui::Text("Camera Position: (%.3f, %.3f, %.3f)", pos.x, pos.y, pos.z);
+        ImGui::Text("Camera Rotation: (%.3f, %.3f, %.3f)", rot.x, rot.y, rot.z);
     }
     ImGui::End();
 }

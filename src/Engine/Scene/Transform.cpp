@@ -1,6 +1,8 @@
 #include "Engine/Scene/Transform.h"
 
+#include <algorithm>
 #include <cassert>
+#include <cmath>
 
 using namespace DirectX;
 
@@ -150,4 +152,38 @@ XMFLOAT3 Transform::GetRight() const
     XMFLOAT3 rightFloat3;
     XMStoreFloat3(&rightFloat3, right);
     return rightFloat3;
+}
+
+XMFLOAT3 Transform::CalcEulerAngle() const
+{
+
+    XMVECTOR q = XMLoadFloat4(&m_orientation);
+
+    // 回転行列を計算
+    XMMATRIX rot = XMMatrixRotationQuaternion(q);
+
+    XMFLOAT4X4 m;
+    XMStoreFloat4x4(&m, rot);
+
+    float sinPitch = std::clamp(-m.m[2][1], -1.0f, 1.0f);
+    float pitch    = std::asin(sinPitch);
+    float cosPitch = std::cos(pitch);
+
+    float yaw, roll;
+    if (cosPitch > 1e-6f)
+    {
+        // m[2][0] = cosPitch * sinYaw, m[2][2] = cosPitch * cosYaw
+        yaw = std::atan2(m.m[2][0], m.m[2][2]);
+        // m[0][1] = sinRoll * cosPitch, m[1][1] = cosRoll * cosPitch
+        roll = std::atan2(m.m[0][1], m.m[1][1]);
+    }
+    else
+    {
+        // ジンバルロック
+        // yawとrollは差しか決まらないのでrollを0に固定する
+        roll = 0.0f;
+        yaw  = std::atan2(-m.m[0][2], m.m[0][0]);
+    }
+
+    return XMFLOAT3(XMConvertToDegrees(pitch), XMConvertToDegrees(yaw), XMConvertToDegrees(roll));
 }

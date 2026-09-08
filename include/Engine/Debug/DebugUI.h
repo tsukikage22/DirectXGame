@@ -72,7 +72,7 @@ private:
 
     /// @brief 露出調整UIの描画
     /// @param camera Cameraの参照
-    void DrawExposurePanel(Camera& camera);
+    void DrawCameraPanel(Camera& camera);
 
     /// @brief ライト調整UIの描画
     /// @param scene Sceneの参照
