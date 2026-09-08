@@ -231,20 +231,23 @@ void DebugUI::BeginFrame(InputSystem& input, Camera& camera, Scene& scene, D3D12
     input.SetUICaptureState(io.WantCaptureMouse, io.WantCaptureKeyboard);
 
     // デバッグGUIの作成
-    // FPS表示UI
-    DrawFPSPanel();
+    if (m_showDebugUI)
+    {
+        // FPS表示UI
+        DrawFPSPanel();
 
-    // 露出調整UI
-    DrawCameraPanel(camera);
+        // 露出調整UI
+        DrawCameraPanel(camera);
 
-    // ライト調整UI
-    DrawLightPanel(scene);
+        // ライト調整UI
+        DrawLightPanel(scene);
 
-    // デバッグビューUI
-    DrawDebugViewPanel();
+        // デバッグビューUI
+        DrawDebugViewPanel();
 
-    // シャドウマップ確認UI
-    DrawShadowMapPanel(shadowMapSRV);
+        // シャドウマップ確認UI
+        DrawShadowMapPanel(shadowMapSRV);
+    }
 
     // 描画データの確定
     ImGui::Render();
