@@ -53,16 +53,18 @@ void Game::Init(Engine* pEngine)
 
     // HDRIの読み込みとキューブマップの構築
     AssetPath assetPath;
-    auto path = GetPath(L"HDRI/venice_sunset_4k.hdr", assetPath);
+    auto path = GetPath(L"HDRI/abandoned_workshop_4k.hdr", assetPath);
     if (!m_pEngine->BuildEnvironmentMap(path))
     {
         OutputDebugStringW(L"Failed to build environment map.\n");
     }
 
     // venice_sunset_4k.hdr の生の水平面照度 2.21 lx を、
-    // golden hour の実測相当 3000 lx に合わせる（3000 / 2.21）
+    // golden hour の実測相当 3000 lx に合わせる（3000 / 2.21 ≒ 1357.5）
     // HDRIを差し替えたら、起動ログの Upper hemisphere illuminanceで割り直す
-    m_pEngine->GetScene().SetEnvIntensity(1357.5f);
+    // abandoned_workshop_4k.hdr の水平面照度 1.2862 lx
+    // 屋内なので500lxを目標に設定する (500 / 1.2862 ≒ 388.7)
+    m_pEngine->GetScene().SetEnvIntensity(388.7f);
 
     // モデルのロード
     auto loader       = m_pEngine->CreateAssetLoadScope();
