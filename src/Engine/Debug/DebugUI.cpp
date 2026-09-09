@@ -167,6 +167,7 @@ bool DebugUI::Init(GraphicsDevice& graphicsDevice, DXGI_FORMAT format, HWND hWnd
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    io.IniFilename = nullptr;                             // iniファイルを使用しない
 
     // ImGuiのバックエンドを初期化
     ImGui_ImplDX12_InitInfo info = {};
@@ -295,6 +296,10 @@ void DebugUI::Render(ColorTarget& uiTarget, ID3D12GraphicsCommandList* pCmdList)
 // FPS表示UIの描画
 void DebugUI::DrawFPSPanel()
 {
+    const ImGuiViewport* vp = ImGui::GetMainViewport();
+    // パネルの位置を設定（左上）
+    ImGui::SetNextWindowPos(ImVec2(vp->WorkPos.x + 20.0f, vp->WorkPos.y + 20.0f), ImGuiCond_FirstUseEver);
+
     ImGuiIO& io = ImGui::GetIO();
     if (ImGui::Begin("Stats", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
@@ -303,10 +308,13 @@ void DebugUI::DrawFPSPanel()
     ImGui::End();
 }
 
-// 露出調整UIの描画
+// カメラUIの描画
 void DebugUI::DrawCameraPanel(Camera& camera)
 {
-    // 露出調整パネル
+    const ImGuiViewport* vp = ImGui::GetMainViewport();
+    // パネルの位置を設定（左中）
+    ImGui::SetNextWindowPos(ImVec2(vp->WorkPos.x + 20.0f, vp->WorkPos.y + 90.0f), ImGuiCond_FirstUseEver);
+
     if (ImGui::Begin("Camera", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
         float ev100 = camera.ComputeEV100(); // 現在のEV100を取得
@@ -376,6 +384,11 @@ void DebugUI::DrawCameraPanel(Camera& camera)
 void DebugUI::DrawLightPanel(Scene& scene)
 {
     const ImGuiViewport* vp = ImGui::GetMainViewport();
+    // パネルの位置とサイズを設定（右下）
+    ImGui::SetNextWindowPos(
+        ImVec2(vp->WorkPos.x + vp->WorkSize.x - 360.0f, vp->WorkPos.y + 330.0f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(340.0f, vp->WorkSize.y * 0.55f), ImGuiCond_FirstUseEver);
+
     ImGui::SetNextWindowSizeConstraints(ImVec2(320.0f, 0.0f), ImVec2(FLT_MAX, vp->WorkSize.y * 0.8f));
     if (ImGui::Begin("Light"))
     {
@@ -426,6 +439,10 @@ void DebugUI::DrawLightPanel(Scene& scene)
 
 void DebugUI::DrawDebugViewPanel()
 {
+    // パネルの位置を設定（左下）
+    const ImGuiViewport* vp = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(ImVec2(vp->WorkPos.x + 20.0f, vp->WorkPos.y + 290.0f), ImGuiCond_FirstUseEver);
+
     if (ImGui::Begin("DebugView", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
         // デバッグビュー選択用ラジオボタンの表示
@@ -439,6 +456,11 @@ void DebugUI::DrawDebugViewPanel()
 
 void DebugUI::DrawShadowMapPanel(D3D12_GPU_DESCRIPTOR_HANDLE shadowMapSRV)
 {
+    // パネルの位置を設定（右上）
+    const ImGuiViewport* vp = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(
+        ImVec2(vp->WorkPos.x + vp->WorkSize.x - 295.0f, vp->WorkPos.y + 20.0f), ImGuiCond_FirstUseEver);
+
     if (ImGui::Begin("Shadow Map", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
         // シャドウマップの表示
