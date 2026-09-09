@@ -29,7 +29,7 @@ _カメラの回転と露出，directional light の方位・仰角を操作し�
 
 | 分野                 | 内容                                                                                                                                                                                    |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **描画パイプライン** | D3D12 / DXGI 1.6 のフリップモデル，HDR 中間バッファ（`R16G16B16A16_FLOAT`），waitable object によるフレームレイテンシ制御，ウィンドウリサイズ対応                                       |
+| **描画パイプライン** | D3D12 / DXGI 1.6 のフリップモデル，HDR バックバッファ（`R16G16B16A16_FLOAT`），waitable object によるフレームレイテンシ制御，ウィンドウリサイズ対応                                       |
 | **ディスプレイ出力** | HDR ディスプレイの検出，scRGB 出力，ディスプレイの最大輝度に追従する GT トーンマップ，モニタ間の移動の検出と再取得                                                                      |
 | **ライティング**     | directional light / point light / spot light / photometric light の4種，光束[lm]・照度[lx]・光度[cd] による物理量ベースの強度指定，最大 64 灯                                           |
 | **マテリアル**       | Cook-Torrance / GGX ベースの PBR，metallic-roughness ワークフロー，法線マップ（TBN），AO                                                                                                |
@@ -53,14 +53,17 @@ BeginFrame                 フレームレイテンシ待機 → フェンス同
   ├─ ShadowPass            directional light の視点から深度のみを描画する
   │                        影を落とすライトが無い場合は描画命令をスキップする
   │
-  ├─ ScenePass             HDR バッファへ PBR + IBL + shadow で本描画する
+  ├─ ScenePass             PBR + IBL + shadow で本描画する
+  │                        露出とトーンマップを適用し，scRGB へ変換して出力する
   │
   ├─ SkyboxPass            深度テストを利用して背景部分にのみ環境キューブマップを描画する
+  │                        こちらも同じトーンマップと scRGB 変換を通す
   │
   ├─ DebugUI               ImGui を UI 用レンダーターゲット（R8G8B8A8_UNORM）へ描画する
   │
-  └─ CompositePass         HDR シーンと UI を合成し，トーンマップして出力色空間へ変換する
-  │
+  └─ CompositePass         UI をシーンへ合成する
+                           ImGui の出力を sRGB として線形化し，同じ白レベルで scRGB へ揃える
+
 EndFrame / Present
 ```
 
