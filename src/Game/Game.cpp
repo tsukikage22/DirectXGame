@@ -177,6 +177,9 @@ void Game::Tick(float deltaTime)
         if (!m_testSphereObject.IsValid())
         {
             m_testSphereObject = m_pEngine->GetScene().SpawnObject(m_testSphereModel);
+            auto* pSphere      = m_pEngine->GetScene().GetObject(m_testSphereObject);
+            pSphere->GetTransform().SetRotation(0.0f, 90.0f, 0.0f);
+            pSphere->GetTransform().SetPosition({ -6.0f, 0.0f, 4.0f });
         }
         else
         {
