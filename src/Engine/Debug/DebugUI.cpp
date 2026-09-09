@@ -384,10 +384,10 @@ void DebugUI::DrawCameraPanel(Camera& camera)
 void DebugUI::DrawLightPanel(Scene& scene)
 {
     const ImGuiViewport* vp = ImGui::GetMainViewport();
-    // パネルの位置とサイズを設定（右下）
+    // パネルの位置とサイズを設定（左端から20，Cameraの下）
     ImGui::SetNextWindowPos(
-        ImVec2(vp->WorkPos.x + vp->WorkSize.x - 360.0f, vp->WorkPos.y + 330.0f), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(340.0f, vp->WorkSize.y * 0.55f), ImGuiCond_FirstUseEver);
+        ImVec2(vp->WorkPos.x + 20.0f, vp->WorkPos.y + 290.0f), ImGuiCond_FirstUseEver); // pivot = 右上
+    ImGui::SetNextWindowSize(ImVec2(340.0f, vp->WorkSize.y * 0.5f), ImGuiCond_FirstUseEver);
 
     ImGui::SetNextWindowSizeConstraints(ImVec2(320.0f, 0.0f), ImVec2(FLT_MAX, vp->WorkSize.y * 0.8f));
     if (ImGui::Begin("Light"))
@@ -439,9 +439,10 @@ void DebugUI::DrawLightPanel(Scene& scene)
 
 void DebugUI::DrawDebugViewPanel()
 {
-    // パネルの位置を設定（左下）
+    // パネルの位置を設定（右端から20，shadowの下）
     const ImGuiViewport* vp = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(ImVec2(vp->WorkPos.x + 20.0f, vp->WorkPos.y + 290.0f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(vp->WorkPos.x + vp->WorkSize.x - 20.0f, vp->WorkPos.y + 330.0f),
+        ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f)); // pivot = 右上
 
     if (ImGui::Begin("DebugView", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
@@ -456,10 +457,10 @@ void DebugUI::DrawDebugViewPanel()
 
 void DebugUI::DrawShadowMapPanel(D3D12_GPU_DESCRIPTOR_HANDLE shadowMapSRV)
 {
-    // パネルの位置を設定（右上）
+    // パネルの位置を設定（右端から20，上端から20）
     const ImGuiViewport* vp = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(
-        ImVec2(vp->WorkPos.x + vp->WorkSize.x - 295.0f, vp->WorkPos.y + 20.0f), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(vp->WorkPos.x + vp->WorkSize.x - 20.0f, vp->WorkPos.y + 20.0f),
+        ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f)); // pivot = 右上
 
     if (ImGui::Begin("Shadow Map", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
