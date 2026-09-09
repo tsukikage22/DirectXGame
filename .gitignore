@@ -390,3 +390,8 @@ imgui.ini
 
 # Codacy configuration file
 .codacy
+
+*.draft.md
+
+DirectXGame-v*/
+DirectXGame-v*.zip
