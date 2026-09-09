@@ -27,14 +27,17 @@ float4 main(SkyboxVSOutput input) : SV_TARGET {
         ? 1.0f.xxx // white furnace test用のデバッグビュー
         : g_skybox.SampleLevel(g_sampler, dir, 0.0f).rgb;
 
-    // 輝度スケール係数
-    color *= g_scene.envIntensity; 
+    // white furnace testではスカイボックスは白色で固定（露出や係数の影響を受けない）
+    if(g_scene.debugView != DEBUG_VIEW_WHITE) {
+        // 輝度スケール係数
+        color *= g_scene.envIntensity; 
 
-    // 露出
-    color.rgb *= g_scene.exposure;
+        // 露出
+        color.rgb *= g_scene.exposure;
 
-    // トーンマッピング
-    color.rgb = GT_Tonemap(color.rgb);
+        // トーンマッピング
+        color.rgb = GT_Tonemap(color.rgb);
+    }
 
     // scRGBに変換
     color.rgb = ToScRGB(color.rgb);
