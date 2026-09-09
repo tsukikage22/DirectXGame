@@ -392,3 +392,6 @@ imgui.ini
 .codacy
 
 *.draft.md
+
+DirectXGame-v*/
+DirectXGame-v*.zip
