@@ -111,6 +111,11 @@ PSOutput main(VSOutput input)
     float roughness = metallicRoughnessTex.g * g_material.roughnessFactor;
     float ao = aoTex * g_material.occlusionFactor;
 
+    // white furnace testの場合はaoを1.0fにする
+    if(g_scene.debugView == DEBUG_VIEW_WHITE) {
+        ao = 1.0f;
+    }
+
     // roughnessを0.045f以上に制限する（GGX分布の計算で0に近い値を使うと不安定になるため）
     roughness = max(roughness, MIN_ROUGHNESS);
 
@@ -181,14 +186,17 @@ PSOutput main(VSOutput input)
     // IBL
     litColor += EvaluateIBL(N, V, baseColor.rgb, metallic, roughness, ao, F0, f_ab);
 
-    // 露出の適用
-    litColor *= g_scene.exposure;
+    // white furnace testの場合は露出やトーンマップの影響を受けない
+    if(g_scene.debugView != DEBUG_VIEW_WHITE) {
+        // 露出の適用
+        litColor *= g_scene.exposure;
 
-    // トーンマップの適用
-    float3 toneMapped = GT_Tonemap(litColor);
+        // トーンマップの適用
+        litColor = GT_Tonemap(litColor);
+    }
 
     // scRGBに変換
-    toneMapped = ToScRGB(toneMapped);
+    float3 displayColor = ToScRGB(litColor);
 
     // デバッグビューの選択
     SurfaceParams surf;
@@ -199,7 +207,7 @@ PSOutput main(VSOutput input)
     surf.N = N;
     surf.V = V;
     surf.shadowFactor = shadowFactor;
-    float3 finalColor = EvaluateDebugView(surf, toneMapped);
+    float3 finalColor = EvaluateDebugView(surf, displayColor);
 
     output.color = float4(finalColor, baseColor.a);
 

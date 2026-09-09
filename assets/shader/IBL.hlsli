@@ -42,11 +42,11 @@ float3 EvaluateIBL(float3 N, float3 V, float3 baseColor, float metallic,
     if(g_scene.debugView == DEBUG_VIEW_WHITE) {
         radiance = 1.0f.xxx;
         irradiance = 1.0f.xxx;
+    } else {
+        // 係数の適用
+        radiance *= g_scene.envIntensity;  
+        irradiance *= g_scene.envIntensity;
     }
-
-    // 係数の適用
-    radiance *= g_scene.envIntensity;  
-    irradiance *= g_scene.envIntensity;
 
     float3 FssEss = f_ab.x * F0 + f_ab.y; 
 
