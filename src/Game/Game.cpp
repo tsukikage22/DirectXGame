@@ -53,18 +53,21 @@ void Game::Init(Engine* pEngine)
 
     // HDRIの読み込みとキューブマップの構築
     AssetPath assetPath;
-    auto path = GetPath(L"HDRI/abandoned_workshop_4k.hdr", assetPath);
+    auto path = GetPath(L"HDRI/noon_grass_4k_nosun.hdr", assetPath);
     if (!m_pEngine->BuildEnvironmentMap(path))
     {
         OutputDebugStringW(L"Failed to build environment map.\n");
     }
 
+    // HDRIごとのEnvIntensityの調整値
     // venice_sunset_4k.hdr の生の水平面照度 2.21 lx を、
-    // golden hour の実測相当 3000 lx に合わせる（3000 / 2.21 ≒ 1357.5）
-    // HDRIを差し替えたら、起動ログの Upper hemisphere illuminanceで割り直す
+    // 日没前の照度 3000 lx に合わせる（3000 / 2.21 ≒ 1357.5）
     // abandoned_workshop_4k.hdr の水平面照度 1.2862 lx
     // 屋内なので500lxを目標に設定する (500 / 1.2862 ≒ 388.7)
-    m_pEngine->GetScene().SetEnvIntensity(388.7f);
+    // noon_grass_4k_nosun.hdr
+    // 太陽を除いた晴天正午の照度 15000lx を目標とする（15000 / 1.10634 ≒ 13558）
+    // 太陽として100000のディレクショナルライトを配置する
+    m_pEngine->GetScene().SetEnvIntensity(13558.0f);
 
     // モデルのロード
     auto loader       = m_pEngine->CreateAssetLoadScope();
@@ -87,7 +90,7 @@ void Game::Init(Engine* pEngine)
         m_directionalLight = m_pEngine->GetScene().SpawnDirectionalLight({
             .direction   = { 0.0f, -1.0f, 0.0f },
             .color       = { 1.0f, 1.0f, 1.0f },
-            .illuminance = 2000.0f,
+            .illuminance = 100000.0f,
         });
     }
 
