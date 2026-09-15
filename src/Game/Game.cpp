@@ -28,6 +28,22 @@ std::filesystem::path GetPath(const std::filesystem::path& filename, AssetPath a
     return path.value_or(std::filesystem::path{});
 }
 
+/// @brief HDRIとその明るさ合わせの係数の組
+struct HdriPreset
+{
+    const wchar_t* path; // HDRIのパス
+    float envIntensity;  // 目標照度 / HDRIの生の水平面照度
+};
+
+// 水平面照度 2.21 lx， 目標照度は日没前の 3000 lx
+constexpr HdriPreset kVeniceSunset{ L"HDRI/venice_sunset_4k.hdr", 1357.5f };
+// 水平面照度 1.2862 lx， 目標照度は屋内の 500 lx
+constexpr HdriPreset kAbandonedWorkshop{ L"HDRI/abandoned_workshop_4k.hdr", 388.7f };
+// 水平面照度 1.10634 lx， 目標照度は太陽を除いた晴天正午の 15000 lx
+constexpr HdriPreset kNoonGrassNosun{ L"HDRI/noon_grass_4k_nosun.hdr", 13558.0f };
+
+constexpr const HdriPreset& kActiveHdri = kNoonGrassNosun;
+
 } // namespace
 
 Game::Game() : m_pEngine(nullptr), m_pCameraController(std::make_unique<CameraController>())
@@ -53,21 +69,13 @@ void Game::Init(Engine* pEngine)
 
     // HDRIの読み込みとキューブマップの構築
     AssetPath assetPath;
-    auto path = GetPath(L"HDRI/noon_grass_4k_nosun.hdr", assetPath);
+    auto path = GetPath(kActiveHdri.path, assetPath);
     if (!m_pEngine->BuildEnvironmentMap(path))
     {
         OutputDebugStringW(L"Failed to build environment map.\n");
     }
 
-    // HDRIごとのEnvIntensityの調整値
-    // venice_sunset_4k.hdr の生の水平面照度 2.21 lx を、
-    // 日没前の照度 3000 lx に合わせる（3000 / 2.21 ≒ 1357.5）
-    // abandoned_workshop_4k.hdr の水平面照度 1.2862 lx
-    // 屋内なので500lxを目標に設定する (500 / 1.2862 ≒ 388.7)
-    // noon_grass_4k_nosun.hdr
-    // 太陽を除いた晴天正午の照度 15000lx を目標とする（15000 / 1.10634 ≒ 13558）
-    // 太陽として100000のディレクショナルライトを配置する
-    m_pEngine->GetScene().SetEnvIntensity(13558.0f);
+    m_pEngine->GetScene().SetEnvIntensity(kActiveHdri.envIntensity);
 
     // モデルのロード
     auto loader       = m_pEngine->CreateAssetLoadScope();
