@@ -78,6 +78,8 @@ void Game::Init(Engine* pEngine)
     m_testSphereModel = loader.LoadModel(path);
     path              = GetPath(L"model/demo_scene.glb", assetPath);
     m_demoSceneModel  = loader.LoadModel(path);
+    path              = GetPath(L"model/ShaderBall_grid.glb", assetPath);
+    m_shaderballModel = loader.LoadModel(path);
 
     // ライトの作成
     // Directional
@@ -264,6 +266,29 @@ void Game::Tick(float deltaTime)
         {
             m_pEngine->GetScene().DespawnObject(m_demoSceneObject);
             m_demoSceneObject = {};
+        }
+    }
+
+    if (m_pInputSystem->WasKeyPressed('6'))
+    {
+        if (!m_shaderballObject.IsValid())
+        {
+            m_shaderballObject = m_pEngine->GetScene().SpawnObject(m_shaderballModel);
+            auto shaderball    = m_pEngine->GetScene().GetObject(m_shaderballObject);
+            shaderball->GetTransform().SetPosition({ -7.0f, 0.0f, 5.0f });
+
+            auto& camera = m_pEngine->GetScene().GetCamera();
+            camera.GetTransform().SetPosition({ 0.0f, 10.0f, -5.0f });
+            camera.GetTransform().SetRotation(35.0f, 0.0f, 0.0f);
+
+            // CameraControllerの状態更新
+            m_pCameraController->SetPitch(35.0f);
+            m_pCameraController->SetYaw(0.0f);
+        }
+        else
+        {
+            m_pEngine->GetScene().DespawnObject(m_shaderballObject);
+            m_shaderballObject = {};
         }
     }
 
