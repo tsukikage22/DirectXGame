@@ -28,6 +28,25 @@ std::filesystem::path GetPath(const std::filesystem::path& filename, AssetPath a
     return path.value_or(std::filesystem::path{});
 }
 
+/// @brief HDRIとその明るさ合わせの係数の組
+struct HdriPreset
+{
+    const wchar_t* path; // HDRIのパス
+    float envIntensity;  // 目標照度 / HDRIの生の水平面照度
+};
+
+// 水平面照度 2.21 lx， 目標照度は日没前の 3000 lx
+constexpr HdriPreset kVeniceSunset{ L"HDRI/venice_sunset_4k.hdr", 1357.5f };
+// 水平面照度 1.2862 lx， 目標照度は屋内の 500 lx
+// 2000 lx のディレクショナルライトを主光源として配置する（環境光に対して4:1の比率）
+// これは影を見るための光源で，実在の光源ではない
+constexpr HdriPreset kAbandonedWorkshop{ L"HDRI/abandoned_workshop_4k.hdr", 388.7f };
+// 水平面照度 1.10634 lx， 目標照度は太陽を除いた晴天正午の 15000 lx
+// この場合は 100000 lx のディレクショナルライトを太陽として配置し，EV100を15に設定する
+constexpr HdriPreset kNoonGrassNosun{ L"HDRI/noon_grass_4k_nosun.hdr", 13558.0f };
+
+constexpr const HdriPreset& kActiveHdri = kAbandonedWorkshop;
+
 } // namespace
 
 Game::Game() : m_pEngine(nullptr), m_pCameraController(std::make_unique<CameraController>())
@@ -53,18 +72,13 @@ void Game::Init(Engine* pEngine)
 
     // HDRIの読み込みとキューブマップの構築
     AssetPath assetPath;
-    auto path = GetPath(L"HDRI/abandoned_workshop_4k.hdr", assetPath);
+    auto path = GetPath(kActiveHdri.path, assetPath);
     if (!m_pEngine->BuildEnvironmentMap(path))
     {
         OutputDebugStringW(L"Failed to build environment map.\n");
     }
 
-    // venice_sunset_4k.hdr の生の水平面照度 2.21 lx を、
-    // golden hour の実測相当 3000 lx に合わせる（3000 / 2.21 ≒ 1357.5）
-    // HDRIを差し替えたら、起動ログの Upper hemisphere illuminanceで割り直す
-    // abandoned_workshop_4k.hdr の水平面照度 1.2862 lx
-    // 屋内なので500lxを目標に設定する (500 / 1.2862 ≒ 388.7)
-    m_pEngine->GetScene().SetEnvIntensity(388.7f);
+    m_pEngine->GetScene().SetEnvIntensity(kActiveHdri.envIntensity);
 
     // モデルのロード
     auto loader       = m_pEngine->CreateAssetLoadScope();
@@ -78,6 +92,8 @@ void Game::Init(Engine* pEngine)
     m_testSphereModel = loader.LoadModel(path);
     path              = GetPath(L"model/demo_scene.glb", assetPath);
     m_demoSceneModel  = loader.LoadModel(path);
+    path              = GetPath(L"model/ShaderBall_grid.glb", assetPath);
+    m_shaderballModel = loader.LoadModel(path);
 
     // ライトの作成
     // Directional
@@ -264,6 +280,29 @@ void Game::Tick(float deltaTime)
         {
             m_pEngine->GetScene().DespawnObject(m_demoSceneObject);
             m_demoSceneObject = {};
+        }
+    }
+
+    if (m_pInputSystem->WasKeyPressed('6'))
+    {
+        if (!m_shaderballObject.IsValid())
+        {
+            m_shaderballObject = m_pEngine->GetScene().SpawnObject(m_shaderballModel);
+            auto shaderball    = m_pEngine->GetScene().GetObject(m_shaderballObject);
+            shaderball->GetTransform().SetPosition({ -7.0f, 0.0f, 5.0f });
+
+            auto& camera = m_pEngine->GetScene().GetCamera();
+            camera.GetTransform().SetPosition({ 0.0f, 10.0f, -5.0f });
+            camera.GetTransform().SetRotation(35.0f, 0.0f, 0.0f);
+
+            // CameraControllerの状態更新
+            m_pCameraController->SetPitch(35.0f);
+            m_pCameraController->SetYaw(0.0f);
+        }
+        else
+        {
+            m_pEngine->GetScene().DespawnObject(m_shaderballObject);
+            m_shaderballObject = {};
         }
     }
 

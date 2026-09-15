@@ -35,12 +35,14 @@ private:
     engine::ModelHandle m_planeModel;
     engine::ModelHandle m_testSphereModel;
     engine::ModelHandle m_demoSceneModel;
+    engine::ModelHandle m_shaderballModel;
 
     engine::ObjectHandle m_appleObject;
     engine::ObjectHandle m_katanaObject;
     engine::ObjectHandle m_planeObject;
     engine::ObjectHandle m_testSphereObject;
     engine::ObjectHandle m_demoSceneObject;
+    engine::ObjectHandle m_shaderballObject;
 
     engine::LightHandle m_directionalLight;
 };
