@@ -38,11 +38,14 @@ struct HdriPreset
 // 水平面照度 2.21 lx， 目標照度は日没前の 3000 lx
 constexpr HdriPreset kVeniceSunset{ L"HDRI/venice_sunset_4k.hdr", 1357.5f };
 // 水平面照度 1.2862 lx， 目標照度は屋内の 500 lx
+// 2000 lx のディレクショナルライトを主光源として配置する（環境光に対して4:1の比率）
+// これは影を見るための光源で，実在の光源ではない
 constexpr HdriPreset kAbandonedWorkshop{ L"HDRI/abandoned_workshop_4k.hdr", 388.7f };
 // 水平面照度 1.10634 lx， 目標照度は太陽を除いた晴天正午の 15000 lx
+// この場合は 100000 lx のディレクショナルライトを太陽として配置し，EV100を15に設定する
 constexpr HdriPreset kNoonGrassNosun{ L"HDRI/noon_grass_4k_nosun.hdr", 13558.0f };
 
-constexpr const HdriPreset& kActiveHdri = kNoonGrassNosun;
+constexpr const HdriPreset& kActiveHdri = kAbandonedWorkshop;
 
 } // namespace
 
@@ -98,7 +101,7 @@ void Game::Init(Engine* pEngine)
         m_directionalLight = m_pEngine->GetScene().SpawnDirectionalLight({
             .direction   = { 0.0f, -1.0f, 0.0f },
             .color       = { 1.0f, 1.0f, 1.0f },
-            .illuminance = 100000.0f,
+            .illuminance = 2000.0f,
         });
     }
 
