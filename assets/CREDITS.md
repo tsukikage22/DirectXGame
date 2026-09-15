@@ -9,6 +9,9 @@
 | -------------------------------- | ----------------------------------------------------------------------------- | ---------------- | ---------- | ---------- |
 | `HDRI/abandoned_workshop_4k.hdr` | [Poly Haven — Abandoned workshop](https://polyhaven.com/a/abandoned_workshop) | Sergej Majboroda | CC0        | 2026-09-08 |
 | `HDRI/venice_sunset_4k.hdr`      | [Poly Haven — Venice Sunset](https://polyhaven.com/a/venice_sunset)           | Greg Zaal        | CC0        | 2026-09-07 |
+| `HDRI/noon_grass_4k_nosun.hdr`   | [Poly Haven — Noon Grass](https://polyhaven.com/a/noon_grass)                 | Greg Zaal        | CC0        | 2026-09-15 |
+
+`HDRI/noon_grass_4k_nosun.hdr` は，Noon Grass (4K) から画像編集で太陽を除去したものです．太陽はディレクショナルライトで表現しています．
 
 ## 3D モデル
 
@@ -37,6 +40,7 @@
 - `model/Plane.glb`
 - `model/white_furnace_sphere.glb`
 - `model/lowpoly_apple.glb`
+- `model/ShaderBall_grid.glb`
 - `model/demo_scene.glb` に含まれる床の形状（テクスチャは上記の Wooden Floor 01）
 
 ## IES プロファイル
