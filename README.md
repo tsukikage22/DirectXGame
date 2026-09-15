@@ -224,8 +224,9 @@ git clone https://github.com/tsukikage22/DirectXGame.git
 cd DirectXGame
 ```
 
-HDRI はリポジトリに含めていないため，別途取得してください．
-[Poly Haven](https://polyhaven.com/a/abandoned_workshop) から `abandoned_workshop_4k.hdr`（4K）をダウンロードし，`assets/HDRI/` に配置します．
+HDRI・3D モデルはリポジトリに含めていません．
+[Releases](https://github.com/tsukikage22/DirectXGame/releases) の zip に含まれる `assets/` を，リポジトリの `assets/` に配置してください．
+出典は [assets/CREDITS.md](assets/CREDITS.md) を参照してください．
 
 `DirectXGame.sln` を Visual Studio 2022 で開き，構成を `Release | x64` にしてビルドします．
 依存ライブラリは `vcpkg.json` に記述してあり，ビルド時に自動で取得・ビルドされます（初回は時間がかかります）．
