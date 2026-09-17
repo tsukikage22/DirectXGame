@@ -9,6 +9,7 @@
 #include "Engine/Engine.h"
 
 #include <cstdint>
+#include <pix3.h>
 
 #include "Engine/Debug/DebugUI.h"
 #include "Engine/Resource/AssetLoadScope.h"
@@ -83,28 +84,38 @@ void Engine::Update()
 void Engine::Render()
 {
     // シャドウマップの描画
+    PIXBeginEvent(m_Renderer.GetCommandList(), PIX_COLOR(140, 90, 200), L"Shadow Pass");
     m_Renderer.BeginShadowPass();
     if (m_Renderer.HasShadowLight())
     {
         m_ShadowPass.Draw(m_Renderer.MakeShadowPassBindings(), m_Scene);
     }
     m_Renderer.EndShadowPass();
+    PIXEndEvent(m_Renderer.GetCommandList());
 
     // シーンの描画
+    PIXBeginEvent(m_Renderer.GetCommandList(), PIX_COLOR(80, 180, 100), L"Scene Pass");
     m_Renderer.BeginScenePass();
     m_ScenePass.Draw(m_Renderer.MakeScenePassBindings(m_AssetSystem), m_Scene);
+    PIXEndEvent(m_Renderer.GetCommandList());
 
     // スカイボックスの描画
+    PIXBeginEvent(m_Renderer.GetCommandList(), PIX_COLOR(80, 170, 220), L"Skybox Pass");
     m_SkyboxPass.Draw(m_Renderer.MakeSkyboxPassBindings(m_AssetSystem));
+    PIXEndEvent(m_Renderer.GetCommandList());
 
     // デバッグUIの描画
     if (m_DebugUI.IsVisible())
     {
+        PIXBeginEvent(m_Renderer.GetCommandList(), PIX_COLOR(230, 150, 60), L"UI Pass");
         m_DebugUI.Render(m_Renderer.GetUITarget(), m_Renderer.GetCommandList());
+        PIXEndEvent(m_Renderer.GetCommandList());
 
         // シーン描画とUI描画の合成
+        PIXBeginEvent(m_Renderer.GetCommandList(), PIX_COLOR(220, 200, 70), L"Composite Pass");
         m_Renderer.BeginCompositePass();
         m_CompositePass.Draw(m_Renderer.MakeCompositePassBindings());
+        PIXEndEvent(m_Renderer.GetCommandList());
     }
 }
 
