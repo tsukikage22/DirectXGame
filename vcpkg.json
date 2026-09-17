@@ -2,6 +2,7 @@
   "name": "mygame",
   "version-string": "0.1.0",
   "dependencies": [
+    "winpixevent",
     "directxtk12",
     "assimp",
     "directx-dxc",
