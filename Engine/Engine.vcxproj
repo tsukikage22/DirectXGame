@@ -150,6 +150,7 @@
     <ClInclude Include="..\include\Engine\Debug\DebugUI.h" />
     <ClInclude Include="..\include\Engine\Graphics\ComputePipelineBuilder.h" />
     <ClInclude Include="..\include\Engine\Graphics\RenderTargetLayout.h" />
+    <ClInclude Include="..\include\Engine\Graphics\ScreenCapture.h" />
     <ClInclude Include="..\include\Engine\Render\CompositePass.h" />
     <ClInclude Include="..\include\Engine\Render\IBLBaker.h" />
     <ClInclude Include="..\include\Engine\Render\PassBindings.h" />
@@ -216,6 +217,7 @@
     <ClCompile Include="..\src\Engine\Core\GraphicsDevice.cpp" />
     <ClCompile Include="..\src\Engine\Debug\DebugUI.cpp" />
     <ClCompile Include="..\src\Engine\Graphics\ComputePipelineBuilder.cpp" />
+    <ClCompile Include="..\src\Engine\Graphics\ScreenCapture.cpp" />
     <ClCompile Include="..\src\Engine\Render\CompositePass.cpp" />
     <ClCompile Include="..\src\Engine\Render\IBLBaker.cpp" />
     <ClCompile Include="..\src\Engine\Render\Renderer.cpp" />
