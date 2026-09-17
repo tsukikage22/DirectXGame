@@ -20,6 +20,13 @@ int Application::Run()
 // 初期化（ウィンドウの作成，D3D・ゲームロジックの初期化）
 bool Application::Init()
 {
+    // COM初期化
+    auto hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    if (FAILED(hr))
+    {
+        return false;
+    }
+
     // ウィンドウの作成
     const int windowWidth  = 1280;
     const int windowHeight = 720;
@@ -49,11 +56,14 @@ bool Application::Init()
 
 void Application::Term()
 {
+    // エンジンの終了処理
+    m_Engine.Shutdown();
+
     // ウィンドウの破棄
     m_Window.Destroy();
 
-    // エンジンの終了処理
-    m_Engine.Shutdown();
+    // COMの終了処理
+    CoUninitialize();
 }
 
 void Application::MainLoop()
