@@ -200,6 +200,26 @@ roughness が低いほど失われるエネルギーが小さいため，補償�
 - 鏡面反射の計算で，フレネルの近似式を2回掛けてしまっていた
 - GGX の重要度サンプリングで，本来使うべきサンプルを捨てていた
 
+### PIX による GPU 時間の計測
+
+各描画パスに [WinPixEventRuntime](https://github.com/microsoft/PixEvents) のマーカーを埋め込み，
+[PIX for Windows](https://devblogs.microsoft.com/pix/) の GPU キャプチャでパスごとの GPU 時間を計測できるようにしています．
+マーカーを有効にした `Profile` 構成を別に用意しているため，配布する Release ビルドには影響しません．
+
+RTX 4070 / 1280×720 / デモシーンとデバッグ UI を表示した状態での実測値です．
+
+| パス                     |     GPU 時間 |     割合 |
+| ------------------------ | -----------: | -------: |
+| Scene Pass               |     189.4 µs |      72% |
+| Shadow Pass              |      25.6 µs |      10% |
+| UI Pass（ImGui）         |      22.5 µs |       9% |
+| Composite Pass           |       9.2 µs |       4% |
+| Skybox Pass              |       8.2 µs |       3% |
+| その他（リソースバリア） |       7.3 µs |       3% |
+| **合計**                 | **262.3 µs** | **100%** |
+
+144Hz の1フレーム 6.94 ms に対して，GPU の実作業は 0.26 ms でした．**フレーム時間の大半は VSync の待ちです．**
+
 ### 開発の進め方
 
 - `.clang-format` によるフォーマットの統一．全体を再整形したコミットは `.git-blame-ignore-revs` に登録し，`git blame` の結果に影響しないようにしています
@@ -306,6 +326,7 @@ DirectXGame/
 | [Assimp](https://github.com/assimp/assimp)                                    | 3D モデル（GLB/glTF）の読み込み                      |
 | [DirectX Shader Compiler](https://github.com/microsoft/DirectXShaderCompiler) | HLSL のコンパイル                                    |
 | [Dear ImGui](https://github.com/ocornut/imgui)                                | デバッグ UI                                          |
+| [WinPixEventRuntime](https://github.com/microsoft/PixEvents)                  | GPU イベントマーカー（`Profile` 構成のみ）           |
 
 ---
 
