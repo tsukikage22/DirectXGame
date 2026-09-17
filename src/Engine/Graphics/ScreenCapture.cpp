@@ -44,7 +44,7 @@ bool ScreenCapture::RecordCopy(ID3D12GraphicsCommandList* commandList, ID3D12Res
     heapProps.VisibleNodeMask       = 1;
 
     auto hr = m_pDevice->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &readbackDesc,
-        D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(m_pReadbackBuffer.GetAddressOf()));
+        D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(m_pReadbackBuffer.ReleaseAndGetAddressOf()));
     CHECK_HR(m_pDevice, hr);
 
     // コマンドリストにコピーコマンドを記録する（リソースバリアは呼び出し側）
