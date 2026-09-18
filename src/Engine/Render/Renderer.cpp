@@ -440,8 +440,8 @@ void Renderer::EndFrame()
 
         std::filesystem::path screenshotPath = MakeScreenshotPath();
         m_screenCapture.SaveAsPNG(screenshotPath.c_str(), paperWhiteNits);
-        m_isScreenCaptureRequested = false;
     }
+    m_isScreenCaptureRequested = false;
 }
 
 // モニター変更の検出
