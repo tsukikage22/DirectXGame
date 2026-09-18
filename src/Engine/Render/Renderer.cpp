@@ -105,7 +105,7 @@ DirectX::XMMATRIX MakeLightViewProjMatrix(
     return XMMatrixMultiply(view, proj);
 }
 
-std::filesystem::path MakeScreenshotPass()
+std::filesystem::path MakeScreenshotPath()
 {
     using namespace std::chrono;
 
@@ -438,7 +438,7 @@ void Renderer::EndFrame()
         m_pDevice->WaitForGPU();
         float paperWhiteNits = m_displayConstantsGPU.GetConstants().paperWhiteNits;
 
-        std::filesystem::path screenshotPath = MakeScreenshotPass();
+        std::filesystem::path screenshotPath = MakeScreenshotPath();
         m_screenCapture.SaveAsPNG(screenshotPath.c_str(), paperWhiteNits);
         m_isScreenCaptureRequested = false;
     }
