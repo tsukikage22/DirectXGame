@@ -17,6 +17,9 @@ public:
     /// @param device デバイス
     void Init(ID3D12Device* device);
 
+    /// @brief 終了処理を行う
+    void Term();
+
     /// @brief リソースの内容をリードバックバッファにコピーするコマンドを記録する
     /// @param pCmdList コマンドリスト
     /// @param pSource コピー元のリソース

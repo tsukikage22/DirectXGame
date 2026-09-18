@@ -200,6 +200,9 @@ void Renderer::Term()
 {
     m_pDevice = nullptr;
 
+    // 画面キャプチャ用クラスの終了処理
+    m_screenCapture.Term();
+
     // ディスプレイCBの破棄
     m_displayConstantsGPU.Term();
 
