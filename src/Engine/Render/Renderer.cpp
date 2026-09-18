@@ -110,7 +110,7 @@ std::filesystem::path MakeScreenshotPath()
     using namespace std::chrono;
 
     // 現在時刻
-    auto now = floor<seconds>(system_clock::now());
+    auto now = floor<milliseconds>(system_clock::now());
 
     // PCのタイムゾーンに合わせる
     zoned_time localTime{ current_zone(), now };
