@@ -311,4 +311,10 @@ void Game::Tick(float deltaTime)
     {
         m_pEngine->ToggleDebugUI();
     }
+
+    // スクリーンショット
+    if (m_pInputSystem->WasKeyPressed(VK_F2))
+    {
+        m_pEngine->RequestScreenCapture();
+    }
 }

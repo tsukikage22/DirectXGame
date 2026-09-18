@@ -3,7 +3,11 @@
 #include <Windows.h>
 
 #include <array>
+#include <chrono>
 #include <cmath>
+#include <filesystem>
+#include <format>
+#include <system_error>
 
 #include "Engine/Core/ComPtr.h"
 #include "Engine/Core/DxDebug.h"
@@ -101,6 +105,29 @@ DirectX::XMMATRIX MakeLightViewProjMatrix(
     return XMMatrixMultiply(view, proj);
 }
 
+std::filesystem::path MakeScreenshotPass()
+{
+    using namespace std::chrono;
+
+    // 現在時刻
+    auto now = floor<seconds>(system_clock::now());
+
+    // PCのタイムゾーンに合わせる
+    zoned_time localTime{ current_zone(), now };
+
+    // 文字列にする
+    std::wstring fileName = std::format(L"screenshot_{:%Y%m%d_%H%M%S}.png", localTime);
+
+    // フォルダと組み合わせる
+    std::filesystem::path dir = L"screenshots";
+
+    // フォルダがなければ作る
+    std::error_code ec;
+    std::filesystem::create_directories(dir, ec);
+
+    return dir / fileName;
+}
+
 } // namespace
 
 bool Renderer::Init(GraphicsDevice& device, uint32_t width, uint32_t height, HWND hWnd)
@@ -162,6 +189,9 @@ bool Renderer::Init(GraphicsDevice& device, uint32_t width, uint32_t height, HWN
         device.GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
             m_frameResources[GetFrameIndex()].GetCommandAllocator(), nullptr, IID_PPV_ARGS(m_pCmdList.GetAddressOf())));
     m_pCmdList->Close();
+
+    // 画面キャプチャ用クラスの初期化
+    m_screenCapture.Init(device.GetDevice());
 
     return true;
 }
@@ -371,6 +401,24 @@ void Renderer::EndFrame()
         m_shadowMap.GetResource(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
     m_pCmdList->ResourceBarrier(2, barrier);
 
+    // 画面キャプチャの要求がある場合はClose前にコピーを記録し，バリアを遷移させる
+    bool isCopySuccess = false;
+    if (m_isScreenCaptureRequested)
+    {
+        // バックバッファのリソースバリア（Present -> CopySource）
+        D3D12_RESOURCE_BARRIER toCopySource = MakeTransitionBarrier(
+            m_swapChain.GetBackBuffer().GetResource(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_COPY_SOURCE);
+        m_pCmdList->ResourceBarrier(1, &toCopySource);
+
+        // バックバッファをコピー
+        isCopySuccess = m_screenCapture.RecordCopy(m_pCmdList.Get(), m_swapChain.GetBackBuffer().GetResource());
+
+        // バックバッファのリソースバリアを元に戻す（CopySource -> Present）
+        D3D12_RESOURCE_BARRIER toPresent = MakeTransitionBarrier(
+            m_swapChain.GetBackBuffer().GetResource(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_PRESENT);
+        m_pCmdList->ResourceBarrier(1, &toPresent);
+    }
+
     // 2. コマンドリストのクローズ
     m_pCmdList->Close();
 
@@ -383,6 +431,17 @@ void Renderer::EndFrame()
 
     // 5. フェンス値の保存
     m_frameResources[m_swapChain.GetFrameIndex()].EndFrame(fenceValue);
+
+    // 6. GPUを待機し，画面キャプチャを保存する
+    if (m_isScreenCaptureRequested && isCopySuccess)
+    {
+        m_pDevice->WaitForGPU();
+        float paperWhiteNits = m_displayConstantsGPU.GetConstants().paperWhiteNits;
+
+        std::filesystem::path screenshotPath = MakeScreenshotPass();
+        m_screenCapture.SaveToFile(screenshotPath.c_str(), paperWhiteNits);
+        m_isScreenCaptureRequested = false;
+    }
 }
 
 // モニター変更の検出

@@ -47,6 +47,12 @@ public:
         return m_constantBuffer.GetGPUVirtualAddress();
     }
 
+    /// @brief 定数バッファ用データの取得
+    shader::DisplayConstants& GetConstants()
+    {
+        return m_constants;
+    }
+
 private:
     ConstantBuffer m_constantBuffer;
     shader::DisplayConstants m_constants; // 定数バッファ用データ
