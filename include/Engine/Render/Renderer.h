@@ -9,6 +9,7 @@
 #include "Engine/Core/FrameResource.h"
 #include "Engine/Graphics/ColorTarget.h"
 #include "Engine/Graphics/DepthTarget.h"
+#include "Engine/Graphics/ScreenCapture.h"
 #include "Engine/Render/PassBindings.h"
 #include "Engine/Render/SwapChain.h"
 #include "Engine/Shader/DisplayConstantsGPU.h"
@@ -112,6 +113,12 @@ public:
         return m_shadowLightIndex != shader::kInvalidLightIndex;
     }
 
+    /// @brief 画面キャプチャの要求
+    void RequestScreenCapture()
+    {
+        m_isScreenCaptureRequested = true;
+    }
+
     //==========================================================
     // アクセサ
     //==========================================================
@@ -147,12 +154,15 @@ private:
     DepthTarget m_depthTarget;           // 深度バッファ
     DepthTarget m_shadowMap;             // シャドウマップ
     ColorTarget m_uiTarget;              // UI用レンダーターゲット
+    ScreenCapture m_screenCapture;       // 画面キャプチャ
 
     FrameResource m_frameResources[config::kFrameCount]; // フレームリソース
 
     DisplayInfo m_displayInfo = {};            // ディスプレイ情報
     DisplayConstantsGPU m_displayConstantsGPU; // ディスプレイCB
     HWND m_hWnd = nullptr;                     // ウィンドウハンドル
+
+    bool m_isScreenCaptureRequested = false; // 画面キャプチャの要求フラグ
 
     // シャドウマップを生成するライトのインデックス
     // ライトの有無をもとに描画命令をスキップするかを決めるために使う

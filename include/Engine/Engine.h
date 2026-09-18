@@ -81,6 +81,12 @@ public:
         m_DebugUI.ToggleVisibility();
     }
 
+    /// @brief 画面キャプチャの要求
+    void RequestScreenCapture()
+    {
+        m_Renderer.RequestScreenCapture();
+    }
+
     //==================================================================
     // アクセサ
     //==================================================================
