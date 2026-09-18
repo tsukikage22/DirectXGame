@@ -308,6 +308,48 @@ LRESULT Window::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
+void Window::ToggleFullscreen()
+{
+    if (!m_isFullscreen)
+    {
+        // フルスクリーンに切り替える場合の処理
+        // フルスクリーンにする前に切り替え前のWINDOWPLACEMENTとスタイルを保存する（戻す時に使う）
+        m_windowPlacement.length = sizeof(WINDOWPLACEMENT);
+        if (!GetWindowPlacement(m_hWnd, &m_windowPlacement))
+        {
+            return; // 失敗した場合は中止
+        }
+        m_windowStyle = GetWindowLongPtr(m_hWnd, GWL_STYLE);
+
+        // 現在のモニタ情報を取得する
+        HMONITOR monitor        = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO monitorInfo = { sizeof(MONITORINFO) };
+        if (!GetMonitorInfo(monitor, &monitorInfo))
+        {
+            return; // 失敗した場合は中止
+        }
+
+        // タイトルバーと枠を外す
+        SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_POPUP | WS_VISIBLE);
+
+        // 現在のモニタのサイズに合わせる
+        SetWindowPos(m_hWnd, HWND_TOP, monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top,
+            monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
+            monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top, SWP_FRAMECHANGED);
+
+        m_isFullscreen = true;
+    }
+    else
+    {
+        // ウィンドウモードに戻す場合の処理
+        SetWindowLongPtr(m_hWnd, GWL_STYLE, m_windowStyle);
+        SetWindowPlacement(m_hWnd, &m_windowPlacement);
+        SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+
+        m_isFullscreen = false;
+    }
+}
+
 void Window::NotifyResize()
 {
     // サイズが変わっていなければ通知しない
