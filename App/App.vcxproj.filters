@@ -33,4 +33,7 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="App.manifest" />
+  </ItemGroup>
 </Project>
