@@ -269,7 +269,11 @@ HDRI・3D モデルはリポジトリに含めていません．
 | マウス右ドラッグ | カメラの回転                           |
 | 1 〜 6           | モデルの表示 / 非表示の切り替え        |
 | F1               | デバッグ UI の表示 / 非表示の切り替え  |
+| F2               | スクリーンショットの保存               |
 | ImGui パネル     | 露出・ライト・デバッグビューの切り替え |
+
+> スクリーンショットは，実行時の作業ディレクトリ直下の`screenshots/`に，
+> `screenshot_YYYYMMDD_HHMMSS.png`という名前で保存されます
 
 各キーに割り当てられているモデルは以下のとおりです．
 
@@ -319,14 +323,14 @@ DirectXGame/
 
 ## 使用ライブラリ
 
-| ライブラリ                                                                    | 用途                                                 |
-| ----------------------------------------------------------------------------- | ---------------------------------------------------- |
-| [DirectXTK12](https://github.com/microsoft/DirectXTK12)                       | D3D12 のユーティリティ（リソースのアップロードなど） |
-| [DirectXTex](https://github.com/microsoft/DirectXTex)                         | テクスチャの読み込みと処理                           |
-| [Assimp](https://github.com/assimp/assimp)                                    | 3D モデル（GLB/glTF）の読み込み                      |
-| [DirectX Shader Compiler](https://github.com/microsoft/DirectXShaderCompiler) | HLSL のコンパイル                                    |
-| [Dear ImGui](https://github.com/ocornut/imgui)                                | デバッグ UI                                          |
-| [WinPixEventRuntime](https://github.com/microsoft/PixEvents)                  | GPU イベントマーカー（`Profile` 構成のみ）           |
+| ライブラリ                                                                    | 用途                                                        |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| [DirectXTK12](https://github.com/microsoft/DirectXTK12)                       | D3D12 のユーティリティ（リソースのアップロードなど）        |
+| [DirectXTex](https://github.com/microsoft/DirectXTex)                         | テクスチャの読み込みと処理，スクリーンショットのPNG書き出し |
+| [Assimp](https://github.com/assimp/assimp)                                    | 3D モデル（GLB/glTF）の読み込み                             |
+| [DirectX Shader Compiler](https://github.com/microsoft/DirectXShaderCompiler) | HLSL のコンパイル                                           |
+| [Dear ImGui](https://github.com/ocornut/imgui)                                | デバッグ UI                                                 |
+| [WinPixEventRuntime](https://github.com/microsoft/PixEvents)                  | GPU イベントマーカー（`Profile` 構成のみ）                  |
 
 ---
 
