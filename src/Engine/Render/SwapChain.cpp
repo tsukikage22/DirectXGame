@@ -26,6 +26,9 @@ bool SwapChain::Init(GraphicsDevice& graphicsDevice, uint32_t width, uint32_t he
         graphicsDevice.GetFactory()->CreateSwapChainForHwnd(
             graphicsDevice.GetCommandQueue().GetD3DQueue(), hWnd, &desc, nullptr, nullptr, pSwapChain.GetAddressOf()));
 
+    // Alt+Enterによるフルスクリーン切り替えを無効化
+    graphicsDevice.GetFactory()->MakeWindowAssociation(hWnd, DXGI_MWA_NO_ALT_ENTER);
+
     // IDXGISwapChain3を取得
     CHECK_HR(graphicsDevice.GetDevice(), pSwapChain.As(&m_pSwapChain));
 
