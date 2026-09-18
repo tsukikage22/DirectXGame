@@ -15,12 +15,12 @@ void ScreenCapture::Init(ID3D12Device* device)
     m_pDevice = device;
 }
 
-bool ScreenCapture::RecordCopy(ID3D12GraphicsCommandList* commandList, ID3D12Resource* backBuffer)
+bool ScreenCapture::RecordReadback(ID3D12GraphicsCommandList* commandList, ID3D12Resource* backBuffer)
 {
     // 必要バイト数を取得する
     D3D12_RESOURCE_DESC desc = backBuffer->GetDesc();
     UINT64 totalBytes        = 0;
-    m_pDevice->GetCopyableFootprints(&desc, 0, 1, 0, &m_dstFootprint, nullptr, nullptr, &totalBytes);
+    m_pDevice->GetCopyableFootprints(&desc, 0, 1, 0, &m_readbackFootprint, nullptr, nullptr, &totalBytes);
 
     // READBACKバッファの作成
     D3D12_RESOURCE_DESC readbackDesc = {};
@@ -56,17 +56,17 @@ bool ScreenCapture::RecordCopy(ID3D12GraphicsCommandList* commandList, ID3D12Res
     D3D12_TEXTURE_COPY_LOCATION dstLocation = {};
     dstLocation.pResource                   = m_pReadbackBuffer.Get();
     dstLocation.Type                        = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-    dstLocation.PlacedFootprint             = m_dstFootprint;
+    dstLocation.PlacedFootprint             = m_readbackFootprint;
 
     commandList->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
 
     return true;
 }
 
-bool ScreenCapture::SaveToFile(const wchar_t* filename, float paperWhiteNits)
+bool ScreenCapture::SaveAsPNG(const wchar_t* filename, float paperWhiteNits)
 {
-    const uint32_t width  = m_dstFootprint.Footprint.Width;
-    const uint32_t height = m_dstFootprint.Footprint.Height;
+    const uint32_t width  = m_readbackFootprint.Footprint.Width;
+    const uint32_t height = m_readbackFootprint.Footprint.Height;
 
     // READBACKバッファをvectorにmapする
     uint8_t* mappedData   = nullptr;
@@ -75,7 +75,7 @@ bool ScreenCapture::SaveToFile(const wchar_t* filename, float paperWhiteNits)
     CHECK_HR(m_pDevice, hr);
 
     // 出力バッファ
-    std::vector<uint8_t> output(static_cast<size_t>(width) * height * 4);
+    std::vector<uint8_t> sdrPixels(static_cast<size_t>(width) * height * 4);
 
     // 保存のためにピクセル変換を行う
     for (UINT row = 0; row < height; row++)
@@ -83,8 +83,8 @@ bool ScreenCapture::SaveToFile(const wchar_t* filename, float paperWhiteNits)
         // 行の開始位置
         // READBACKバッファの各行の後ろにパディングがあるため，１行の長さをRowPitchで計算する
         const uint8_t* srcRow =
-            mappedData + m_dstFootprint.Offset + static_cast<size_t>(row) * m_dstFootprint.Footprint.RowPitch;
-        uint8_t* dstRow = output.data() + static_cast<size_t>(row) * width * 4;
+            mappedData + m_readbackFootprint.Offset + static_cast<size_t>(row) * m_readbackFootprint.Footprint.RowPitch;
+        uint8_t* dstRow = sdrPixels.data() + static_cast<size_t>(row) * width * 4;
 
         for (uint32_t col = 0; col < width; col++)
         {
@@ -128,7 +128,7 @@ bool ScreenCapture::SaveToFile(const wchar_t* filename, float paperWhiteNits)
     image.format         = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
     image.rowPitch       = static_cast<size_t>(width) * 4;
     image.slicePitch     = image.rowPitch * height;
-    image.pixels         = output.data();
+    image.pixels         = sdrPixels.data();
 
     hr = DirectX::SaveToWICFile(image, DirectX::WIC_FLAGS_NONE, DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG), filename);
     CHECK_HR(m_pDevice, hr);

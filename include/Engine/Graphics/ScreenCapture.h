@@ -17,18 +17,22 @@ public:
     /// @param device デバイス
     void Init(ID3D12Device* device);
 
-    /// @brief バックバッファの内容をコピーするコマンドを記録する
-    bool RecordCopy(ID3D12GraphicsCommandList* commandList, ID3D12Resource* backBuffer);
+    /// @brief リソースの内容をリードバックバッファにコピーするコマンドを記録する
+    /// @param pCmdList コマンドリスト
+    /// @param pSource コピー元のリソース
+    /// @note pSourceをCOPY_SOURCEに遷移させてから呼ぶこと
+    bool RecordReadback(ID3D12GraphicsCommandList* pCmdList, ID3D12Resource* pSource);
 
     /// @brief キャプチャした内容をファイルに保存する
-    /// @param filename 保存先のファイル名
-    /// @param paperWhiteNits ディスプレイの白色の輝度
-    bool SaveToFile(const wchar_t* filename, float paperWhiteNits);
+    /// @param filePath 保存先のファイルパス
+    /// @param paperWhiteNits scRGBへの変換に使う白色の輝度
+    /// @note GPUの実行完了を待機して呼ぶこと
+    bool SaveAsPNG(const wchar_t* filePath, float paperWhiteNits);
 
 private:
     ID3D12Device* m_pDevice                          = nullptr;
     engine::ComPtr<ID3D12Resource> m_pReadbackBuffer = nullptr;
 
-    // コピー先のフットプリント情報
-    D3D12_PLACED_SUBRESOURCE_FOOTPRINT m_dstFootprint = {};
+    // リードバックバッファのフットプリント情報
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT m_readbackFootprint = {};
 };

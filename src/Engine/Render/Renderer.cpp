@@ -411,7 +411,7 @@ void Renderer::EndFrame()
         m_pCmdList->ResourceBarrier(1, &toCopySource);
 
         // バックバッファをコピー
-        isCopySuccess = m_screenCapture.RecordCopy(m_pCmdList.Get(), m_swapChain.GetBackBuffer().GetResource());
+        isCopySuccess = m_screenCapture.RecordReadback(m_pCmdList.Get(), m_swapChain.GetBackBuffer().GetResource());
 
         // バックバッファのリソースバリアを元に戻す（CopySource -> Present）
         D3D12_RESOURCE_BARRIER toPresent = MakeTransitionBarrier(
@@ -439,7 +439,7 @@ void Renderer::EndFrame()
         float paperWhiteNits = m_displayConstantsGPU.GetConstants().paperWhiteNits;
 
         std::filesystem::path screenshotPath = MakeScreenshotPass();
-        m_screenCapture.SaveToFile(screenshotPath.c_str(), paperWhiteNits);
+        m_screenCapture.SaveAsPNG(screenshotPath.c_str(), paperWhiteNits);
         m_isScreenCaptureRequested = false;
     }
 }
