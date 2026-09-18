@@ -169,6 +169,9 @@ xcopy /E /I /Y /D "$(SolutionDir)assets\ies" "$(OutDir)assets\ies"</Command>
       <Project>{cb9bc3c0-b3f1-4099-b030-49025c61c7ca}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="App.manifest" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

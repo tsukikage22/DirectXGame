@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+<!--
+    DPI認識をPer-Monitor V2に設定する
+    DPI非対応のままだと，表示スケールが100%以外の環境でWM_SIZEが論理ピクセルになり，
+    バックバッファがモニタの物理解像度より小さく作られてしまうため
+-->
+<application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+        <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2</dpiAwareness>
+    </windowsSettings>
+</application>
+</assembly>

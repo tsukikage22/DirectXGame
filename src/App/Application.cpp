@@ -28,6 +28,8 @@ bool Application::Init()
     }
 
     // ウィンドウの作成
+    // サイズは物理ピクセルで指定する（DPI対応済みのため，表示スケールによる拡大は行わない）
+    // 描画解像度とウィンドウのクライアントサイズを一致させるため，論理ピクセルには変換しない
     const int windowWidth  = 1280;
     const int windowHeight = 720;
 
