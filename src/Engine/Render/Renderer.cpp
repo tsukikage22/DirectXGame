@@ -105,12 +105,12 @@ DirectX::XMMATRIX MakeLightViewProjMatrix(
     return XMMatrixMultiply(view, proj);
 }
 
-std::filesystem::path MakeScreenshotPass()
+std::filesystem::path MakeScreenshotPath()
 {
     using namespace std::chrono;
 
     // 現在時刻
-    auto now = floor<seconds>(system_clock::now());
+    auto now = floor<milliseconds>(system_clock::now());
 
     // PCのタイムゾーンに合わせる
     zoned_time localTime{ current_zone(), now };
@@ -199,6 +199,9 @@ bool Renderer::Init(GraphicsDevice& device, uint32_t width, uint32_t height, HWN
 void Renderer::Term()
 {
     m_pDevice = nullptr;
+
+    // 画面キャプチャ用クラスの終了処理
+    m_screenCapture.Term();
 
     // ディスプレイCBの破棄
     m_displayConstantsGPU.Term();
@@ -438,10 +441,10 @@ void Renderer::EndFrame()
         m_pDevice->WaitForGPU();
         float paperWhiteNits = m_displayConstantsGPU.GetConstants().paperWhiteNits;
 
-        std::filesystem::path screenshotPath = MakeScreenshotPass();
+        std::filesystem::path screenshotPath = MakeScreenshotPath();
         m_screenCapture.SaveAsPNG(screenshotPath.c_str(), paperWhiteNits);
-        m_isScreenCaptureRequested = false;
     }
+    m_isScreenCaptureRequested = false;
 }
 
 // モニター変更の検出

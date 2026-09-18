@@ -33,12 +33,14 @@ bool Application::Init()
 
     if (!m_Window.Create(windowWidth, windowHeight, L"DirectX Game"))
     {
+        CoUninitialize();
         return false;
     }
 
     // エンジンの初期化
     if (!m_Engine.Initialize(m_Window.GetHwnd(), windowWidth, windowHeight))
     {
+        CoUninitialize();
         return false;
     }
 

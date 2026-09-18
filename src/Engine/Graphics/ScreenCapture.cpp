@@ -15,6 +15,12 @@ void ScreenCapture::Init(ID3D12Device* device)
     m_pDevice = device;
 }
 
+void ScreenCapture::Term()
+{
+    m_pReadbackBuffer.Reset();
+    m_pDevice = nullptr;
+}
+
 bool ScreenCapture::RecordReadback(ID3D12GraphicsCommandList* commandList, ID3D12Resource* backBuffer)
 {
     // 必要バイト数を取得する
