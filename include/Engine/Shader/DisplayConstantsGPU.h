@@ -48,7 +48,7 @@ public:
     }
 
     /// @brief 定数バッファ用データの取得
-    shader::DisplayConstants& GetConstants()
+    const shader::DisplayConstants& GetConstants() const
     {
         return m_constants;
     }
