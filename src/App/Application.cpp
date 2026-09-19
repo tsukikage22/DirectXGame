@@ -97,6 +97,12 @@ void Application::MainLoop()
             break;
         }
 
+        // フルスクリーンの切り替え
+        if (m_Engine.GetInputSystem().WasKeyPressed(VK_F11))
+        {
+            m_Window.ToggleFullscreen();
+        }
+
         // 4. ゲームロジックの更新
         m_Game.Tick(m_deltaTime);
 
