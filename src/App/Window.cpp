@@ -300,6 +300,11 @@ LRESULT Window::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     }
     break;
 
+    case WM_MENUCHAR: {
+        // Alt+任意キーでエラー音が鳴るのを防ぐ
+        return MAKELRESULT(0, MNC_CLOSE);
+    }
+
     default: {
         return DefWindowProc(hWnd, msg, wParam, lParam);
     }
